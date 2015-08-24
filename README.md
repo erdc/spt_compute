@@ -67,14 +67,14 @@ $ exit
 ##Step 5: Download the source code
 ```
 $ cd /path/to/your/scripts/
-$ git clone https://github.com/CI-WATER/erfp_data_process_ubuntu_aws.git
-$ cd erfp_data_process_ubuntu_aws
+$ git clone https://github.com/erdc-cm/spt_ecmwf_autorapid_process.git
+$ cd spt_ecmwf_autorapid_process
 $ git submodule init
 $ git submodule update
 ```
-Install Submodule Dependencies. See:
+Install Submodule Dependencies. See for instructions:
 - https://github.com/erdc-cm/AutoRoute-py
-- https://github.com/CI-WATER/sfpt_dataset_manager/tree/autorapid
+- https://github.com/erdc-cm/spt_dataset_manager
 
 ##Step 6: Create folders for RAPID input and for downloading ECMWF
 In this instance:
