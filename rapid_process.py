@@ -3,7 +3,6 @@ from condorpy import Job as CJob
 from condorpy import Templates as tmplt
 import datetime
 from glob import glob
-import itertools
 import os
 from shutil import rmtree
 import tarfile
@@ -20,8 +19,8 @@ from imports.helper_functions import (clean_logs,
                                       compute_initial_rapid_flows,
                                       update_inital_flows_usgs)
 #package imports
-from sfpt_dataset_manager.dataset_manager import (ECMWFRAPIDDatasetManager,
-                                                  RAPIDInputDatasetManager)
+from spt_dataset_manager.dataset_manager import (ECMWFRAPIDDatasetManager,
+                                                 RAPIDInputDatasetManager)
                                                   
 #----------------------------------------------------------------------------------------
 # MAIN PROCESS

@@ -5,11 +5,11 @@ from subprocess import Popen
 import sys
 
 #local imports
-from erfp_data_process_ubuntu_aws.imports.CreateInflowFileFromECMWFRunoff import CreateInflowFileFromECMWFRunoff
-from erfp_data_process_ubuntu_aws.imports.helper_functions import (case_insensitive_file_search,
+from spt_ecmwf_autorapid_process.imports.CreateInflowFileFromECMWFRunoff import CreateInflowFileFromECMWFRunoff
+from spt_ecmwf_autorapid_process.imports.helper_functions import (case_insensitive_file_search,
                                                                    csv_to_list,
                                                                    get_date_timestep_ensemble_from_forecast)
-from erfp_data_process_ubuntu_aws.imports.make_CF_RAPID_output import convert_ecmwf_rapid_output_to_cf_compliant
+from spt_ecmwf_autorapid_process.imports.make_CF_RAPID_output import convert_ecmwf_rapid_output_to_cf_compliant
 #------------------------------------------------------------------------------
 #functions
 #------------------------------------------------------------------------------
