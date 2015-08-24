@@ -17,7 +17,6 @@
               Version 1.2, 02/03/2015, bug fixing - calculate inflow assuming that
                 ECMWF runoff data is cumulative instead of incremental through time
 -------------------------------------------------------------------------------'''
-import os
 import netCDF4 as NET
 import numpy as NUM
 import csv

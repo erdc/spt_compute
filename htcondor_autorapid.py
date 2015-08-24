@@ -3,10 +3,10 @@ import os
 import sys
 
 #package imports
-from erfp_data_process_ubuntu_aws.AutoRoutePy.autoroute import AutoRoute 
+from spt_ecmwf_autorapid_process.AutoRoutePy.autoroute import AutoRoute 
 
 #local imports
-from erfp_data_process_ubuntu_aws.imports.helper_functions import case_insensitive_file_search
+from spt_ecmwf_autorapid_process.imports.helper_functions import case_insensitive_file_search
 
 
 #------------------------------------------------------------------------------

@@ -12,7 +12,7 @@ from imports.helper_functions import (case_insensitive_file_search,
 #package imports
 from AutoRoutePy.autoroute_prepare import AutoRoutePrepare 
 from AutoRoutePy.post_process import merge_shapefiles, rename_shapefiles
-from sfpt_dataset_manager.dataset_manager import GeoServerDatasetManager
+from spt_dataset_manager.dataset_manager import GeoServerDatasetManager
 
 #----------------------------------------------------------------------------------------
 # MAIN PROCESS
