@@ -1,4 +1,4 @@
-# erfp_data_process_ubuntu_aws
+# spt_ecmwf_autorapid_process
 Code to use to prepare input data for RAPID from ECMWF forecast using HTCondor
 
 Note: For steps 1-2, use the *install_rapid_htcondor.sh* at your own risk.
