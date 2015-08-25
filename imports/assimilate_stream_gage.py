@@ -145,6 +145,7 @@ class StreamNetworkInitializer(object):
         #datetime_end = datetime.datetime(2015, 8, 20, tzinfo=utc)
         datetime_end_string = datetime_tzinfo_object.strftime("%Y-%m-%d")
         datetime_start_string = (datetime_tzinfo_object-datetime.timedelta(1)).strftime("%Y-%m-%d")
+        datetime_1970 = datetime.datetime(1970, 1, 1, tzinfo=utc)
         for stream_index in self.stream_undex_with_usgs_station:
             query_params = {
                             'format': 'json',
@@ -160,6 +161,7 @@ class StreamNetworkInitializer(object):
                 except IndexError:
                     continue
                     pass
+                prev_time_step = None
                 for time_step in requested_data:
                     datetime_obj = parse(time_step['dateTime'])
                     if datetime_obj == datetime_tzinfo_object:
@@ -168,7 +170,21 @@ class StreamNetworkInitializer(object):
                             self.stream_segments[stream_index].station_flow = float(time_step['value'])/35.3146667
                             self.stream_segments[stream_index].station_distance = 0
                         break
-
+                    elif datetime_obj > datetime_tzinfo_object:
+                        if prev_time_step != None:
+                            prev_datetime = parse(prev_time_step['dateTime'])
+                            if (datetime_obj - prev_datetime) < datetime.timedelta(hours=1):
+                                #linear interpolation if less than 1 hour difference between points
+                                needed_time = (datetime_tzinfo_object-datetime_1970).total_seconds()
+                                prev_time = (prev_datetime - datetime_1970).total_seconds()
+                                prev_flow = float(prev_time_step['value'])/35.3146667
+                                next_time = (datetime_obj - datetime_1970).total_seconds()
+                                next_flow = float(time_step['value'])/35.3146667
+                                estimated_flow = (next_flow-prev_flow)*(needed_time-prev_time)/(next_time-prev_time) + prev_flow
+                                self.stream_segments[stream_index].station_flow = estimated_flow
+                                self.stream_segments[stream_index].station_distance = 0
+                        break
+                    prev_time_step = time_step
         
     def read_init_flows_from_past_forecast(self, init_flow_file_path):
         """
