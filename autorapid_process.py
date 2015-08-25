@@ -88,8 +88,19 @@ def run_autorapid_process(autoroute_executable_location, #location of AutoRoute 
                     os.remove(streamflow_raster_path)
                 except OSError:
                     pass
-                #create input streamflow raster for AutoRoute                        
-                arp = AutoRoutePrepare(case_insensitive_file_search(master_watershed_autoroute_input_directory, r'elevation.tif'))
+                #create input streamflow raster for AutoRoute
+                try:
+                    elevation_raster = case_insensitive_file_search(master_watershed_autoroute_input_directory, r'elevation.tif')
+                except Exception:
+                    try:
+                        elevation_raster = case_insensitive_file_search(os.path.join(master_watershed_autoroute_input_directory, 'elevation'), r'hdr.adf')
+                    except Exception:
+                        print "Elevation raster not found. Skipping ..."
+                        continue
+                        pass
+                    pass
+                
+                arp = AutoRoutePrepare(elevation_raster)
                 arp.generate_streamflow_raster_from_rapid_output(streamid_rasterindex_file=case_insensitive_file_search(master_watershed_autoroute_input_directory,
                                                                                                                         r'streamid_rasterindex.csv'), 
                                                                  prediction_folder=master_watershed_rapid_output_directory, 
@@ -178,7 +189,7 @@ def run_autorapid_process(autoroute_executable_location, #location of AutoRoute 
                         pass
                 #remove local directories when done
                 try:
-                    os.remove(os.path.join(master_watershed_rapid_output_directory))
+                    os.remove(os.path.join(master_watershed_autoroute_input_directory, autoroute_input_directory))
                 except OSError:
                     pass
                 #TODO: Upload to CKAN for historical floodmaps?
@@ -188,7 +199,7 @@ if __name__ == "__main__":
     run_autorapid_process(autoroute_executable_location='/home/alan/work/scripts/AutoRouteGDAL/source_code/autoroute',
                           autoroute_io_files_location='/home/alan/work/autoroute-io',
                           rapid_io_files_location='/home/alan/work/rapid-io',
-                          forecast_date_timestep='20150813.0',
+                          forecast_date_timestep='20150820.0',
                           condor_log_directory='/home/alan/work/condor/',
                           geoserver_url='http://127.0.0.1:8181/geoserver/rest',
                           geoserver_username='admin',
