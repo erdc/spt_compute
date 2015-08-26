@@ -90,7 +90,7 @@ def run_autorapid_process(autoroute_executable_location, #location of AutoRoute 
                     pass
                 #create input streamflow raster for AutoRoute
                 try:
-                    elevation_raster = case_insensitive_file_search(master_watershed_autoroute_input_directory, r'elevation.tif')
+                    elevation_raster = case_insensitive_file_search(master_watershed_autoroute_input_directory, r'elevation\.*.(?!prj)')
                 except Exception:
                     try:
                         elevation_raster = case_insensitive_file_search(os.path.join(master_watershed_autoroute_input_directory, 'elevation'), r'hdr.adf')
@@ -189,7 +189,7 @@ def run_autorapid_process(autoroute_executable_location, #location of AutoRoute 
                         pass
                 #remove local directories when done
                 try:
-                    os.remove(os.path.join(master_watershed_autoroute_input_directory, autoroute_input_directory))
+                    os.remove(os.path.join(autoroute_watershed_directory_path))
                 except OSError:
                     pass
                 #TODO: Upload to CKAN for historical floodmaps?
