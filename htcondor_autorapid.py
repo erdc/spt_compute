@@ -25,7 +25,7 @@ def process_run_AutoRoute(autoroute_input_directory,
     
     #get the raster for elevation    
     try:
-        elevation_raster = case_insensitive_file_search(autoroute_input_path, r'elevation.tif')
+        elevation_raster = case_insensitive_file_search(autoroute_input_path, r'elevation\.*.(?!prj)')
     except Exception:
         try:
             elevation_raster = case_insensitive_file_search(os.path.join(autoroute_input_path, 'elevation'), r'hdr.adf')
