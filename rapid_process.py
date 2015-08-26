@@ -93,7 +93,13 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
         iteration = 0
         job_list = []
         sub_job_info_list = []
+        rapid_watershed_jobs = {}
         for rapid_input_directory in rapid_input_directories:
+            #keep list of jobs
+            rapid_watershed_jobs[rapid_input_directory] = {
+                                                            'jobs': [], 
+                                                            'jobs_info': []
+                                                           }
             print "Running forecasts for:", rapid_input_directory, os.path.basename(ecmwf_folder)
             watershed, subbasin = get_watershed_subbasin_from_folder(rapid_input_directory)
             master_watershed_input_directory = os.path.join(rapid_io_files_location, "input", rapid_input_directory)
@@ -134,56 +140,85 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
                                                             rapid_executable_location, initialize_flows))
                 job.set('transfer_output_remaps',"\"%s = %s\"" % (node_rapid_outflow_file, master_rapid_outflow_file))
                 job.submit()
-                job_list.append(job)
-                sub_job_info_list.append({'watershed' : watershed,
-                                          'subbasin' : subbasin,
-                                          'outflow_file_name' : master_rapid_outflow_file,
-                                          'forecast_date_timestep' : forecast_date_timestep,
-                                          'ensemble_number': ensemble_number,
-                                          'master_watershed_outflow_directory': master_watershed_outflow_directory,
-                                          })
+                rapid_watershed_jobs[rapid_input_directory]['jobs'].append(job)
+                rapid_watershed_jobs[rapid_input_directory]['jobs_info'].append({'watershed' : watershed,
+                                                                                  'subbasin' : subbasin,
+                                                                                  'outflow_file_name' : master_rapid_outflow_file,
+                                                                                  'forecast_date_timestep' : forecast_date_timestep,
+                                                                                  'ensemble_number': ensemble_number,
+                                                                                  'master_watershed_outflow_directory': master_watershed_outflow_directory,
+                                                                                  })
                 iteration += 1
         
-        #add sub job list to master job list
-        master_job_info_list = master_job_info_list + sub_job_info_list
         
-        #wait for jobs to finish then upload files
-        for index, job in enumerate(job_list):
-            job.wait()
-            #upload file when done
-            if upload_output_to_ckan and data_store_url and data_store_api_key:
-                job_info = sub_job_info_list[index]
-                print "Uploading", job_info['watershed'], job_info['subbasin'], \
-                    job_info['forecast_date_timestep'], job_info['ensemble_number']
-                #Upload to CKAN
-                data_manager.initialize_run_ecmwf(job_info['watershed'], job_info['subbasin'], job_info['forecast_date_timestep'])
-                data_manager.update_resource_ensemble_number(job_info['ensemble_number'])
-                #upload file
-                try:
-                    #tar.gz file
-                    output_tar_file =  os.path.join(job_info['master_watershed_outflow_directory'], "%s.tar.gz" % data_manager.resource_name)
-                    if not os.path.exists(output_tar_file):
-                        with tarfile.open(output_tar_file, "w:gz") as tar:
-                            tar.add(job_info['outflow_file_name'], arcname=os.path.basename(job_info['outflow_file_name']))
-                    return_data = data_manager.upload_resource(output_tar_file)
-                    if not return_data['success']:
-                        print return_data
-                        print "Attempting to upload again"
+        for rapid_input_directory, watershed_job_info in rapid_watershed_jobs.iteritems():
+            #add sub job list to master job list
+            master_job_info_list = master_job_info_list + watershed_job_info['jobs_info']
+            
+            #wait for jobs to finish then upload files
+            for index, job in enumerate(watershed_job_info['jobs']):
+                job.wait()
+                #upload file when done
+                if upload_output_to_ckan and data_store_url and data_store_api_key:
+                    job_info = watershed_job_info['jobs_info'][index]
+                    print "Uploading", job_info['watershed'], job_info['subbasin'], \
+                        job_info['forecast_date_timestep'], job_info['ensemble_number']
+                    #Upload to CKAN
+                    data_manager.initialize_run_ecmwf(job_info['watershed'], job_info['subbasin'], job_info['forecast_date_timestep'])
+                    data_manager.update_resource_ensemble_number(job_info['ensemble_number'])
+                    #upload file
+                    try:
+                        #tar.gz file
+                        output_tar_file =  os.path.join(job_info['master_watershed_outflow_directory'], "%s.tar.gz" % data_manager.resource_name)
+                        if not os.path.exists(output_tar_file):
+                            with tarfile.open(output_tar_file, "w:gz") as tar:
+                                tar.add(job_info['outflow_file_name'], arcname=os.path.basename(job_info['outflow_file_name']))
                         return_data = data_manager.upload_resource(output_tar_file)
                         if not return_data['success']:
                             print return_data
+                            print "Attempting to upload again"
+                            return_data = data_manager.upload_resource(output_tar_file)
+                            if not return_data['success']:
+                                print return_data
+                            else:
+                                print "Upload success"
                         else:
                             print "Upload success"
+                    except Exception, e:
+                        print e
+                        pass
+                    #remove tar.gz file
+                    os.remove(output_tar_file)
+                    
+            #when all jobs in watershed are done, generate warning points
+            if create_warning_points:
+                watershed, subbasin = get_watershed_subbasin_from_folder(rapid_input_directory)
+                forecast_directory = os.path.join(rapid_io_files_location, 
+                                                  'output', 
+                                                  rapid_input_directory, 
+                                                  forecast_date_timestep)
+
+                era_interim_watershed_directory = os.path.join(era_interim_data_location, rapid_input_directory)
+                if os.path.exists(era_interim_watershed_directory):
+                    print "Generating Warning Points for", watershed, subbasin, "from", forecast_date_timestep
+                    era_interim_files = glob(os.path.join(era_interim_watershed_directory, "*.nc"))
+                    if era_interim_files:
+                        try:
+                            generate_warning_points(forecast_directory, era_interim_files[0], forecast_directory, threshold=10)
+                            if upload_output_to_ckan and data_store_url and data_store_api_key:
+                                data_manager.initialize_run_ecmwf(watershed, subbasin, forecast_date_timestep)
+                                data_manager.zip_upload_warning_points_in_directory(forecast_directory)
+                        except Exception, ex:
+                            print ex
+                            pass
                     else:
-                        print "Upload success"
-                except Exception, e:
-                    print e
-                    pass
-                #remove tar.gz file
-                os.remove(output_tar_file)
+                        print "No ERA Interim file found. Skipping ..."
+                else:
+                    print "No ERA Interim directory found for", rapid_input_directory, ". Skipping warning point generation..."
+            
 
         #initialize flows for next run
-        if initialize_flows or create_warning_points:
+        if initialize_flows:
             #create new init flow files/generate warning point files
             for rapid_input_directory in rapid_input_directories:
                 input_directory = os.path.join(rapid_io_files_location, 
@@ -205,23 +240,6 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
                             print ex
                             pass
 
-                    era_interim_watershed_directory = os.path.join(era_interim_data_location, rapid_input_directory)
-                    if create_warning_points and os.path.exists(era_interim_watershed_directory):
-                        print "Generating Warning Points for", watershed, subbasin, "from", forecast_date_timestep
-                        era_interim_files = glob(os.path.join(era_interim_watershed_directory, "*.nc"))
-                        if era_interim_files:
-                            try:
-                                generate_warning_points(forecast_directory, era_interim_files[0], forecast_directory, threshold=10)
-                                if upload_output_to_ckan and data_store_url and data_store_api_key:
-                                    data_manager.initialize_run_ecmwf(watershed, subbasin, forecast_date_timestep)
-                                    data_manager.zip_upload_warning_points_in_directory(forecast_directory)
-                            except Exception, ex:
-                                print ex
-                                pass
-                        else:
-                            print "No ERA Interim file found. Skipping ..."
-                    else:
-                        print "No ERA Interim directory found for", rapid_input_directory, ". Skipping warning point generation..."
     
         #run autoroute process if added                
         if autoroute_executable_location and autoroute_io_files_location:
@@ -272,10 +290,10 @@ if __name__ == "__main__":
         app_instance_id='9f7cb53882ed5820b3554a9d64e95273',
         sync_rapid_input_with_ckan=False,
         download_ecmwf=True,
-        upload_output_to_ckan=True,
+        upload_output_to_ckan=False,
         initialize_flows=True,
         create_warning_points=True,
-        delete_output_when_done=True,
+        delete_output_when_done=False,
         autoroute_executable_location='/home/alan/work/scripts/AutoRouteGDAL/source_code/autoroute',
         autoroute_io_files_location='/home/alan/work/autoroute-io',
         geoserver_url='http://127.0.0.1:8181/geoserver/rest',
