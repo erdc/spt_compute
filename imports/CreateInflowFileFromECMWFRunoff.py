@@ -122,14 +122,14 @@ class CreateInflowFileFromECMWFRunoff(object):
 
         # Obtain size information
         if id_data == "LowRes":
-            size_time = self.length_time_opt["LowRes"]
+            size_time = self.length_time_opt["LowRes"]-1
         else:
             if in_time_interval == "1hr":
-                size_time = self.length_time_opt["HighRes-1hr"]
+                size_time = self.length_time_opt["HighRes-1hr"]-1
             elif in_time_interval == "3hr":
-                size_time = self.length_time_opt["HighRes-3hr"]
+                size_time = self.length_time_opt["HighRes-3hr"]-1
             else:
-                size_time = self.length_time_opt["HighRes-6hr"]
+                size_time = self.length_time_opt["HighRes-6hr"]-1
 
         size_streamID = len(set(dict_list[self.header_wt[0]]))
 
@@ -187,37 +187,31 @@ class CreateInflowFileFromECMWFRunoff(object):
             # For data with Low Resolution, there's only one time interval 6 hrs
             if id_data == "LowRes":
                 #ro_stream = data_goal * area_sqm_npoints
-                ro_stream = NUM.concatenate([data_goal[0:1,],
-                                NUM.subtract(data_goal[1:,],data_goal[:-1,])]) * area_sqm_npoints
+                ro_stream = NUM.subtract(data_goal[1:,],data_goal[:-1,]) * area_sqm_npoints
 
             #For data with High Resolution, from Hour 0 to 90 (the first 91 time points) are of 1 hr time interval,
             # then from Hour 90 to 144 (19 time points) are of 3 hour time interval, and from Hour 144 to 240 (15 time points)
             # are of 6 hour time interval
             else:
                 if in_time_interval == "1hr":
-                    ro_stream = NUM.concatenate([data_goal[0:1,],
-                                NUM.subtract(data_goal[1:91,],data_goal[:90,])]) * area_sqm_npoints
+                    ro_stream = NUM.subtract(data_goal[1:91,],data_goal[:90,]) * area_sqm_npoints
                 elif in_time_interval == "3hr":
-                    # Hour = 0 is a single data point
-                    ro_3hr_a = data_goal[0:1,]
                     # calculate time series of 3 hr data from 1 hr data
-                    ro_3hr_b = NUM.subtract(data_goal[3:91:3,],data_goal[:88:3,])
+                    ro_3hr_a = NUM.subtract(data_goal[3:91:3,],data_goal[:88:3,])
                     # get the time series of 3 hr data
-                    ro_3hr_c = NUM.subtract(data_goal[91:109,], data_goal[90:108,])
+                    ro_3hr_b = NUM.subtract(data_goal[91:109,], data_goal[90:108,])
                     # concatenate all time series
-                    ro_stream = NUM.concatenate([ro_3hr_a, ro_3hr_b, ro_3hr_c]) * area_sqm_npoints
+                    ro_stream = NUM.concatenate([ro_3hr_a, ro_3hr_b]) * area_sqm_npoints
                 else: # in_time_interval == "6hr"
                     #arcpy.AddMessage("6hr")
-                    # Hour = 0 is a single data point
-                    ro_6hr_a = data_goal[0:1,]
                     # calculate time series of 6 hr data from 1 hr data
-                    ro_6hr_b = NUM.subtract(data_goal[6:91:6,], data_goal[:85:6,])
+                    ro_6hr_a = NUM.subtract(data_goal[6:91:6,], data_goal[:85:6,])
                     # calculate time series of 6 hr data from 3 hr data
-                    ro_6hr_c = NUM.subtract(data_goal[92:109:2,], data_goal[90:107:2,])
+                    ro_6hr_b = NUM.subtract(data_goal[92:109:2,], data_goal[90:107:2,])
                     # get the time series of 6 hr data
-                    ro_6hr_d = NUM.subtract(data_goal[109:,], data_goal[108:124,])
+                    ro_6hr_c = NUM.subtract(data_goal[109:,], data_goal[108:124,])
                     # concatenate all time series
-                    ro_stream = NUM.concatenate([ro_6hr_a, ro_6hr_b, ro_6hr_c, ro_6hr_d]) * area_sqm_npoints
+                    ro_stream = NUM.concatenate([ro_6hr_a, ro_6hr_b, ro_6hr_c]) * area_sqm_npoints
 
 
             data_temp[:,s] = ro_stream.sum(axis = 1)

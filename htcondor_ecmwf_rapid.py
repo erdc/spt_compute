@@ -157,7 +157,7 @@ def run_RAPID_single_watershed(forecast, watershed, subbasin,
     rapid_cleanup(local_rapid_executable, rapid_namelist_file)
 
     #convert rapid output to be CF compliant
-    convert_ecmwf_rapid_output_to_cf_compliant(datetime.datetime.strptime(forecast_date_timestep[:11], "%Y%m%d.%H"),
+    convert_ecmwf_rapid_output_to_cf_compliant(datetime.datetime.strptime(forecast_date_timestep[:11], "%Y%m%d.%H")+datetime.timedelta(hours=6),
                                                node_path)
 
 def process_upload_ECMWF_RAPID(ecmwf_forecast, watershed, subbasin,
