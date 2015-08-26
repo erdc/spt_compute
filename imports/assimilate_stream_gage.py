@@ -45,16 +45,86 @@ def get_comids_in_netcdf_file(reach_id_list, prediction_file):
 #-----------------------------------------------------------------------------------------------------
 class StreamSegment(object):
     def __init__(self, stream_id, down_id, up_id_array, init_flow=0, 
-                 station_id=None, station_flow=None, station_distance=None, natural_flow=None):
+                 station=None, station_flow=None, station_distance=None, natural_flow=None):
         self.stream_id = stream_id
         self.down_id = down_id #downstream segment id
         self.up_id_array = up_id_array #array of atream ids for upstream segments
         self.init_flow = init_flow
-        self.station_id = station_id
+        self.station = station
         self.station_flow = station_flow
         self.station_distance = station_distance #number of tream segments to station
         self.natural_flow = natural_flow
+
+class StreamGage(object):
+    """
+    Base class for stream gage object
+    """
+    def __init__(self, station_id):
+        self.station_id = station_id
         
+    def get_gage_data(self, datetime_tzinfo_object):
+        """
+        Get gage data based on stream gage type
+        """
+        return None
+    
+class USGSStreamGage(StreamGage):
+    """
+    USGS Gage object
+    """
+    def __init__(self, station_id):
+        if len(station_id) == 7:
+            station_id = "0" + station_id
+        super(USGSStreamGage, self).__init__(station_id)
+    
+    def get_gage_data(self, datetime_tzinfo_object):
+        """
+        Get USGS gage data 
+        """
+        datetime_end_string = datetime_tzinfo_object.strftime("%Y-%m-%d")
+        datetime_start_string = (datetime_tzinfo_object-datetime.timedelta(1)).strftime("%Y-%m-%d")
+        datetime_1970 = datetime.datetime(1970, 1, 1, tzinfo=utc)
+        query_params = {
+                        'format': 'json',
+                        'sites': self.station_id,
+                        'startDT': datetime_start_string,
+                        'endDT': datetime_end_string,
+                        'parameterCd': '00060',
+                       }
+        response = requests.get("http://waterservices.usgs.gov/nwis/iv/", params=query_params)
+        if response.ok:
+            data_valid = True
+            try:
+                requested_data = response.json()['value']['timeSeries'][0]['values'][0]['value']
+            except IndexError:
+                data_valid = False
+                pass
+            if data_valid:
+                prev_time_step = None
+                for time_step in requested_data:
+                    datetime_obj = parse(time_step['dateTime'])
+                    if datetime_obj == datetime_tzinfo_object:
+                        if float(time_step['value']) > 0:
+                            #get value and convert to metric
+                            return float(time_step['value'])/35.3146667
+                        break
+                    elif datetime_obj > datetime_tzinfo_object:
+                        if prev_time_step != None:
+                            prev_datetime = parse(prev_time_step['dateTime'])
+                            if (datetime_obj - prev_datetime) < datetime.timedelta(hours=1):
+                                #linear interpolation if less than 1 hour difference between points
+                                needed_time = (datetime_tzinfo_object-datetime_1970).total_seconds()
+                                prev_time = (prev_datetime - datetime_1970).total_seconds()
+                                prev_flow = float(prev_time_step['value'])/35.3146667
+                                next_time = (datetime_obj - datetime_1970).total_seconds()
+                                next_flow = float(time_step['value'])/35.3146667
+                                estimated_flow = (next_flow-prev_flow)*(needed_time-prev_time)/(next_time-prev_time) + prev_flow
+                                return estimated_flow
+                        break
+                    prev_time_step = time_step
+
+        return None
+    
 #-----------------------------------------------------------------------------------------------------
 # StreamNetworkInitializer Class
 #-----------------------------------------------------------------------------------------------------
@@ -131,9 +201,7 @@ class StreamNetworkInitializer(object):
                         pass
                     if station_id != "":
                         self.stream_undex_with_usgs_station.append(stream_index)
-                        if len(station_id) == 7:
-                            station_id = "0" + station_id
-                        self.stream_segments[stream_index].station_id = station_id
+                        self.stream_segments[stream_index].station = USGSStreamGage(station_id)
                         #removed: don't add unless valid data aquired
                         #self.stream_segments[stream_index].station_distance = 0
     
@@ -143,48 +211,16 @@ class StreamNetworkInitializer(object):
         """
         print "Adding USGS flows to network ..."
         #datetime_end = datetime.datetime(2015, 8, 20, tzinfo=utc)
-        datetime_end_string = datetime_tzinfo_object.strftime("%Y-%m-%d")
-        datetime_start_string = (datetime_tzinfo_object-datetime.timedelta(1)).strftime("%Y-%m-%d")
-        datetime_1970 = datetime.datetime(1970, 1, 1, tzinfo=utc)
+        num_printed = 0
         for stream_index in self.stream_undex_with_usgs_station:
-            query_params = {
-                            'format': 'json',
-                            'sites': self.stream_segments[stream_index].station_id,
-                            'startDT': datetime_start_string,
-                            'endDT': datetime_end_string,
-                            'parameterCd': '00060',
-                           }
-            response = requests.get("http://waterservices.usgs.gov/nwis/iv/", params=query_params)
-            if response.ok:
-                try:
-                    requested_data = response.json()['value']['timeSeries'][0]['values'][0]['value']
-                except IndexError:
-                    continue
-                    pass
-                prev_time_step = None
-                for time_step in requested_data:
-                    datetime_obj = parse(time_step['dateTime'])
-                    if datetime_obj == datetime_tzinfo_object:
-                        if float(time_step['value']) > 0:
-                            #get value and convert to metric
-                            self.stream_segments[stream_index].station_flow = float(time_step['value'])/35.3146667
-                            self.stream_segments[stream_index].station_distance = 0
-                        break
-                    elif datetime_obj > datetime_tzinfo_object:
-                        if prev_time_step != None:
-                            prev_datetime = parse(prev_time_step['dateTime'])
-                            if (datetime_obj - prev_datetime) < datetime.timedelta(hours=1):
-                                #linear interpolation if less than 1 hour difference between points
-                                needed_time = (datetime_tzinfo_object-datetime_1970).total_seconds()
-                                prev_time = (prev_datetime - datetime_1970).total_seconds()
-                                prev_flow = float(prev_time_step['value'])/35.3146667
-                                next_time = (datetime_obj - datetime_1970).total_seconds()
-                                next_flow = float(time_step['value'])/35.3146667
-                                estimated_flow = (next_flow-prev_flow)*(needed_time-prev_time)/(next_time-prev_time) + prev_flow
-                                self.stream_segments[stream_index].station_flow = estimated_flow
-                                self.stream_segments[stream_index].station_distance = 0
-                        break
-                    prev_time_step = time_step
+            station_flow = self.stream_segments[stream_index].station.get_gage_data(datetime_tzinfo_object)
+            if station_flow != None:
+                self.stream_segments[stream_index].station_flow = station_flow
+                self.stream_segments[stream_index].station_distance = 0
+                if num_printed < 10:
+                    print stream_index, self.stream_segments[stream_index].stream_id, \
+                        self.stream_segments[stream_index].station.station_id, station_flow, self.stream_segments[stream_index].init_flow
+                num_printed += 1
         
     def read_init_flows_from_past_forecast(self, init_flow_file_path):
         """
@@ -216,9 +252,9 @@ class StreamNetworkInitializer(object):
                     data_nc = NET.Dataset(prediction_file, mode="r")
                     qout_dimensions = data_nc.variables['Qout'].dimensions
                     if qout_dimensions[0].lower() == 'time' and qout_dimensions[1].lower() == 'comid':
-                        data_values_2d_array = data_nc.variables['Qout'][2,comid_index_list].transpose()
+                        data_values_2d_array = data_nc.variables['Qout'][1,comid_index_list].transpose()
                     elif qout_dimensions[1].lower() == 'time' and qout_dimensions[0].lower() == 'comid':
-                        data_values_2d_array = data_nc.variables['Qout'][comid_index_list,2]
+                        data_values_2d_array = data_nc.variables['Qout'][comid_index_list,1]
                     else:
                         print "Invalid ECMWF forecast file", prediction_file
                         data_nc.close()
@@ -292,10 +328,14 @@ class StreamNetworkInitializer(object):
         Print initial flow file
         """
         print "Writing to initial flow file:", out_file
+        num_printed = 0
         with open(out_file, 'wb') as init_flow_file:
-            for stream_segment in self.stream_segments:
+            for stream_index, stream_segment in enumerate(self.stream_segments):
                 if stream_segment.station_flow != None:
                     init_flow_file.write("{}\n".format(stream_segment.station_flow))
+                    if num_printed < 10:
+                        print stream_index, stream_segment.stream_id, stream_segment.station_flow, stream_segment.init_flow
+                    num_printed += 1
                 else:                            
                     init_flow_file.write("{}\n".format(stream_segment.init_flow))
         
@@ -306,16 +346,16 @@ if __name__=="__main__":
         connect_file = '/home/alan/work/rapid-io/input/erdc_texas_gulf_region-huc_2_12/rapid_connect.csv'
         gage_flow_info = '/home/alan/work/rapid-io/input/erdc_texas_gulf_region-huc_2_12/usgs_gages.csv'
         sni = StreamNetworkInitializer(connectivity_file=connect_file, gage_ids_natur_flow_file=gage_flow_info)
-        path_to_predictions = '/home/alan/tethysdev/tethysapp-erfp_tool/rapid_files/ecmwf_prediction/nfie_texas_gulf_region/huc_2_12/20150823.1200'
+        path_to_predictions = '/home/alan/tethysdev/tethysapp-erfp_tool/rapid_files/ecmwf_prediction/erdc_texas_gulf_region/huc_2_12/20150825.1200'
         prediction_files = glob(os.path.join(path_to_predictions, "*.nc"))
         sni.compute_init_flows_from_past_forecast(prediction_files)
-        #raw_initialization_file =  '/Users/rdchlads/Documents/nfie_texas_gulf_initialization_test/raw_init.csv'
-        #sni.write_init_flow_file(raw_initialization_file)
+        raw_initialization_file =  '/home/alan/work/rapid-io/input/erdc_texas_gulf_region-huc_2_12/Qinit_20150825t12_orig.csv'
+        sni.write_init_flow_file(raw_initialization_file)
         #sni.read_init_flows_from_past_forecast(raw_initialization_file)
-        sni.add_usgs_flows(datetime.datetime(2015,8,23,12, tzinfo=utc))
+        sni.add_usgs_flows(datetime.datetime(2015,8,26,0, tzinfo=utc))
         sni.modify_init_flows_from_gage_flows()
         #usgs_initialization_file =  '/Users/rdchlads/Documents/nfie_texas_gulf_initialization_test/usgs_init.csv'
         #sni.write_init_flow_file(usgs_initialization_file)        
-        usgs_mod_initialization_file =  '/home/alan/work/rapid-io/input/erdc_texas_gulf_region-huc_2_12/Qinit_20150823t12.csv'
+        usgs_mod_initialization_file =  '/home/alan/work/rapid-io/input/erdc_texas_gulf_region-huc_2_12/Qinit_20150825t12_usgs.csv'
         sni.write_init_flow_file(usgs_mod_initialization_file)        
         
