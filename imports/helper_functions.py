@@ -181,3 +181,8 @@ def log(message, severity):
         print severity, message
     else:
         raise Exception(message)
+
+
+if __name__=="__main__":
+    #update_inital_flows_usgs('/home/alan/work/rapid-io/input/erdc_texas_gulf_region-huc_2_12/', '20150826.0')
+    print datetime.datetime(2015, 9, 9, 18) - datetime.datetime(2015, 8, 26, 0)
