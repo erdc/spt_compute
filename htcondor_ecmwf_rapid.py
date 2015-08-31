@@ -1,40 +1,27 @@
 #!/usr/bin/env python
 import datetime
 import os
-from subprocess import Popen
+from RAPIDpy.rapid import RAPID
 import sys
 
 #local imports
 from spt_ecmwf_autorapid_process.imports.CreateInflowFileFromECMWFRunoff import CreateInflowFileFromECMWFRunoff
 from spt_ecmwf_autorapid_process.imports.helper_functions import (case_insensitive_file_search,
-                                                                   csv_to_list,
-                                                                   get_date_timestep_ensemble_from_forecast)
-from spt_ecmwf_autorapid_process.imports.make_CF_RAPID_output import convert_ecmwf_rapid_output_to_cf_compliant
+                                                                  get_date_timestep_ensemble_from_forecast)
 #------------------------------------------------------------------------------
 #functions
 #------------------------------------------------------------------------------
-def generate_namelist_file(rapid_io_files_location, watershed, subbasin,
-                           ensemble_number, forecast_date_timestep, init_flow = False):
+def run_RAPID_single_watershed(forecast, watershed, subbasin,
+                               rapid_executable_location, node_path, init_flow):
     """
-    Generate RAPID namelist file with new input
+    run RAPID on single watershed after ECMWF prepared
     """
-    rapid_input_directory = os.path.join(rapid_io_files_location, "rapid_input")
-    watershed_namelist_file = os.path.join(rapid_io_files_location, 'rapid_namelist')
-    template_namelist_file = case_insensitive_file_search(os.path.join(rapid_io_files_location, 'spt_ecmwf_autorapid_process'),
-                                                          'rapid_namelist_template\.dat')
+    forecast_date_timestep, ensemble_number = get_date_timestep_ensemble_from_forecast(forecast)
 
-    #get rapid connect info
-    rapid_connect_file = case_insensitive_file_search(rapid_input_directory, r'rapid_connect\.csv')
-    rapid_connect_table = csv_to_list(rapid_connect_file)
-    is_riv_tot = len(rapid_connect_table)
-    is_max_up = max([int(float(row[2])) for row in rapid_connect_table])
+    #run RAPID
+    print "Running RAPID for:", subbasin, "Ensemble:", ensemble_number
 
-    #get riv_bas_id info
-    riv_bas_id_file = case_insensitive_file_search(rapid_input_directory, r'riv_bas_id.*?\.csv')
-    riv_bas_id_table = csv_to_list(riv_bas_id_file)
-    is_riv_bas = len(riv_bas_id_table)
-
-
+    rapid_input_directory = os.path.join(node_path, "rapid_input")
     #default duration of 15 days
     duration = 15*24*60*60
     #default interval of 6 hrs
@@ -46,119 +33,51 @@ def generate_namelist_file(rapid_io_files_location, watershed, subbasin,
         #interval of 3 hrs
         #interval = 3*60*60
 
-    qinit_file = None
+    qinit_file = ""
+    BS_opt_Qinit = False
     if(init_flow):
         #check for qinit file
         past_date = (datetime.datetime.strptime(forecast_date_timestep[:11],"%Y%m%d.%H") - \
                      datetime.timedelta(hours=12)).strftime("%Y%m%dt%H")
         qinit_file = os.path.join(rapid_input_directory, 'Qinit_%s.csv' % past_date)
-        init_flow = qinit_file and os.path.exists(qinit_file)
-        if not init_flow:
+        BS_opt_Qinit = qinit_file and os.path.exists(qinit_file)
+        if not BS_opt_Qinit:
+            qinit_file = ""
             print "Error:", qinit_file, "not found. Not initializing ..."
 
-    old_file = open(template_namelist_file)
-    new_file = open(watershed_namelist_file,'w')
-    for line in old_file:
-        if line.strip().startswith('BS_opt_Qinit'):
-            if (init_flow):
-                new_file.write('BS_opt_Qinit       =.true.\n')
-            else:
-                new_file.write('BS_opt_Qinit       =.false.\n')
-        elif line.strip().startswith('ZS_TauM'):
-            new_file.write('ZS_TauM            =%s\n' % duration)
-        elif line.strip().startswith('ZS_dtM'):
-            new_file.write('ZS_dtM             =%s\n' % 86400)
-        elif line.strip().startswith('ZS_TauR'):
-            new_file.write('ZS_TauR            =%s\n' % interval)
-        elif line.strip().startswith('IS_riv_tot'):
-            new_file.write('IS_riv_tot         =%s\n' % is_riv_tot)
-        elif line.strip().startswith('rapid_connect_file'):
-            new_file.write('rapid_connect_file =\'%s\'\n' % rapid_connect_file)
-        elif line.strip().startswith('IS_max_up'):
-            new_file.write('IS_max_up          =%s\n' % is_max_up)
-        elif line.strip().startswith('Vlat_file'):
-            new_file.write('Vlat_file          =\'%s\'\n' % os.path.join(rapid_io_files_location,
-                                                                         'm3_riv_bas_%s.nc' % ensemble_number))
-        elif line.strip().startswith('IS_riv_bas'):
-            new_file.write('IS_riv_bas          =%s\n' % is_riv_bas)
-        elif line.strip().startswith('riv_bas_id_file'):
-            new_file.write('riv_bas_id_file    =\'%s\'\n' % riv_bas_id_file)
-        elif line.strip().startswith('Qinit_file'):
-            if (init_flow):
-                new_file.write('Qinit_file         =\'%s\'\n' % qinit_file)
-            else:
-                new_file.write('Qinit_file         =\'\'\n')
-        elif line.strip().startswith('k_file'):
-            new_file.write('k_file             =\'%s\'\n' % case_insensitive_file_search(rapid_input_directory,
-                                                                                         r'k\.csv'))
-        elif line.strip().startswith('x_file'):
-            new_file.write('x_file             =\'%s\'\n' % case_insensitive_file_search(rapid_input_directory,
-                                                                                         r'x\.csv'))
-        elif line.strip().startswith('Qout_file'):
-            new_file.write('Qout_file          =\'%s\'\n' % os.path.join(rapid_io_files_location,
-                                                                         'Qout_%s_%s_%s.nc' % (watershed.lower(),
-                                                                                               subbasin.lower(),
-                                                                                               ensemble_number)))
-        else:
-            new_file.write(line)
-
-    #close temp file
-    new_file.close()
-    old_file.close()
-
-def run_RAPID_single_watershed(forecast, watershed, subbasin,
-                               rapid_executable_location, node_path, init_flow):
-    """
-    run RAPID on single watershed after ECMWF prepared
-    """
-    forecast_date_timestep, ensemble_number = get_date_timestep_ensemble_from_forecast(forecast)
-    rapid_namelist_file = os.path.join(node_path,'rapid_namelist')
-    local_rapid_executable = os.path.join(node_path,'rapid')
-
-    #create link to RAPID
-    os.symlink(rapid_executable_location, local_rapid_executable)
-
-    time_start_rapid = datetime.datetime.utcnow()
-
-    #change the new RAPID namelist file
-    print "Updating namelist file for:", watershed, subbasin, ensemble_number
-    generate_namelist_file(node_path, watershed, subbasin, ensemble_number,
-                           forecast_date_timestep, init_flow)
-
-    def rapid_cleanup(local_rapid_executable, rapid_namelist_file):
-        """
-        Cleans up the rapid files generated by the process
-        """
-        #remove rapid link
-        try:
-            os.unlink(local_rapid_executable)
-            os.remove(local_rapid_executable)
-        except OSError:
-            pass
-
-        #remove namelist file
-        try:
-            os.remove(rapid_namelist_file)
-        except OSError:
-            pass
 
 
-    #run RAPID
-    print "Running RAPID for:", subbasin, "Ensemble:", ensemble_number
-    try:
-        process = Popen([local_rapid_executable], shell=True)
-        process.communicate()
-    except Exception:
-        rapid_cleanup(local_rapid_executable, rapid_namelist_file)
-        raise
+    rapid_manager = RAPID(rapid_executable_location=rapid_executable_location,
+                          use_all_processors=True,                          
+                          ZS_TauR=interval, #duration of routing procedure (time step of runoff data)
+                          ZS_dtR=15*60, #internal routing time step
+                          ZS_TauM=duration, #total simulation time 
+                          ZS_dtM=interval, #input time step
+                          rapid_connect_file=case_insensitive_file_search(rapid_input_directory,
+                                                                          r'rapid_connect\.csv'),
+                          Vlat_file=os.path.join(node_path,
+                                                 'm3_riv_bas_%s.nc' % ensemble_number),
+                          riv_bas_id_file=case_insensitive_file_search(rapid_input_directory,
+                                                                       r'riv_bas_id\.csv'),
+                          k_file=case_insensitive_file_search(rapid_input_directory,
+                                                              r'k\.csv'),
+                          x_file=case_insensitive_file_search(rapid_input_directory,
+                                                              r'x\.csv'),
+                          Qout_file=os.path.join(node_path,
+                                                 'Qout_%s_%s_%s.nc' % (watershed.lower(),
+                                                                       subbasin.lower(),
+                                                                       ensemble_number)),
+                          Qinit_file=qinit_file,
+                          BS_opt_Qinit=BS_opt_Qinit
+                         )
 
-    print "Time to run RAPID:",(datetime.datetime.utcnow()-time_start_rapid)
+    rapid_manager.update_reach_number_data()
+    rapid_manager.run()
+    rapid_manager.make_output_CF_compliant(simulation_start_datetime=datetime.datetime.strptime(forecast_date_timestep[:11], "%Y%m%d.%H"),
+                                           comid_lat_lon_z_file=case_insensitive_file_search(rapid_input_directory,
+                                                                                             r'comid_lat_lon_z\.csv'),
+                                           project_name="ECMWF-RAPID Predicted flows by US Army ERDC")
 
-    rapid_cleanup(local_rapid_executable, rapid_namelist_file)
-
-    #convert rapid output to be CF compliant
-    convert_ecmwf_rapid_output_to_cf_compliant(datetime.datetime.strptime(forecast_date_timestep[:11], "%Y%m%d.%H")+datetime.timedelta(hours=6),
-                                               node_path)
 
 def process_upload_ECMWF_RAPID(ecmwf_forecast, watershed, subbasin,
                                rapid_executable_location, init_flow):
