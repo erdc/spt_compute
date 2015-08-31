@@ -252,9 +252,11 @@ class StreamNetworkInitializer(object):
                     data_nc = NET.Dataset(prediction_file, mode="r")
                     qout_dimensions = data_nc.variables['Qout'].dimensions
                     if qout_dimensions[0].lower() == 'time' and qout_dimensions[1].lower() == 'comid':
+                        #data is raw rapid output
                         data_values_2d_array = data_nc.variables['Qout'][1,comid_index_list].transpose()
                     elif qout_dimensions[1].lower() == 'time' and qout_dimensions[0].lower() == 'comid':
-                        data_values_2d_array = data_nc.variables['Qout'][comid_index_list,1]
+                        #the data is CF compliant and has time=0 added to output
+                        data_values_2d_array = data_nc.variables['Qout'][comid_index_list,2]
                     else:
                         print "Invalid ECMWF forecast file", prediction_file
                         data_nc.close()
