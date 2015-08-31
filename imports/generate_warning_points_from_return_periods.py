@@ -19,11 +19,16 @@ def generate_warning_points(ecmwf_prediction_folder, return_period_file, out_dir
     data_nc = nc.Dataset(prediction_files[0], mode="r")
     prediction_comids = data_nc.variables['COMID'][:]
     comid_list_length = len(prediction_comids)
+    time_length = len(data_nc.variables['time'][:])
     data_nc.close()
+
+    first_half_size = 40
+    if time_length == 41 or time_length == 61:
+        first_half_size = 41
 
     print "Extracting Forecast Data ..."
     #get information from datasets
-    reach_prediciton_array_first_half = np.zeros((comid_list_length,len(prediction_files),40))
+    reach_prediciton_array_first_half = np.zeros((comid_list_length,len(prediction_files),first_half_size))
     reach_prediciton_array_second_half = np.zeros((comid_list_length,len(prediction_files),20))
     for file_index, prediction_file in enumerate(prediction_files):
         data_values_2d_array = []
@@ -46,9 +51,9 @@ def generate_warning_points(ecmwf_prediction_folder, return_period_file, out_dir
         #add data to main arrays and order in order of interim comids
         if len(data_values_2d_array) > 0:
             for comid_index, comid in enumerate(prediction_comids):
-                reach_prediciton_array_first_half[comid_index][file_index] = data_values_2d_array[comid_index][:40]
+                reach_prediciton_array_first_half[comid_index][file_index] = data_values_2d_array[comid_index][:first_half_size]
                 if(ensemble_index < 52):
-                    reach_prediciton_array_second_half[comid_index][file_index] = data_values_2d_array[comid_index][40:]
+                    reach_prediciton_array_second_half[comid_index][file_index] = data_values_2d_array[comid_index][first_half_size:]
 
     print "Extracting Return Period Data ..."
     return_period_nc = nc.Dataset(return_period_file, mode="r")
