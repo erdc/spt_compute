@@ -48,7 +48,6 @@ def run_RAPID_single_watershed(forecast, watershed, subbasin,
 
 
     rapid_manager = RAPID(rapid_executable_location=rapid_executable_location,
-                          use_all_processors=True,                          
                           ZS_TauR=interval, #duration of routing procedure (time step of runoff data)
                           ZS_dtR=15*60, #internal routing time step
                           ZS_TauM=duration, #total simulation time 
