@@ -60,7 +60,7 @@ $ pip install numpy netCDF4
 ```
 $ sudo apt-get install libssl-dev libffi-dev
 $ sudo su
-$ pip install requests_toolbelt tethys_dataset_services condorpy
+$ pip install requests_toolbelt tethys_dataset_services condorpy RAPIDpy
 $ exit
 ```
 

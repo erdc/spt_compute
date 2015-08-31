@@ -4,6 +4,3 @@
 [submodule "AutoRoutePy"]
 	path = AutoRoutePy
 	url = https://github.com/erdc-cm/AutoRoute-py
-[submodule "RAPIDpy"]
-	path = RAPIDpy
-	url = https://github.com/erdc-cm/RAPIDpy.git
