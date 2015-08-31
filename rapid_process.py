@@ -91,8 +91,6 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
         forecast_date_timestep = get_date_timestep_ensemble_from_forecast(ecmwf_forecasts[0])[0]
         #submit jobs to downsize ecmwf files to watershed
         iteration = 0
-        job_list = []
-        sub_job_info_list = []
         rapid_watershed_jobs = {}
         for rapid_input_directory in rapid_input_directories:
             #keep list of jobs
