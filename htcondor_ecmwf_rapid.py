@@ -57,7 +57,7 @@ def run_RAPID_single_watershed(forecast, watershed, subbasin,
                           Vlat_file=os.path.join(node_path,
                                                  'm3_riv_bas_%s.nc' % ensemble_number),
                           riv_bas_id_file=case_insensitive_file_search(rapid_input_directory,
-                                                                       r'riv_bas_id\.csv'),
+                                                                       r'riv_bas_id.*?\.csv'),
                           k_file=case_insensitive_file_search(rapid_input_directory,
                                                               r'k\.csv'),
                           x_file=case_insensitive_file_search(rapid_input_directory,
@@ -74,7 +74,7 @@ def run_RAPID_single_watershed(forecast, watershed, subbasin,
     rapid_manager.run()
     rapid_manager.make_output_CF_compliant(simulation_start_datetime=datetime.datetime.strptime(forecast_date_timestep[:11], "%Y%m%d.%H"),
                                            comid_lat_lon_z_file=case_insensitive_file_search(rapid_input_directory,
-                                                                                             r'comid_lat_lon_z\.csv'),
+                                                                                             r'comid_lat_lon_z.*?\.csv'),
                                            project_name="ECMWF-RAPID Predicted flows by US Army ERDC")
 
 
