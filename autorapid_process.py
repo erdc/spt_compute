@@ -189,7 +189,7 @@ def run_autorapid_process(autoroute_executable_location, #location of AutoRoute 
                         pass
                 #remove local directories when done
                 try:
-                    os.remove(os.path.join(autoroute_watershed_directory_path))
+                    os.remove(os.path.join(master_watershed_autoroute_output_directory))
                 except OSError:
                     pass
                 #TODO: Upload to CKAN for historical floodmaps?
