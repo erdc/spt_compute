@@ -248,6 +248,8 @@ class StreamNetworkInitializer(object):
             #get information from datasets
             for file_index, prediction_file in enumerate(prediction_files):
                 try:
+                    ensebmle_index_str = os.path.basename(prediction_file)[:-3].split("_")[-1]
+                    ensemble_index = int(ensebmle_index_str)
                     #Get hydrograph data from ECMWF Ensemble
                     data_nc = NET.Dataset(prediction_file, mode="r")
                     qout_dimensions = data_nc.variables['Qout'].dimensions
@@ -256,7 +258,10 @@ class StreamNetworkInitializer(object):
                         data_values_2d_array = data_nc.variables['Qout'][1,comid_index_list].transpose()
                     elif qout_dimensions[1].lower() == 'time' and qout_dimensions[0].lower() == 'comid':
                         #the data is CF compliant and has time=0 added to output
-                        data_values_2d_array = data_nc.variables['Qout'][comid_index_list,2]
+                        if ensemble_index == 52:
+                            data_values_2d_array = data_nc.variables['Qout'][comid_index_list,12]
+                        else:
+                            data_values_2d_array = data_nc.variables['Qout'][comid_index_list,2]
                     else:
                         print "Invalid ECMWF forecast file", prediction_file
                         data_nc.close()
