@@ -32,7 +32,8 @@ class CreateInflowFileFromECMWFRunoff(object):
         self.dims_oi = ['lon', 'lat', 'time']
         self.vars_oi = ["lon", "lat", "time", "RO"]
         self.length_time = {"LowRes": 61, "HighRes": 125}
-        self.length_time_opt = {"LowRes": 61, "HighRes-1hr": 91, "HighRes-3hr": 49, "HighRes-6hr": 41}
+        self.length_time_opt = {"LowRes": 60, "HighRes-1hr": 90, "HighRes-3hr": 48, "HighRes-6hr": 40, 
+                                "HighRes-3hr-Sub": 18, "HighRes-6hr-Sub": 16}
         self.errorMessages = ["Missing Variable 'time'",
                               "Incorrect dimensions in the input ECMWF runoff file.",
                               "Incorrect variables in the input ECMWF runoff file.",
@@ -122,14 +123,18 @@ class CreateInflowFileFromECMWFRunoff(object):
 
         # Obtain size information
         if id_data == "LowRes":
-            size_time = self.length_time_opt["LowRes"]-1
+            size_time = self.length_time_opt["LowRes"]
         else:
             if in_time_interval == "1hr":
-                size_time = self.length_time_opt["HighRes-1hr"]-1
+                size_time = self.length_time_opt["HighRes-1hr"]
             elif in_time_interval == "3hr":
-                size_time = self.length_time_opt["HighRes-3hr"]-1
+                size_time = self.length_time_opt["HighRes-3hr"]
+            elif in_time_interval == "3hr_subset":
+                size_time = self.length_time_opt["HighRes-3hr-Sub"]
+            elif in_time_interval == "6hr_subset":
+                size_time = self.length_time_opt["HighRes-6hr-Sub"]
             else:
-                size_time = self.length_time_opt["HighRes-6hr"]-1
+                size_time = self.length_time_opt["HighRes-6hr"]
 
         size_streamID = len(set(dict_list[self.header_wt[0]]))
 
@@ -190,7 +195,7 @@ class CreateInflowFileFromECMWFRunoff(object):
                 ro_stream = NUM.subtract(data_goal[1:,],data_goal[:-1,]) * area_sqm_npoints
 
             #For data with High Resolution, from Hour 0 to 90 (the first 91 time points) are of 1 hr time interval,
-            # then from Hour 90 to 144 (19 time points) are of 3 hour time interval, and from Hour 144 to 240 (15 time points)
+            # then from Hour 90 to 144 (18 time points) are of 3 hour time interval, and from Hour 144 to 240 (16 time points)
             # are of 6 hour time interval
             else:
                 if in_time_interval == "1hr":
@@ -202,6 +207,12 @@ class CreateInflowFileFromECMWFRunoff(object):
                     ro_3hr_b = NUM.subtract(data_goal[91:109,], data_goal[90:108,])
                     # concatenate all time series
                     ro_stream = NUM.concatenate([ro_3hr_a, ro_3hr_b]) * area_sqm_npoints
+                elif in_time_interval == "3hr_subset":
+                    #use only the 3hr time interval
+                    ro_stream = NUM.subtract(data_goal[91:109,], data_goal[90:108,])
+                elif in_time_interval == "6hr_subset":
+                    #use only the 6hr time interval
+                    ro_stream = NUM.subtract(data_goal[109:,], data_goal[108:124,])
                 else: # in_time_interval == "6hr"
                     #arcpy.AddMessage("6hr")
                     # calculate time series of 6 hr data from 1 hr data
