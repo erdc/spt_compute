@@ -71,7 +71,7 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
     if download_ecmwf:
         #download all files for today
         ecmwf_folders = sorted(download_all_ftp(ecmwf_forecast_location,
-                                         'Runoff.%s*.netcdf.tar.gz' % date_string))
+                                                'Runoff.%s*.netcdf.tar.gz' % date_string))
     else:
         ecmwf_folders = sorted(glob(os.path.join(ecmwf_forecast_location,
                                                  'Runoff.'+date_string+'*.netcdf')))
@@ -152,7 +152,6 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
         for rapid_input_directory, watershed_job_info in rapid_watershed_jobs.iteritems():
             #add sub job list to master job list
             master_job_info_list = master_job_info_list + watershed_job_info['jobs_info']
-            
             #wait for jobs to finish then upload files
             for index, job in enumerate(watershed_job_info['jobs']):
                 job.wait()
@@ -187,7 +186,6 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
                         pass
                     #remove tar.gz file
                     os.remove(output_tar_file)
-                    
             #when all jobs in watershed are done, generate warning points
             if create_warning_points:
                 watershed, subbasin = get_watershed_subbasin_from_folder(rapid_input_directory)
