@@ -14,7 +14,7 @@ def generate_warning_points(ecmwf_prediction_folder, era_interim_file, out_direc
     #Get list of prediciton files
 
     prediction_files = [os.path.join(ecmwf_prediction_folder,f) for f in os.listdir(ecmwf_prediction_folder) \
-                              if not os.path.isdir(os.path.join(ecmwf_prediction_folder, f))]
+                        if not os.path.isdir(os.path.join(ecmwf_prediction_folder, f)) and f.endswith(".nc")]
 
     #get the comids in ECMWF files
     data_nc = NET.Dataset(prediction_files[0], mode="r")
