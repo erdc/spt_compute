@@ -209,10 +209,10 @@ class CreateInflowFileFromECMWFRunoff(object):
                     ro_stream = NUM.concatenate([ro_3hr_a, ro_3hr_b]) * area_sqm_npoints
                 elif in_time_interval == "3hr_subset":
                     #use only the 3hr time interval
-                    ro_stream = NUM.subtract(data_goal[91:109,], data_goal[90:108,])
+                    ro_stream = NUM.subtract(data_goal[91:109,], data_goal[90:108,]) * area_sqm_npoints
                 elif in_time_interval == "6hr_subset":
                     #use only the 6hr time interval
-                    ro_stream = NUM.subtract(data_goal[109:,], data_goal[108:124,])
+                    ro_stream = NUM.subtract(data_goal[109:,], data_goal[108:124,]) * area_sqm_npoints
                 else: # in_time_interval == "6hr"
                     #arcpy.AddMessage("6hr")
                     # calculate time series of 6 hr data from 1 hr data
