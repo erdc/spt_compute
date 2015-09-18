@@ -56,6 +56,21 @@ $ yum install hdf5-devel
 $ yum install netcdf-devel
 $ pip install numpy netCDF4
 ```
+If you are on RHEL 7 and having troubles, try:
+```
+$ vim /etc/yum.repos.d/netcdf4.repo
+```
+Add:
+```
+[netcdf4]
+name=netCDF4
+baseurl=ftp://ftp.muug.mb.ca/mirror/fedora/epel/7/x86_64/
+gpgcheck=0
+```
+Then try:
+```
+$ yum install netcdf4
+```
 ##Step 4: Install Other Python Libraries
 ```
 $ sudo apt-get install libssl-dev libffi-dev
