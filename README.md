@@ -51,11 +51,22 @@ $ exit
 ###Install on Redhat:
 *Note: this tool was desgined and tested in Ubuntu*
 ```
-$ yum install netcdf4-python
-$ yum install hdf5-devel
-$ yum install netcdf-devel
+$ yum install python-devel hdf5-devel netcdf-devel
 $ pip install numpy netCDF4
 ```
+If you are on RHEL 7 and having troubles, add & edit a new repo file:
+```
+$ vim /etc/yum.repos.d/netcdf4.repo
+```
+Add to the repo file:
+```
+[netcdf4]
+name=netCDF4
+baseurl=ftp://ftp.muug.mb.ca/mirror/fedora/epel/7/x86_64/
+gpgcheck=0
+```
+Then install packages listed above.
+
 ##Step 4: Install Other Python Libraries
 ```
 $ sudo apt-get install libssl-dev libffi-dev
