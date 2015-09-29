@@ -31,7 +31,8 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
                             condor_log_directory, #path to store HTCondor logs
                             main_log_directory, #path to store main logs
                             data_store_url="", #CKAN API url
-                            data_store_api_key="", #CKAN API Key
+                            data_store_api_key="", #CKAN API Key,
+                            data_store_owner_org="", #CKAN owner organization
                             app_instance_id="", #Streamflow Prediction tool instance ID
                             sync_rapid_input_with_ckan=False, #match Streamflow Prediciton tool RAPID input
                             download_ecmwf=True, #Download recent ECMWF forecast before running
@@ -79,7 +80,8 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
     if upload_output_to_ckan and data_store_url and data_store_api_key:
         #init data manager for CKAN
         data_manager = ECMWFRAPIDDatasetManager(data_store_url,
-                                                data_store_api_key)
+                                                data_store_api_key,
+                                                data_store_owner_org)
 
     #prepare ECMWF files
     master_job_info_list = []
@@ -89,6 +91,7 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
         ecmwf_forecasts.sort(key=os.path.getsize, reverse=True)
 
         forecast_date_timestep = get_date_timestep_ensemble_from_forecast(ecmwf_forecasts[0])[0]
+        print forecast_date_timestep
         #submit jobs to downsize ecmwf files to watershed
         iteration = 0
         rapid_watershed_jobs = {}
@@ -283,6 +286,7 @@ if __name__ == "__main__":
         main_log_directory='/home/alan/work/logs/',
         data_store_url='http://ciwckan.chpc.utah.edu',
         data_store_api_key='8dcc1b34-0e09-4ddc-8356-df4a24e5be87',
+        data_store_owner_org="erdc",
         app_instance_id='9f7cb53882ed5820b3554a9d64e95273',
         sync_rapid_input_with_ckan=False,
         download_ecmwf=True,
