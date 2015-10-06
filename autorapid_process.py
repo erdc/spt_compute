@@ -11,7 +11,7 @@ from imports.helper_functions import (case_insensitive_file_search,
 
 #package imports
 from AutoRoutePy.autoroute_prepare import AutoRoutePrepare 
-from AutoRoutePy.post_process import merge_shapefiles, rename_shapefiles
+from AutoRoutePy.post_process import get_shapefile_layergroup_bounds, rename_shapefiles
 from spt_dataset_manager.dataset_manager import GeoServerDatasetManager
 
 #----------------------------------------------------------------------------------------
@@ -73,7 +73,8 @@ def run_autorapid_process(autoroute_executable_location, #location of AutoRoute 
             pass
         #keep list of jobs
         autoroute_watershed_jobs[autoroute_input_directory] = {
-                                                                'jobs': [], 
+                                                                'jobs': [],
+                                                                'jobs_info': [],
                                                                 'output_folder': master_watershed_autoroute_output_directory
                                                                }
         #loop through sub-directories
@@ -138,6 +139,7 @@ def run_autorapid_process(autoroute_executable_location, #location of AutoRoute 
                                                                                              master_output_shapefile_dbf_name))
                 job.submit()
                 autoroute_watershed_jobs[autoroute_input_directory]['jobs'].append(job)
+                autoroute_watershed_jobs[autoroute_input_directory]['jobs_info'].append({ 'shp_name': output_shapefile_shp_name })
         geoserver_manager = None
         if geoserver_url and geoserver_username and geoserver_password and app_instance_id:
             try:
@@ -152,54 +154,68 @@ def run_autorapid_process(autoroute_executable_location, #location of AutoRoute 
                 pass 
         #wait for jobs to finish by watershed
         for autoroute_input_directory, autoroute_watershed_job in autoroute_watershed_jobs.iteritems():
-            #time stamped layer name
-            geoserver_resource_name = "%s-floodmap-%s" % (autoroute_input_directory, forecast_date_timestep)
             #geoserver_resource_name = "%s-floodmap" % (autoroute_input_directory)
-            upload_shapefile = os.path.join(master_watershed_autoroute_output_directory, "%s%s" % (geoserver_resource_name, ".shp"))
-            for autoroute_job in autoroute_watershed_job['jobs']:
+            #time stamped layer name
+            geoserver_layer_group_name = "%s-floodmap-%s" % (autoroute_input_directory, 
+                                                             forecast_date_timestep)
+            geoserver_resource_list = []
+            upload_shapefile_list = []
+            for job_index, autoroute_job in enumerate(autoroute_watershed_job['jobs']):
                 autoroute_job.wait()
-            if len(autoroute_watershed_job['jobs'])> 1:
-                # merge files
-                merge_shapefiles(autoroute_watershed_job['output_folder'], 
-                                 upload_shapefile, 
-                                 reproject=True,
-                                 remove_old=True)
-            elif len(autoroute_watershed_job['jobs'])== 1:
+                #time stamped layer name
+                geoserver_resource_name = "%s-%s" % (geoserver_layer_group_name,
+                                                     job_index)
+                #upload each shapefile
+                upload_shapefile = os.path.join(master_watershed_autoroute_output_directory, 
+                                                "%s%s" % (geoserver_resource_name, ".shp"))
                 #rename files
                 rename_shapefiles(master_watershed_autoroute_output_directory, 
                                   os.path.splitext(upload_shapefile)[0], 
-                                  autoroute_input_directory)
+                                  os.path.splitext(os.path.basename(autoroute_watershed_job['jobs_info'][job_index]['shp_name']))[0])
 
-            #upload to GeoServer
-            if geoserver_manager:
-                print "Uploading", upload_shapefile, "to GeoServer as", geoserver_resource_name
-                shapefile_basename = os.path.splitext(upload_shapefile)[0]
-                #remove past layer if exists
-                geoserver_manager.purge_remove_geoserver_layer(geoserver_manager.get_layer_name(geoserver_resource_name))
-                #upload updated layer
-                shapefile_list = glob("%s*" % shapefile_basename)
-                geoserver_manager.upload_shapefile(geoserver_resource_name, 
-                                                   shapefile_list)
-                                                   
+                #upload to GeoServer
+                if geoserver_manager:
+                    if os.path.exists(upload_shapefile):
+                        upload_shapefile_list.append(upload_shapefile)
+                        print "Uploading", upload_shapefile, "to GeoServer as", geoserver_resource_name
+                        shapefile_basename = os.path.splitext(upload_shapefile)[0]
+                        #remove past layer if exists
+                        geoserver_manager.purge_remove_geoserver_layer(geoserver_manager.get_layer_name(geoserver_resource_name))
+                        #upload updated layer
+                        shapefile_list = glob("%s*" % shapefile_basename)
+                        geoserver_manager.upload_shapefile(geoserver_resource_name, 
+                                                           shapefile_list)
+                        geoserver_resource_list.append(geoserver_manager.get_layer_name(geoserver_resource_name))
+                        #TODO: Upload to CKAN for history of predicted floodmaps?
+                    else:
+                        print upload_shapefile, "not found. Skipping upload to GeoServer ..."
+            
+            if geoserver_manager and geoserver_resource_list:
+                print "Creating Layer Group:", geoserver_layer_group_name
+                style_list = ['green' for i in range(len(geoserver_resource_list))]
+                bounds = get_shapefile_layergroup_bounds(upload_shapefile_list)
+                geoserver_manager.dataset_engine.create_layer_group(layer_group_id=geoserver_manager.get_layer_name(geoserver_layer_group_name), 
+                                                                    layers=tuple(geoserver_resource_list), 
+                                                                    styles=tuple(style_list),
+                                                                    bounds=tuple(bounds))
                 #remove local shapefile when done
-                for shapefile in shapefile_list:
-                    try:
-                        os.remove(shapefile)
-                    except OSError:
-                        pass
+                for upload_shapefile in upload_shapefile_list:
+                    shapefile_parts = glob("%s*" % os.path.splitext(upload_shapefile)[0])
+                    for shapefile_part in shapefile_parts:
+                        try:
+                            os.remove(shapefile_part)
+                        except OSError:
+                            pass
                 #remove local directories when done
                 try:
-                    os.remove(os.path.join(master_watershed_autoroute_output_directory))
+                    os.remove(master_watershed_autoroute_output_directory)
                 except OSError:
                     pass
-                #TODO: Upload to CKAN for historical floodmaps?
-                
-                
 if __name__ == "__main__":
     run_autorapid_process(autoroute_executable_location='/home/alan/work/scripts/AutoRouteGDAL/source_code/autoroute',
                           autoroute_io_files_location='/home/alan/work/autoroute-io',
                           rapid_io_files_location='/home/alan/work/rapid-io',
-                          forecast_date_timestep='20150820.0',
+                          forecast_date_timestep='20151006.0',
                           condor_log_directory='/home/alan/work/condor/',
                           geoserver_url='http://127.0.0.1:8181/geoserver/rest',
                           geoserver_username='admin',
