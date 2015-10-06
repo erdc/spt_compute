@@ -206,9 +206,10 @@ def run_autorapid_process(autoroute_executable_location, #location of AutoRoute 
                             os.remove(shapefile_part)
                         except OSError:
                             pass
+                        
                 #remove local directories when done
                 try:
-                    os.remove(master_watershed_autoroute_output_directory)
+                    os.rmdir(master_watershed_autoroute_output_directory)
                 except OSError:
                     pass
 if __name__ == "__main__":
