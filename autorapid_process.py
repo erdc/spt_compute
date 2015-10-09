@@ -140,80 +140,80 @@ def run_autorapid_process(autoroute_executable_location, #location of AutoRoute 
                 job.submit()
                 autoroute_watershed_jobs[autoroute_input_directory]['jobs'].append(job)
                 autoroute_watershed_jobs[autoroute_input_directory]['jobs_info'].append({ 'shp_name': output_shapefile_shp_name })
-        geoserver_manager = None
-        if geoserver_url and geoserver_username and geoserver_password and app_instance_id:
-            try:
-                geoserver_manager = GeoServerDatasetManager(geoserver_url, 
-                                                            geoserver_username, 
-                                                            geoserver_password, 
-                                                            app_instance_id)
-            except Exception as ex:
-                print ex
-                print "Skipping geoserver upload ..."
-                geoserver_manager = None
-                pass 
-        #wait for jobs to finish by watershed
-        for autoroute_watershed_directory, autoroute_watershed_job in autoroute_watershed_jobs.iteritems():
-            master_watershed_autoroute_output_directory = os.path.join(autoroute_output_folder,
-                                                                       autoroute_watershed_directory, 
-                                                                       forecast_date_timestep)
+    geoserver_manager = None
+    if geoserver_url and geoserver_username and geoserver_password and app_instance_id:
+        try:
+            geoserver_manager = GeoServerDatasetManager(geoserver_url, 
+                                                        geoserver_username, 
+                                                        geoserver_password, 
+                                                        app_instance_id)
+        except Exception as ex:
+            print ex
+            print "Skipping geoserver upload ..."
+            geoserver_manager = None
+            pass 
+    #wait for jobs to finish by watershed
+    for autoroute_watershed_directory, autoroute_watershed_job in autoroute_watershed_jobs.iteritems():
+        master_watershed_autoroute_output_directory = os.path.join(autoroute_output_folder,
+                                                                   autoroute_watershed_directory, 
+                                                                   forecast_date_timestep)
+        #time stamped layer name
+        geoserver_layer_group_name = "%s-floodmap-%s" % (autoroute_watershed_directory, 
+                                                         forecast_date_timestep)
+        geoserver_resource_list = []
+        upload_shapefile_list = []
+        for job_index, autoroute_job in enumerate(autoroute_watershed_job['jobs']):
+            autoroute_job.wait()
             #time stamped layer name
-            geoserver_layer_group_name = "%s-floodmap-%s" % (autoroute_watershed_directory, 
-                                                             forecast_date_timestep)
-            geoserver_resource_list = []
-            upload_shapefile_list = []
-            for job_index, autoroute_job in enumerate(autoroute_watershed_job['jobs']):
-                autoroute_job.wait()
-                #time stamped layer name
-                geoserver_resource_name = "%s-%s" % (geoserver_layer_group_name,
-                                                     job_index)
-                #upload each shapefile
-                upload_shapefile = os.path.join(master_watershed_autoroute_output_directory, 
-                                                "%s%s" % (geoserver_resource_name, ".shp"))
-                #rename files
-                rename_shapefiles(master_watershed_autoroute_output_directory, 
-                                  os.path.splitext(upload_shapefile)[0], 
-                                  os.path.splitext(os.path.basename(autoroute_watershed_job['jobs_info'][job_index]['shp_name']))[0])
+            geoserver_resource_name = "%s-%s" % (geoserver_layer_group_name,
+                                                 job_index)
+            #upload each shapefile
+            upload_shapefile = os.path.join(master_watershed_autoroute_output_directory, 
+                                            "%s%s" % (geoserver_resource_name, ".shp"))
+            #rename files
+            rename_shapefiles(master_watershed_autoroute_output_directory, 
+                              os.path.splitext(upload_shapefile)[0], 
+                              os.path.splitext(os.path.basename(autoroute_watershed_job['jobs_info'][job_index]['shp_name']))[0])
 
-                #upload to GeoServer
-                if geoserver_manager:
-                    if os.path.exists(upload_shapefile):
-                        upload_shapefile_list.append(upload_shapefile)
-                        print "Uploading", upload_shapefile, "to GeoServer as", geoserver_resource_name
-                        shapefile_basename = os.path.splitext(upload_shapefile)[0]
-                        #remove past layer if exists
-                        geoserver_manager.purge_remove_geoserver_layer(geoserver_manager.get_layer_name(geoserver_resource_name))
-                        #upload updated layer
-                        shapefile_list = glob("%s*" % shapefile_basename)
-                        geoserver_manager.upload_shapefile(geoserver_resource_name, 
-                                                           shapefile_list)
-                        geoserver_resource_list.append(geoserver_manager.get_layer_name(geoserver_resource_name))
-                        #TODO: Upload to CKAN for history of predicted floodmaps?
-                    else:
-                        print upload_shapefile, "not found. Skipping upload to GeoServer ..."
-            
-            if geoserver_manager and geoserver_resource_list:
-                print "Creating Layer Group:", geoserver_layer_group_name
-                style_list = ['green' for i in range(len(geoserver_resource_list))]
-                bounds = get_shapefile_layergroup_bounds(upload_shapefile_list)
-                geoserver_manager.dataset_engine.create_layer_group(layer_group_id=geoserver_manager.get_layer_name(geoserver_layer_group_name), 
-                                                                    layers=tuple(geoserver_resource_list), 
-                                                                    styles=tuple(style_list),
-                                                                    bounds=tuple(bounds))
-                #remove local shapefile when done
-                for upload_shapefile in upload_shapefile_list:
-                    shapefile_parts = glob("%s*" % os.path.splitext(upload_shapefile)[0])
-                    for shapefile_part in shapefile_parts:
-                        try:
-                            os.remove(shapefile_part)
-                        except OSError:
-                            pass
-                        
-                #remove local directories when done
-                try:
-                    os.rmdir(master_watershed_autoroute_output_directory)
-                except OSError:
-                    pass
+            #upload to GeoServer
+            if geoserver_manager:
+                if os.path.exists(upload_shapefile):
+                    upload_shapefile_list.append(upload_shapefile)
+                    print "Uploading", upload_shapefile, "to GeoServer as", geoserver_resource_name
+                    shapefile_basename = os.path.splitext(upload_shapefile)[0]
+                    #remove past layer if exists
+                    geoserver_manager.purge_remove_geoserver_layer(geoserver_manager.get_layer_name(geoserver_resource_name))
+                    #upload updated layer
+                    shapefile_list = glob("%s*" % shapefile_basename)
+                    geoserver_manager.upload_shapefile(geoserver_resource_name, 
+                                                       shapefile_list)
+                    geoserver_resource_list.append(geoserver_manager.get_layer_name(geoserver_resource_name))
+                    #TODO: Upload to CKAN for history of predicted floodmaps?
+                else:
+                    print upload_shapefile, "not found. Skipping upload to GeoServer ..."
+        
+        if geoserver_manager and geoserver_resource_list:
+            print "Creating Layer Group:", geoserver_layer_group_name
+            style_list = ['green' for i in range(len(geoserver_resource_list))]
+            bounds = get_shapefile_layergroup_bounds(upload_shapefile_list)
+            geoserver_manager.dataset_engine.create_layer_group(layer_group_id=geoserver_manager.get_layer_name(geoserver_layer_group_name), 
+                                                                layers=tuple(geoserver_resource_list), 
+                                                                styles=tuple(style_list),
+                                                                bounds=tuple(bounds))
+            #remove local shapefile when done
+            for upload_shapefile in upload_shapefile_list:
+                shapefile_parts = glob("%s*" % os.path.splitext(upload_shapefile)[0])
+                for shapefile_part in shapefile_parts:
+                    try:
+                        os.remove(shapefile_part)
+                    except OSError:
+                        pass
+                    
+            #remove local directories when done
+            try:
+                os.rmdir(master_watershed_autoroute_output_directory)
+            except OSError:
+                pass
 if __name__ == "__main__":
     run_autorapid_process(autoroute_executable_location='/home/alan/work/scripts/AutoRouteGDAL/source_code/autoroute',
                           autoroute_io_files_location='/home/alan/work/autoroute-io',
