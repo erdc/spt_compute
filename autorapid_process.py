@@ -153,10 +153,12 @@ def run_autorapid_process(autoroute_executable_location, #location of AutoRoute 
                 geoserver_manager = None
                 pass 
         #wait for jobs to finish by watershed
-        for autoroute_input_directory, autoroute_watershed_job in autoroute_watershed_jobs.iteritems():
-            #geoserver_resource_name = "%s-floodmap" % (autoroute_input_directory)
+        for autoroute_watershed_directory, autoroute_watershed_job in autoroute_watershed_jobs.iteritems():
+            master_watershed_autoroute_output_directory = os.path.join(autoroute_output_folder,
+                                                                       autoroute_watershed_directory, 
+                                                                       forecast_date_timestep)
             #time stamped layer name
-            geoserver_layer_group_name = "%s-floodmap-%s" % (autoroute_input_directory, 
+            geoserver_layer_group_name = "%s-floodmap-%s" % (autoroute_watershed_directory, 
                                                              forecast_date_timestep)
             geoserver_resource_list = []
             upload_shapefile_list = []
@@ -216,10 +218,10 @@ if __name__ == "__main__":
     run_autorapid_process(autoroute_executable_location='/home/alan/work/scripts/AutoRouteGDAL/source_code/autoroute',
                           autoroute_io_files_location='/home/alan/work/autoroute-io',
                           rapid_io_files_location='/home/alan/work/rapid-io',
-                          forecast_date_timestep='20151006.0',
+                          forecast_date_timestep='20151009.0',
                           condor_log_directory='/home/alan/work/condor/',
-                          geoserver_url='http://127.0.0.1:8181/geoserver/rest',
-                          geoserver_username='admin',
-                          geoserver_password='geoserver',
-                          app_instance_id='9f7cb53882ed5820b3554a9d64e95273'                          
+                          geoserver_url='',
+                          geoserver_username='',
+                          geoserver_password='',
+                          app_instance_id='',
                           )
