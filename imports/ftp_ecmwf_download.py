@@ -134,7 +134,8 @@ def remove_old_ftp_downloads(folder):
             else:
                 os.remove(path)
                 
-def download_all_ftp(download_dir, file_match):
+def download_all_ftp(download_dir, file_match, ftp_host, ftp_login, 
+                     ftp_passwd, ftp_directory):
     """
     Remove downloads from before 2 days ago
     Download all files from the ftp site matching date
@@ -142,10 +143,10 @@ def download_all_ftp(download_dir, file_match):
     """
     remove_old_ftp_downloads(download_dir)
     #init FTPClient
-    ftp_client = PyFTPclient(host='ftp.ecmwf.int',
-                             login='',
-                             passwd='',
-                             directory='tcyc')
+    ftp_client = PyFTPclient(host=ftp_host,
+                             login=ftp_login,
+                             passwd=ftp_passwd,
+                             directory=ftp_directory)
     ftp_client.connect()
     #open the file for writing in binary mode
     print 'Opening local file'
