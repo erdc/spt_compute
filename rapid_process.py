@@ -36,6 +36,10 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
                             app_instance_id="", #Streamflow Prediction tool instance ID
                             sync_rapid_input_with_ckan=False, #match Streamflow Prediciton tool RAPID input
                             download_ecmwf=True, #Download recent ECMWF forecast before running
+                            ftp_host="", #ECMWF ftp site path
+                            ftp_login="", #ECMWF ftp login name
+                            ftp_passwd="", #ECMWF ftp password
+                            ftp_directory="", #ECMWF ftp directory
                             upload_output_to_ckan=False, #upload data to CKAN and remove local copy
                             delete_output_when_done=False, #delete all output data from this code
                             initialize_flows=False, #use forecast to initialize next run
@@ -69,10 +73,14 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
     #get list of correclty formatted rapid input directories in rapid directory
     rapid_input_directories = get_valid_watershed_list(os.path.join(rapid_io_files_location, "input"))
     
-    if download_ecmwf:
+    if download_ecmwf and ftp_host:
         #download all files for today
         ecmwf_folders = sorted(download_all_ftp(ecmwf_forecast_location,
-                                                'Runoff.%s*.netcdf.tar.gz' % date_string))
+                                                'Runoff.%s*.netcdf.tar.gz' % date_string),
+                                                ftp_host,
+                                                ftp_login,
+                                                ftp_passwd,
+                                                ftp_directory)
     else:
         ecmwf_folders = sorted(glob(os.path.join(ecmwf_forecast_location,
                                                  'Runoff.'+date_string+'*.netcdf')))
@@ -272,31 +280,3 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
     print "Time Begin All: " + str(time_begin_all)
     print "Time Finish All: " + str(time_end)
     print "TOTAL TIME: "  + str(time_end-time_begin_all)
-
-#------------------------------------------------------------------------------
-#main process
-#------------------------------------------------------------------------------
-if __name__ == "__main__":
-    run_ecmwf_rapid_process(
-        rapid_executable_location='/home/alan/work/rapid/src/rapid',
-        rapid_io_files_location='/home/alan/work/rapid-io',
-        ecmwf_forecast_location ="/home/alan/work/ecmwf",
-        era_interim_data_location="/home/alan/work/era_interim_watershed",
-        condor_log_directory='/home/alan/work/condor/',
-        main_log_directory='/home/alan/work/logs/',
-        data_store_url='http://ciwckan.chpc.utah.edu',
-        data_store_api_key='8dcc1b34-0e09-4ddc-8356-df4a24e5be87',
-        data_store_owner_org="erdc",
-        app_instance_id='9f7cb53882ed5820b3554a9d64e95273',
-        sync_rapid_input_with_ckan=False,
-        download_ecmwf=True,
-        upload_output_to_ckan=False,
-        initialize_flows=True,
-        create_warning_points=True,
-        delete_output_when_done=False,
-        autoroute_executable_location='/home/alan/work/scripts/AutoRouteGDAL/source_code/autoroute',
-        autoroute_io_files_location='/home/alan/work/autoroute-io',
-        geoserver_url='http://127.0.0.1:8181/geoserver/rest',
-        geoserver_username='admin',
-        geoserver_password='geoserver',
-    )
