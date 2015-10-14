@@ -40,19 +40,19 @@ echo WANT_VACATE = False >> /etc/condor/condor_config.local
 NOTE: if you forgot to change lines for master node, change CONDOR_HOST = $(IP_ADDRESS)
 and run $ . /etc/init.d/condor restart as ROOT
 
-##Step 3: Install netCDF4-python
+##Step 3: Install Prerequisite Packages
 ###Install on Ubuntu:
 ```
-$ apt-get install python-dev zlib1g-dev libhdf5-serial-dev libnetcdf-dev
+$ apt-get install python-dev zlib1g-dev libhdf5-serial-dev libnetcdf-dev libssl-dev libffi-dev
 $ sudo su
-$ pip install numpy netCDF4
+$ pip install netCDF4 requests_toolbelt tethys_dataset_services condorpy RAPIDpy
 $ exit
 ```
 ###Install on Redhat:
 *Note: this tool was desgined and tested in Ubuntu*
 ```
 $ yum install python-devel hdf5-devel netcdf-devel
-$ pip install numpy netCDF4
+$ pip install netCDF4 requests_toolbelt tethys_dataset_services condorpy RAPIDpy
 ```
 If you are on RHEL 7 and having troubles, add & edit a new repo file:
 ```
@@ -67,15 +67,7 @@ gpgcheck=0
 ```
 Then install packages listed above.
 
-##Step 4: Install Other Python Libraries
-```
-$ sudo apt-get install libssl-dev libffi-dev
-$ sudo su
-$ pip install requests_toolbelt tethys_dataset_services condorpy RAPIDpy
-$ exit
-```
-
-##Step 5: Download the source code
+##Step 4: Download the source code
 ```
 $ cd /path/to/your/scripts/
 $ git clone https://github.com/erdc-cm/spt_ecmwf_autorapid_process.git
@@ -87,14 +79,14 @@ Install Submodule Dependencies. See for instructions:
 - https://github.com/erdc-cm/AutoRoute-py
 - https://github.com/erdc-cm/spt_dataset_manager
 
-##Step 6: Create folders for RAPID input and for downloading ECMWF
+##Step 5: Create folders for RAPID input and for downloading ECMWF
 In this instance:
 ```
 $ cd /mnt/sgeadmin/
 $ mkdir rapid ecmwf logs condor
 $ mkdir rapid/input
 ```
-##Step 7: Change the locations in the files
+##Step 6: Change the locations in the files
 Create a file *run.py* and change these variables for your instance:
 ```python
 # -*- coding: utf-8 -*-
@@ -134,14 +126,14 @@ if __name__ == "__main__":
 
 ```
 
-##Step 8: Make sure permissions are correct for these files and any directories the script will use
+##Step 7: Make sure permissions are correct for these files and any directories the script will use
 
 Example:
 ```
-$ chmod 554 rapid_process_async_ubuntu.py
-$ chmod 554 rapid_process.sh
+$ chmod u+x run.py
+$ chmod u+x rapid_process.sh
 ```
-##Step 9: Add RAPID files to the work/rapid/input directory
+##Step 8: Add RAPID files to the work/rapid/input directory
 Make sure the directory is in the format [watershed name]-[subbasin name]
 with lowercase letters, numbers, and underscores only. No spaces!
 
@@ -158,7 +150,7 @@ weight_high_res.csv
 weight_low_res.csv
 x.csv
 ```
-##Step 10: Create CRON job to run the scripts twice daily
+##Step 9: Create CRON job to run the scripts twice daily
 See: http://askubuntu.com/questions/2368/how-do-i-set-up-a-cron-job
 
 You only need to run rapid_process.sh
