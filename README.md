@@ -51,7 +51,7 @@ $ exit
 ###Install on Redhat:
 *Note: this tool was desgined and tested in Ubuntu*
 ```
-$ yum install python-devel hdf5-devel netcdf-devel
+$ yum install python-devel hdf5-devel netcdf-devel libffi-devel openssl-devel
 $ pip install netCDF4 requests_toolbelt tethys_dataset_services condorpy RAPIDpy
 ```
 If you are on RHEL 7 and having troubles, add & edit a new repo file:
