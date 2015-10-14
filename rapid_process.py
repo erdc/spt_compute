@@ -76,11 +76,11 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
     if download_ecmwf and ftp_host:
         #download all files for today
         ecmwf_folders = sorted(download_all_ftp(ecmwf_forecast_location,
-                                                'Runoff.%s*.netcdf.tar.gz' % date_string),
+                                                'Runoff.%s*.netcdf.tar.gz' % date_string,
                                                 ftp_host,
                                                 ftp_login,
                                                 ftp_passwd,
-                                                ftp_directory)
+                                                ftp_directory))
     else:
         ecmwf_folders = sorted(glob(os.path.join(ecmwf_forecast_location,
                                                  'Runoff.'+date_string+'*.netcdf')))
