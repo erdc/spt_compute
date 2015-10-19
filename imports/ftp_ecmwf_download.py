@@ -134,75 +134,93 @@ def remove_old_ftp_downloads(folder):
                 os.remove(path)
                 
 def download_all_ftp(download_dir, file_match, ftp_host, ftp_login, 
-                     ftp_passwd, ftp_directory, max_wait=60):
+                     ftp_passwd, ftp_directory, max_wait=0.377):
     """
     Remove downloads from before 1 day ago
     Download all files from the ftp site matching date
     Extract downloaded files
     """
+    if max_wait < 0:
+        max_wait = 0
+        
     remove_old_ftp_downloads(download_dir)
     #init FTPClient
     ftp_client = PyFTPclient(host=ftp_host,
                              login=ftp_login,
                              passwd=ftp_passwd,
                              directory=ftp_directory)
-    ftp_client.connect()
     #open the file for writing in binary mode
+    all_files_downloaded = []
     print 'Opening local file'
     time_start_connect_attempt = datetime.datetime.utcnow()
     request_incomplete = True
     ftp_exception = "FTP Request Incomplete"
     attempt_count = 1
-    while (datetime.datetime.utcnow()-time_start_connect_attempt)<datetime.timedelta(minutes=max_wait) \
-          and request_incomplete:
+    while ((datetime.datetime.utcnow()-time_start_connect_attempt)<datetime.timedelta(minutes=max_wait) \
+          or attempt_count == 1) and request_incomplete:
         try:
+            ftp_client.connect()
             file_list = ftp_client.ftp.nlst(file_match)
-            request_incomplete = False
+            ftp_client.ftp.quit()
+            #if there is a file list and the request completed, it is a success
+            if file_list:
+                for dst_filename in file_list:
+                    local_path = os.path.join(download_dir, dst_filename)
+                    #get correct local_dir
+                    if local_path.endswith('.tar.gz'):
+                        local_dir = local_path[:-7]
+                    else:
+                        local_dir = download_dir
+                    #download and unzip file
+                    try:
+                        #download from ftp site
+                        unzip_file = False
+                        if not os.path.exists(local_path) and not os.path.exists(local_dir):
+                            print "Downloading from ftp site: " + dst_filename
+                            unzip_file = ftp_client.download_file(dst_filename, local_path)
+                        else:
+                            print dst_filename + ' already exists. Skipping download ...'
+                        #extract from tar.gz
+                        if unzip_file:
+                            os.mkdir(local_dir)
+                            print "Extracting: " + dst_filename
+                            tar = tarfile.open(local_path)
+                            tar.extractall(local_dir)
+                            tar.close()
+                            #add successfully downloaded file to list
+                            all_files_downloaded.append(local_dir)
+                            #request successful when one file downloaded and extracted                            
+                            request_incomplete = False
+                        else:
+                            print dst_filename + ' already extracted. Skipping extraction ...'
+                        #remove the tarfile
+                        if os.path.exists(local_path):
+                            os.remove(local_path)
+                    except Exception as ex:
+                        print ex
+                        if os.path.exists(local_path):
+                            os.remove(local_path)
+                        continue
+                    
         except Exception as ex:
             ftp_exception = ex
-            print "Attempt", attempt_count, "failed. Sleeping for five minutes and trying again..."
-            attempt_count += 1
-            time.sleep(5*60) #sleep for 5 minutes
             pass
         
-    if request_incomplete:
-        raise Exception(ftp_exception)
+        if request_incomplete:
+            print "Attempt", attempt_count, "failed ..."
+            attempt_count += 1
+            if max_wait > 0:
+                sleep_time = 5.1
+                if max_wait < 5.1:
+                    sleep_time = max(max_wait, 0.1)
+                print "Sleeping for", (sleep_time-0.1), "minutes and trying again ..."
+                time.sleep((sleep_time-0.1)*60)
+            
         
-    ftp_client.ftp.quit()
-    all_files_downloaded = []
-    for dst_filename in file_list:
-        local_path = os.path.join(download_dir,dst_filename)
-        #get correct local_dir
-        if local_path.endswith('.tar.gz'):
-            local_dir = local_path[:-7]
-        else:
-            local_dir = download_dir
-        #download and unzip file
-        try:
-            #download from ftp site
-            unzip_file = False
-            if not os.path.exists(local_path) and not os.path.exists(local_dir):
-                print "Downloading from ftp site: " + dst_filename
-                unzip_file = ftp_client.download_file(dst_filename, local_path)
-            else:
-                print dst_filename + ' already exists. Skipping download.'
-            #extract from tar.gz
-            if unzip_file:
-                os.mkdir(local_dir)
-                print "Extracting: " + dst_filename
-                tar = tarfile.open(local_path)
-                tar.extractall(local_dir)
-                tar.close()
-                #add successfully downloaded file to list
-                all_files_downloaded.append(local_dir)
-            else:
-                print dst_filename + ' already extracted. Skipping extraction.'
-            #remove the tarfile
-            if os.path.exists(local_path):
-                os.remove(local_path)
-        except Exception as ex:
-            print ex
-            continue
+        
+    if request_incomplete:
+        print "Maximum wait time of", max_wait, "minutes exeeded and request still failed. Quitting ..."
+        raise Exception(ftp_exception)
         
     print "All downloads completed!"
     return all_files_downloaded
