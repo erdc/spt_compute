@@ -3,6 +3,7 @@ from condorpy import Job as CJob
 from condorpy import Templates as tmplt
 from glob import glob
 import os
+import geoserver.catalog.FailedRequestError
 
 #local imports
 from imports.helper_functions import (case_insensitive_file_search,
@@ -182,11 +183,39 @@ def run_autorapid_process(autoroute_executable_location, #location of AutoRoute 
                     print "Uploading", upload_shapefile, "to GeoServer as", geoserver_resource_name
                     shapefile_basename = os.path.splitext(upload_shapefile)[0]
                     #remove past layer if exists
-                    geoserver_manager.purge_remove_geoserver_layer(geoserver_manager.get_layer_name(geoserver_resource_name))
+                    #geoserver_manager.purge_remove_geoserver_layer(geoserver_manager.get_layer_name(geoserver_resource_name))
+                    
                     #upload updated layer
                     shapefile_list = glob("%s*" % shapefile_basename)
-                    geoserver_manager.upload_shapefile(geoserver_resource_name, 
-                                                       shapefile_list)
+                    #Note: Added try, except statement because the request search fails when the app
+                    #deletes the layer after request is made (happens hourly), so the process may throw
+                    #an exception even though it was successful.
+                    """
+                    ...
+                      File "/home/alan/work/scripts/spt_ecmwf_autorapid_process/spt_dataset_manager/dataset_manager.py", line 798, in upload_shapefile
+                        overwrite=True)
+                      File "/usr/lib/tethys/local/lib/python2.7/site-packages/tethys_dataset_services/engines/geoserver_engine.py", line 1288, in create_shapefile_resource
+                        new_resource = catalog.get_resource(name=name, workspace=workspace)
+                      File "/usr/lib/tethys/local/lib/python2.7/site-packages/geoserver/catalog.py", line 616, in get_resource
+                        resource = self.get_resource(name, store)
+                      File "/usr/lib/tethys/local/lib/python2.7/site-packages/geoserver/catalog.py", line 606, in get_resource
+                        candidates = [s for s in self.get_resources(store) if s.name == name]
+                      File "/usr/lib/tethys/local/lib/python2.7/site-packages/geoserver/catalog.py", line 645, in get_resources
+                        return store.get_resources()
+                      File "/usr/lib/tethys/local/lib/python2.7/site-packages/geoserver/store.py", line 58, in get_resources
+                        xml = self.catalog.get_xml(res_url)
+                      File "/usr/lib/tethys/local/lib/python2.7/site-packages/geoserver/catalog.py", line 188, in get_xml
+                        raise FailedRequestError("Tried to make a GET request to %s but got a %d status code: \n%s" % (rest_url, response.status, content))
+                    geoserver.catalog.FailedRequestError: ...
+                    """
+                    try:
+                        geoserver_manager.upload_shapefile(geoserver_resource_name, 
+                                                           shapefile_list)
+                    except geoserver.catalog.FailedRequestError as ex:
+                        print ex
+                        print "Most likely OK, but always wise to check ..."
+                        pass
+                                                       
                     geoserver_resource_list.append(geoserver_manager.get_layer_name(geoserver_resource_name))
                     #TODO: Upload to CKAN for history of predicted floodmaps?
                 else:
@@ -218,7 +247,7 @@ if __name__ == "__main__":
     run_autorapid_process(autoroute_executable_location='/home/alan/work/scripts/AutoRouteGDAL/source_code/autoroute',
                           autoroute_io_files_location='/home/alan/work/autoroute-io',
                           rapid_io_files_location='/home/alan/work/rapid-io',
-                          forecast_date_timestep='20151009.0',
+                          forecast_date_timestep='20151016.0',
                           condor_log_directory='/home/alan/work/condor/',
                           geoserver_url='',
                           geoserver_username='',
