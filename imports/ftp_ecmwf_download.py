@@ -3,7 +3,6 @@ from glob import glob
 import os
 from shutil import rmtree
 import tarfile
-
 """
 This section adapted from https://github.com/keepitsimple/pyFTPclient
 """
@@ -135,9 +134,9 @@ def remove_old_ftp_downloads(folder):
                 os.remove(path)
                 
 def download_all_ftp(download_dir, file_match, ftp_host, ftp_login, 
-                     ftp_passwd, ftp_directory):
+                     ftp_passwd, ftp_directory, max_wait=60):
     """
-    Remove downloads from before 2 days ago
+    Remove downloads from before 1 day ago
     Download all files from the ftp site matching date
     Extract downloaded files
     """
@@ -150,7 +149,25 @@ def download_all_ftp(download_dir, file_match, ftp_host, ftp_login,
     ftp_client.connect()
     #open the file for writing in binary mode
     print 'Opening local file'
-    file_list = ftp_client.ftp.nlst(file_match)
+    time_start_connect_attempt = datetime.datetime.utcnow()
+    request_incomplete = True
+    ftp_exception = "FTP Request Incomplete"
+    attempt_count = 1
+    while (datetime.datetime.utcnow()-time_start_connect_attempt)<datetime.timedelta(minutes=max_wait) \
+          and request_incomplete:
+        try:
+            file_list = ftp_client.ftp.nlst(file_match)
+            request_incomplete = False
+        except Exception as ex:
+            ftp_exception = ex
+            print "Attempt", attempt_count, "failed. Sleeping for five minutes and trying again..."
+            attempt_count += 1
+            time.sleep(5*60) #sleep for 5 minutes
+            pass
+        
+    if request_incomplete:
+        raise Exception(ftp_exception)
+        
     ftp_client.ftp.quit()
     all_files_downloaded = []
     for dst_filename in file_list:
