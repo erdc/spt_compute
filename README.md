@@ -3,19 +3,13 @@ Code to use to prepare input data for RAPID from ECMWF forecast using HTCondor
 
 Note: For steps 1-2, use the *install_rapid_htcondor.sh* at your own risk.
 
-##Step 1: Install RAPID
-**For Ubuntu:**
-```
-$ apt-get install gfortran g++
-```
-Follow the instructions on page 10-14: http://rapid-hub.org/docs/RAPID_Azure.pdf.
+##Step 1: Install RAPID and RAPIDpy
+See: https://github.com/erdc-cm/RAPIDpy
 
-Here is a script to download prereqs: http://rapid-hub.org/data/rapid_install_prereqs.sh.gz
-
-##Step 1a (optional): Install AutoRoute
+##Step 2: Install AutoRoute
 Follow the instructions here: https://github.com/erdc-cm/AutoRoute/tree/gdal
 
-##Step 2: Install HTCondor (if not using Amazon Web Services and StarCluster)
+##Step 3: Install HTCondor (if not using Amazon Web Services and StarCluster)
 ```
 apt-get install -y libvirt0 libdate-manip-perl vim
 wget http://ciwckan.chpc.utah.edu/dataset/be272798-f2a7-4b27-9dc8-4a131f0bb3f0/resource/86aa16c9-0575-44f7-a143-a050cd72f4c8/download/condor8.2.8312769ubuntu14.04amd64.deb
@@ -40,19 +34,21 @@ echo WANT_VACATE = False >> /etc/condor/condor_config.local
 NOTE: if you forgot to change lines for master node, change CONDOR_HOST = $(IP_ADDRESS)
 and run $ . /etc/init.d/condor restart as ROOT
 
-##Step 3: Install Prerequisite Packages
-###Install on Ubuntu:
+##Step 4: Install Prerequisite Packages
+###On Ubuntu:
 ```
-$ apt-get install python-dev zlib1g-dev libhdf5-serial-dev libnetcdf-dev libssl-dev libffi-dev
+$ apt-get install libssl-dev libffi-dev
 $ sudo su
-$ pip install netCDF4 requests_toolbelt tethys_dataset_services condorpy RAPIDpy
+$ pip install requests_toolbelt tethys_dataset_services condorpy
 $ exit
 ```
-###Install on Redhat:
+###On Redhat:
 *Note: this tool was desgined and tested in Ubuntu*
 ```
-$ yum install python-devel hdf5-devel netcdf-devel libffi-devel openssl-devel
-$ pip install netCDF4 requests_toolbelt tethys_dataset_services condorpy RAPIDpy
+$ yum install libffi-devel openssl-devel
+$ sudo su
+$ pip install requests_toolbelt tethys_dataset_services condorpy
+$ exit
 ```
 If you are on RHEL 7 and having troubles, add & edit a new repo file:
 ```
@@ -67,7 +63,7 @@ gpgcheck=0
 ```
 Then install packages listed above.
 
-##Step 4: Download the source code
+##Step 5: Download the source code
 ```
 $ cd /path/to/your/scripts/
 $ git clone https://github.com/erdc-cm/spt_ecmwf_autorapid_process.git
@@ -75,18 +71,19 @@ $ cd spt_ecmwf_autorapid_process
 $ git submodule init
 $ git submodule update
 ```
-Install Submodule Dependencies. See for instructions:
+##Step 6: Install Submodule Dependencies
+See for instructions:
 - https://github.com/erdc-cm/AutoRoute-py
 - https://github.com/erdc-cm/spt_dataset_manager
 
-##Step 5: Create folders for RAPID input and for downloading ECMWF
+##Step 7: Create folders for RAPID input and for downloading ECMWF
 In this instance:
 ```
 $ cd /mnt/sgeadmin/
 $ mkdir rapid ecmwf logs condor
 $ mkdir rapid/input
 ```
-##Step 6: Change the locations in the files
+##Step 8: Change the locations in the files
 Create a file *run.py* and change these variables for your instance:
 ```python
 # -*- coding: utf-8 -*-
@@ -126,14 +123,14 @@ if __name__ == "__main__":
 
 ```
 
-##Step 7: Make sure permissions are correct for these files and any directories the script will use
+##Step 9: Make sure permissions are correct for these files and any directories the script will use
 
 Example:
 ```
 $ chmod u+x run.py
 $ chmod u+x rapid_process.sh
 ```
-##Step 8: Add RAPID files to the work/rapid/input directory
+##Step 10: Add RAPID files to the work/rapid/input directory
 Make sure the directory is in the format [watershed name]-[subbasin name]
 with lowercase letters, numbers, and underscores only. No spaces!
 
@@ -150,7 +147,7 @@ weight_high_res.csv
 weight_low_res.csv
 x.csv
 ```
-##Step 9: Create CRON job to run the scripts twice daily
+##Step 11: Create CRON job to run the scripts twice daily
 See: http://askubuntu.com/questions/2368/how-do-i-set-up-a-cron-job
 
 You only need to run rapid_process.sh
