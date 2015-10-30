@@ -10,6 +10,7 @@ See: https://github.com/erdc-cm/RAPIDpy
 Follow the instructions here: https://github.com/erdc-cm/AutoRoute/tree/gdal
 
 ##Step 3: Install HTCondor (if not using Amazon Web Services and StarCluster)
+###On Ubuntu
 ```
 apt-get install -y libvirt0 libdate-manip-perl vim
 wget http://ciwckan.chpc.utah.edu/dataset/be272798-f2a7-4b27-9dc8-4a131f0bb3f0/resource/86aa16c9-0575-44f7-a143-a050cd72f4c8/download/condor8.2.8312769ubuntu14.04amd64.deb
@@ -33,6 +34,8 @@ echo WANT_VACATE = False >> /etc/condor/condor_config.local
 ```
 NOTE: if you forgot to change lines for master node, change CONDOR_HOST = $(IP_ADDRESS)
 and run $ . /etc/init.d/condor restart as ROOT
+###On RedHat
+See: https://research.cs.wisc.edu/htcondor/yum/
 
 ##Step 4: Install Prerequisite Packages
 ###On Ubuntu:
