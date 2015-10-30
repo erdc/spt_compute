@@ -3,7 +3,7 @@ from condorpy import Job as CJob
 from condorpy import Templates as tmplt
 from glob import glob
 import os
-import geoserver.catalog.FailedRequestError
+from geoserver.catalog import FailedRequestError as geo_cat_FailedRequestError
 
 #local imports
 from imports.helper_functions import (case_insensitive_file_search,
@@ -211,7 +211,7 @@ def run_autorapid_process(autoroute_executable_location, #location of AutoRoute 
                     try:
                         geoserver_manager.upload_shapefile(geoserver_resource_name, 
                                                            shapefile_list)
-                    except geoserver.catalog.FailedRequestError as ex:
+                    except geo_cat_FailedRequestError as ex:
                         print ex
                         print "Most likely OK, but always wise to check ..."
                         pass
