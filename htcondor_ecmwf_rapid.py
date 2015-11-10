@@ -55,7 +55,7 @@ def process_ECMWF_RAPID(ecmwf_forecast, watershed, subbasin,
                                                               r'k\.csv'),
                           x_file=case_insensitive_file_search(rapid_input_directory,
                                                               r'x\.csv'),
-                          ZS_dtM=24*60*60, #recommended RAPID internal time step
+                          ZS_dtM=3*60*60, #RAPID internal loop time interval
                          )
     
     rapid_manager.update_reach_number_data()
@@ -105,7 +105,8 @@ def process_ECMWF_RAPID(ecmwf_forecast, watershed, subbasin,
             duration_1hr = 90*60*60 #90hrs
             rapid_manager.update_parameters(ZS_TauR=interval_1hr, #duration of routing procedure (time step of runoff data)
                                             ZS_dtR=15*60, #internal routing time step
-                                            ZS_TauM=duration_1hr, #total simulation time 
+                                            ZS_TauM=duration_1hr, #total simulation time
+                                            ZS_dtM=interval_1hr, #RAPID internal loop time interval
                                             Vlat_file=inflow_file_name_1hr,
                                             Qout_file=outflow_file_name,
                                             Qinit_file=qinit_file,
@@ -126,6 +127,7 @@ def process_ECMWF_RAPID(ecmwf_forecast, watershed, subbasin,
             rapid_manager.update_parameters(ZS_TauR=interval_3hr, #duration of routing procedure (time step of runoff data)
                                             ZS_dtR=15*60, #internal routing time step
                                             ZS_TauM=duration_3hr, #total simulation time 
+                                            ZS_dtM=interval_3hr, #RAPID internal loop time interval
                                             Vlat_file=inflow_file_name_3hr,
                                             Qout_file=qout_3hr)
             rapid_manager.run()
@@ -143,6 +145,7 @@ def process_ECMWF_RAPID(ecmwf_forecast, watershed, subbasin,
             rapid_manager.update_parameters(ZS_TauR=interval_6hr, #duration of routing procedure (time step of runoff data)
                                             ZS_dtR=15*60, #internal routing time step
                                             ZS_TauM=duration_6hr, #total simulation time 
+                                            ZS_dtM=interval_6hr, #RAPID internal loop time interval
                                             Vlat_file=inflow_file_name_6hr,
                                             Qout_file=qout_6hr)
             rapid_manager.run()
@@ -198,6 +201,7 @@ def process_ECMWF_RAPID(ecmwf_forecast, watershed, subbasin,
             rapid_manager.update_parameters(ZS_TauR=interval_3hr, #duration of routing procedure (time step of runoff data)
                                             ZS_dtR=15*60, #internal routing time step
                                             ZS_TauM=duration_3hr, #total simulation time 
+                                            ZS_dtM=interval_3hr, #RAPID internal loop time interval
                                             Vlat_file=inflow_file_name_3hr,
                                             Qout_file=outflow_file_name,
                                             Qinit_file=qinit_file,
@@ -217,6 +221,7 @@ def process_ECMWF_RAPID(ecmwf_forecast, watershed, subbasin,
             rapid_manager.update_parameters(ZS_TauR=interval_6hr, #duration of routing procedure (time step of runoff data)
                                             ZS_dtR=15*60, #internal routing time step
                                             ZS_TauM=duration_6hr, #total simulation time 
+                                            ZS_dtM=interval_6hr, #RAPID internal loop time interval
                                             Vlat_file=inflow_file_name_6hr,
                                             Qout_file=qout_6hr)
             rapid_manager.run()
