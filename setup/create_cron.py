@@ -1,8 +1,8 @@
 from crontab import CronTab
-cron_manager = CronTab(user='alan')
+cron_manager = CronTab(user=True)
 cron_comment = "ECMWF RAPID PROCESS"
 cron_manager.remove_all(comment=cron_comment)
-cron_command = '/home/alan/work/scripts/erfp_data_process_ubuntu_aws/rapid_process.sh' 
+cron_command = '/home/alan/scripts/spt_ecmwf_autorapid_process/rapid_process.sh' 
 #add new times   
 cron_job_morning = cron_manager.new(command=cron_command, 
                                     comment=cron_comment)
