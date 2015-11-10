@@ -103,11 +103,11 @@ def run_autorapid_process(autoroute_executable_location, #location of AutoRoute 
                     pass
                 
                 arp = AutoRoutePrepare(elevation_raster)
-                arp.generate_streamflow_raster_from_rapid_output(streamid_rasterindex_file=case_insensitive_file_search(master_watershed_autoroute_input_directory,
+                arp.generate_streamflow_raster_from_ecmwf_rapid_output(streamid_rasterindex_file=case_insensitive_file_search(master_watershed_autoroute_input_directory,
                                                                                                                         r'streamid_rasterindex.csv'), 
-                                                                 prediction_folder=master_watershed_rapid_output_directory, 
-                                                                 out_streamflow_raster=streamflow_raster_path,
-                                                                 method_x="mean_plus_std", method_y="max")
+                                                                       prediction_folder=master_watershed_rapid_output_directory, 
+                                                                       out_streamflow_raster=streamflow_raster_path,
+                                                                       method_x="mean_plus_std", method_y="max")
                 
                 #setup shapfile names
                 output_shapefile_base_name = '%s-%s_%s' % (watershed, subbasin, directory)
@@ -247,10 +247,10 @@ if __name__ == "__main__":
     run_autorapid_process(autoroute_executable_location='/home/alan/work/scripts/AutoRouteGDAL/source_code/autoroute',
                           autoroute_io_files_location='/home/alan/work/autoroute-io',
                           rapid_io_files_location='/home/alan/work/rapid-io',
-                          forecast_date_timestep='20151016.0',
+                          forecast_date_timestep='20151110.0',
                           condor_log_directory='/home/alan/work/condor/',
-                          geoserver_url='http://10.200.24.76:8080/geoserver/rest',
-                          geoserver_username='admin',
-                          geoserver_password='RTh+xL;,qA]H*nL]kz68e<ZD',
-                          app_instance_id='106153e7efde5994bc2bccb021bfd461',
+                          #geoserver_url='http://10.200.24.76:8080/geoserver/rest',
+                          #geoserver_username='admin',
+                          #geoserver_password='RTh+xL;,qA]H*nL]kz68e<ZD',
+                          #app_instance_id='106153e7efde5994bc2bccb021bfd461',
                           )
