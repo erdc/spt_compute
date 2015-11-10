@@ -22,9 +22,13 @@ def generate_warning_points(ecmwf_prediction_folder, return_period_file, out_dir
     time_length = len(data_nc.variables['time'][:])
     data_nc.close()
 
-    first_half_size = 40
+    first_half_size = 40 #run 6-hr resolution for all
     if time_length == 41 or time_length == 61:
+        #run at full or 6-hr resolution for high res and 6-hr for low res
         first_half_size = 41
+    elif time_length == 85 or time_length == 125:
+        #run at full resolution for all
+        first_half_size = 65
 
     print "Extracting Forecast Data ..."
     #get information from datasets
@@ -51,9 +55,30 @@ def generate_warning_points(ecmwf_prediction_folder, return_period_file, out_dir
         #add data to main arrays and order in order of interim comids
         if len(data_values_2d_array) > 0:
             for comid_index, comid in enumerate(prediction_comids):
-                reach_prediciton_array_first_half[comid_index][file_index] = data_values_2d_array[comid_index][:first_half_size]
                 if(ensemble_index < 52):
+                    reach_prediciton_array_first_half[comid_index][file_index] = data_values_2d_array[comid_index][:first_half_size]
                     reach_prediciton_array_second_half[comid_index][file_index] = data_values_2d_array[comid_index][first_half_size:]
+                if(ensemble_index == 52):
+                    if first_half_size == 65:
+                        #convert to 3hr-6hr
+                        streamflow_1hr = data_values_2d_array[comid_index][:90:3]
+                        # calculate time series of 6 hr data from 3 hr data
+                        streamflow_3hr = data_values_2d_array[comid_index][90:109]
+                        # get the time series of 6 hr data
+                        streamflow_6hr = data_values_2d_array[comid_index][109:]
+                        # concatenate all time series
+                        reach_prediciton_array_first_half[comid_index][file_index] = np.concatenate([streamflow_1hr, streamflow_3hr, streamflow_6hr])
+                    elif time_lenth == 125:
+                        #convert to 6hr
+                        streamflow_1hr = data_values_2d_array[comid_index][:90:6]
+                        # calculate time series of 6 hr data from 3 hr data
+                        streamflow_3hr = data_values_2d_array[comid_index][90:109:2]
+                        # get the time series of 6 hr data
+                        streamflow_6hr = data_values_2d_array[comid_index][109:]
+                        # concatenate all time series
+                        reach_prediciton_array_first_half[comid_index][file_index] = np.concatenate([streamflow_1hr, streamflow_3hr, streamflow_6hr])
+                    else:
+                        reach_prediciton_array_first_half[comid_index][file_index] = data_values_2d_array[comid_index][:]
 
     print "Extracting Return Period Data ..."
     return_period_nc = nc.Dataset(return_period_file, mode="r")
