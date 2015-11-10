@@ -94,7 +94,8 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
     #prepare ECMWF files
     master_job_info_list = []
     for ecmwf_folder in ecmwf_folders:
-        ecmwf_forecasts = glob(os.path.join(ecmwf_folder,'*.runoff.netcdf'))
+        ecmwf_forecasts = glob(os.path.join(ecmwf_folder,'full_*.runoff.netcdf')) + \
+                          glob(os.path.join(ecmwf_folder,'*.52.205.*.runoff.netcdf'))
         #make the largest files first
         ecmwf_forecasts.sort(key=os.path.getsize, reverse=True)
 
