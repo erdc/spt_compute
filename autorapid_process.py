@@ -3,7 +3,7 @@ from condorpy import Job as CJob
 from condorpy import Templates as tmplt
 from glob import glob
 import os
-import geoserver.catalog.FailedRequestError
+from geoserver.catalog import FailedRequestError
 
 #local imports
 from imports.helper_functions import (case_insensitive_file_search,
@@ -81,9 +81,9 @@ def run_autorapid_process(autoroute_executable_location, #location of AutoRoute 
         #loop through sub-directories
         autoroute_watershed_directory_path = os.path.join(autoroute_input_folder, autoroute_input_directory)
         for directory in os.listdir(autoroute_watershed_directory_path):
-            print "Running AutoRoute for watershed:", autoroute_input_directory, "sub directory:", directory
             master_watershed_autoroute_input_directory = os.path.join(autoroute_watershed_directory_path, directory)
             if os.path.isdir(master_watershed_autoroute_input_directory):
+                print "Running AutoRoute for watershed:", autoroute_input_directory, "sub directory:", directory
                 streamflow_raster_path = os.path.join(master_watershed_autoroute_input_directory, 'streamflow_raster.tif')
                 #remove old streamflow raster if exists
                 try:
@@ -92,10 +92,10 @@ def run_autorapid_process(autoroute_executable_location, #location of AutoRoute 
                     pass
                 #create input streamflow raster for AutoRoute
                 try:
-                    elevation_raster = case_insensitive_file_search(master_watershed_autoroute_input_directory, r'elevation\.*.(?!prj)')
+                    elevation_raster = case_insensitive_file_search(master_watershed_autoroute_input_directory, r'elevation\.(?!prj)')
                 except Exception:
                     try:
-                        elevation_raster = case_insensitive_file_search(os.path.join(master_watershed_autoroute_input_directory, 'elevation'), r'hdr.adf')
+                        elevation_raster = case_insensitive_file_search(os.path.join(master_watershed_autoroute_input_directory, 'elevation'), r'hdr\.adf')
                     except Exception:
                         print "Elevation raster not found. Skipping ..."
                         continue
@@ -211,7 +211,7 @@ def run_autorapid_process(autoroute_executable_location, #location of AutoRoute 
                     try:
                         geoserver_manager.upload_shapefile(geoserver_resource_name, 
                                                            shapefile_list)
-                    except geoserver.catalog.FailedRequestError as ex:
+                    except FailedRequestError as ex:
                         print ex
                         print "Most likely OK, but always wise to check ..."
                         pass
@@ -249,8 +249,8 @@ if __name__ == "__main__":
                           rapid_io_files_location='/home/alan/work/rapid-io',
                           forecast_date_timestep='20151016.0',
                           condor_log_directory='/home/alan/work/condor/',
-                          geoserver_url='',
-                          geoserver_username='',
-                          geoserver_password='',
-                          app_instance_id='',
+                          geoserver_url='http://10.200.24.76:8080/geoserver/rest',
+                          geoserver_username='admin',
+                          geoserver_password='RTh+xL;,qA]H*nL]kz68e<ZD',
+                          app_instance_id='106153e7efde5994bc2bccb021bfd461',
                           )
