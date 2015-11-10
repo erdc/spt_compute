@@ -62,12 +62,10 @@ def generate_warning_points(ecmwf_prediction_folder, return_period_file, out_dir
                     if first_half_size == 65:
                         #convert to 3hr-6hr
                         streamflow_1hr = data_values_2d_array[comid_index][:90:3]
-                        # calculate time series of 6 hr data from 3 hr data
-                        streamflow_3hr = data_values_2d_array[comid_index][90:109]
-                        # get the time series of 6 hr data
-                        streamflow_6hr = data_values_2d_array[comid_index][109:]
+                        # get the time series of 3 hr/6 hr data
+                        streamflow_3hr_6hr = data_values_2d_array[comid_index][90:]
                         # concatenate all time series
-                        reach_prediciton_array_first_half[comid_index][file_index] = np.concatenate([streamflow_1hr, streamflow_3hr, streamflow_6hr])
+                        reach_prediciton_array_first_half[comid_index][file_index] = np.concatenate([streamflow_1hr, streamflow_3hr_6hr])
                     elif time_lenth == 125:
                         #convert to 6hr
                         streamflow_1hr = data_values_2d_array[comid_index][:90:6]
