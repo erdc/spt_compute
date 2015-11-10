@@ -78,7 +78,7 @@ def get_date_timestep_ensemble_from_forecast(forecast_name):
     forecast_split = os.path.basename(forecast_name).split(".")
     forecast_date_timestep = ".".join(forecast_split[:2])
     ensemble_number = int(forecast_split[2])
-    return forecast_date_timestep, ensemble_number
+    return re.sub("[^\d.]+", "", forecast_date_timestep), ensemble_number
 
 def get_watershed_subbasin_from_folder(folder_name):
     """
