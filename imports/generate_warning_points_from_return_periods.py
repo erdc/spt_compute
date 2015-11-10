@@ -66,7 +66,7 @@ def generate_warning_points(ecmwf_prediction_folder, return_period_file, out_dir
                         streamflow_3hr_6hr = data_values_2d_array[comid_index][90:]
                         # concatenate all time series
                         reach_prediciton_array_first_half[comid_index][file_index] = np.concatenate([streamflow_1hr, streamflow_3hr_6hr])
-                    elif time_lenth == 125:
+                    elif time_length == 125:
                         #convert to 6hr
                         streamflow_1hr = data_values_2d_array[comid_index][:90:6]
                         # calculate time series of 6 hr data from 3 hr data
