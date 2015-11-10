@@ -12,8 +12,9 @@ def generate_warning_points(ecmwf_prediction_folder, return_period_file, out_dir
 
     #Get list of prediciton files
 
-    prediction_files = [os.path.join(ecmwf_prediction_folder,f) for f in os.listdir(ecmwf_prediction_folder) \
-                        if not os.path.isdir(os.path.join(ecmwf_prediction_folder, f)) and f.endswith(".nc")]
+    prediction_files = sorted([os.path.join(ecmwf_prediction_folder,f) for f in os.listdir(ecmwf_prediction_folder) \
+                              if not os.path.isdir(os.path.join(ecmwf_prediction_folder, f)) and f.lower().endswith('.nc')],
+                              reverse=True)
 
     #get the comids in ECMWF files
     data_nc = nc.Dataset(prediction_files[0], mode="r")
