@@ -55,11 +55,10 @@ def process_ECMWF_RAPID(ecmwf_forecast, watershed, subbasin,
                                                               r'k\.csv'),
                           x_file=case_insensitive_file_search(rapid_input_directory,
                                                               r'x\.csv'),
+                          ZS_dtM=24*60*60, #recommended RAPID internal time step
                          )
     
     rapid_manager.update_reach_number_data()
-    
-    RAPIDinflowECMWF_tool = CreateInflowFileFromECMWFRunoff()
     
     outflow_file_name = os.path.join(node_path, 
                                      'Qout_%s_%s_%s.nc' % (watershed.lower(), 
@@ -78,8 +77,11 @@ def process_ECMWF_RAPID(ecmwf_forecast, watershed, subbasin,
             qinit_file = ""
             print "Error:", qinit_file, "not found. Not initializing ..."
 
+    RAPIDinflowECMWF_tool = CreateInflowFileFromECMWFRunoff()
+    forecast_resolution = RAPIDinflowECMWF_tool.dataIdentify(forecast_basename)
+
     #determine weight table from resolution
-    if ensemble_number == 52:
+    if forecast_resolution == "HighRes":
         #HIGH RES
         #generate inflows for each timestep
         weight_table_file = case_insensitive_file_search(rapid_input_directory,
@@ -104,7 +106,6 @@ def process_ECMWF_RAPID(ecmwf_forecast, watershed, subbasin,
             rapid_manager.update_parameters(ZS_TauR=interval_1hr, #duration of routing procedure (time step of runoff data)
                                             ZS_dtR=15*60, #internal routing time step
                                             ZS_TauM=duration_1hr, #total simulation time 
-                                            ZS_dtM=interval_1hr, #input time step
                                             Vlat_file=inflow_file_name_1hr,
                                             Qout_file=outflow_file_name,
                                             Qinit_file=qinit_file,
@@ -125,7 +126,6 @@ def process_ECMWF_RAPID(ecmwf_forecast, watershed, subbasin,
             rapid_manager.update_parameters(ZS_TauR=interval_3hr, #duration of routing procedure (time step of runoff data)
                                             ZS_dtR=15*60, #internal routing time step
                                             ZS_TauM=duration_3hr, #total simulation time 
-                                            ZS_dtM=interval_3hr, #input time step
                                             Vlat_file=inflow_file_name_3hr,
                                             Qout_file=qout_3hr)
             rapid_manager.run()
@@ -143,7 +143,6 @@ def process_ECMWF_RAPID(ecmwf_forecast, watershed, subbasin,
             rapid_manager.update_parameters(ZS_TauR=interval_6hr, #duration of routing procedure (time step of runoff data)
                                             ZS_dtR=15*60, #internal routing time step
                                             ZS_TauM=duration_6hr, #total simulation time 
-                                            ZS_dtM=interval_6hr, #input time step
                                             Vlat_file=inflow_file_name_6hr,
                                             Qout_file=qout_6hr)
             rapid_manager.run()
@@ -176,8 +175,78 @@ def process_ECMWF_RAPID(ecmwf_forecast, watershed, subbasin,
         remove_file(inflow_file_name_3hr)
         remove_file(inflow_file_name_6hr)
 
-    else:
-        #LOW RES
+    elif forecast_resolution == "LowResFull":
+        #LOW RES - 3hr and 6hr timesteps
+        #generate inflows for each timestep
+        weight_table_file = case_insensitive_file_search(rapid_input_directory,
+                                                         r'weight_low_res.csv')
+                                                         
+        inflow_file_name_3hr = 'm3_riv_bas_3hr_%s.nc' % ensemble_number
+        inflow_file_name_6hr = 'm3_riv_bas_6hr_%s.nc' % ensemble_number
+        qinit_6hr_file = os.path.join(rapid_input_directory, 'Qinit_6hr.csv')
+        
+        try:
+        
+            RAPIDinflowECMWF_tool.execute(forecast_basename, 
+                                          weight_table_file, 
+                                          inflow_file_name_3hr,
+                                          "3hr_subset")
+
+            #from Hour 0 to 144 (the first 49 time points) are of 3 hr time interval
+            interval_3hr = 3*60*60 #3hr
+            duration_3hr = 144*60*60 #144hrs
+            rapid_manager.update_parameters(ZS_TauR=interval_3hr, #duration of routing procedure (time step of runoff data)
+                                            ZS_dtR=15*60, #internal routing time step
+                                            ZS_TauM=duration_3hr, #total simulation time 
+                                            Vlat_file=inflow_file_name_3hr,
+                                            Qout_file=outflow_file_name,
+                                            Qinit_file=qinit_file,
+                                            BS_opt_Qinit=BS_opt_Qinit)
+            rapid_manager.run()
+    
+            #generate Qinit from 3hr
+            rapid_manager.generate_qinit_from_past_qout(qinit_6hr_file)
+            #from Hour 144 to 360 (36 time points) are of 6 hour time interval
+            RAPIDinflowECMWF_tool.execute(forecast_basename, 
+                                          weight_table_file, 
+                                          inflow_file_name_6hr,
+                                          "6hr_subset")
+            interval_6hr = 6*60*60 #6hr
+            duration_6hr = 216*60*60 #216hrs
+            qout_6hr = os.path.join(node_path,'Qout_6hr.nc')
+            rapid_manager.update_parameters(ZS_TauR=interval_6hr, #duration of routing procedure (time step of runoff data)
+                                            ZS_dtR=15*60, #internal routing time step
+                                            ZS_TauM=duration_6hr, #total simulation time 
+                                            Vlat_file=inflow_file_name_6hr,
+                                            Qout_file=qout_6hr)
+            rapid_manager.run()
+
+            #Merge all files together at the end
+            cv = ConvertRAPIDOutputToCF(rapid_output_file=[outflow_file_name, qout_6hr], 
+                                        start_datetime=datetime.datetime.strptime(forecast_date_timestep[:11], "%Y%m%d.%H"), 
+                                        time_step=[interval_3hr, interval_6hr], 
+                                        qinit_file=qinit_file, 
+                                        comid_lat_lon_z_file=case_insensitive_file_search(rapid_input_directory,
+                                                                                          r'comid_lat_lon_z.*?\.csv'),
+                                        rapid_connect_file=rapid_connect_file, 
+                                        project_name="ECMWF-RAPID Predicted flows by US Army ERDC", 
+                                        output_id_dim_name='COMID',
+                                        output_flow_var_name='Qout',
+                                        print_debug=False)
+            cv.convert()
+    
+        except Exception:
+            remove_file(qinit_6hr_file)
+            remove_file(inflow_file_name_3hr)
+            remove_file(inflow_file_name_6hr)
+            raise
+            
+        remove_file(qinit_6hr_file)
+        remove_file(inflow_file_name_3hr)
+        remove_file(inflow_file_name_6hr)
+        
+    elif forecast_resolution == "LowRes":
+        #LOW RES - 6hr only
         inflow_file_name = 'm3_riv_bas_%s.nc' % ensemble_number
         weight_table_file = case_insensitive_file_search(rapid_input_directory,
                                                          r'weight_low_res.csv')
@@ -194,7 +263,6 @@ def process_ECMWF_RAPID(ecmwf_forecast, watershed, subbasin,
             rapid_manager.update_parameters(ZS_TauR=interval, #duration of routing procedure (time step of runoff data)
                                             ZS_dtR=15*60, #internal routing time step
                                             ZS_TauM=duration, #total simulation time 
-                                            ZS_dtM=interval, #input time step
                                             Vlat_file=inflow_file_name,
                                             Qout_file=outflow_file_name,
                                             Qinit_file=qinit_file,
@@ -213,7 +281,9 @@ def process_ECMWF_RAPID(ecmwf_forecast, watershed, subbasin,
         #clean up
         remove_file(inflow_file_name)
 
-
+    else:
+        raise Exception("ERROR: invalid forecast resolution ...")
+        
     time_stop_all = datetime.datetime.utcnow()
     print "Total time to compute: %s" % (time_stop_all-time_start_all)
 
