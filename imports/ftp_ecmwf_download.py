@@ -118,6 +118,56 @@ class PyFTPclient:
 """
 end pyFTPclient adapation section
 """
+def ftp_connect(ftp_host, ftp_login, 
+                ftp_passwd, ftp_directory):
+    """
+    Connect to ftp site
+    """
+    ftp = ftplib.FTP(ftp_host)
+    ftp.login(ftp_login,ftp_passwd)
+    ftp.cwd(ftp_directory)
+    ftp.set_debuglevel(1)
+    return ftp
+
+                
+def download_ftp(dst_filename, local_path, ftp_host, ftp_login, 
+                ftp_passwd, ftp_directory):
+    """
+    Download single file from the ftp site
+    """
+    file = open(local_path, 'wb')
+    print 'Reconnecting ...'
+    handle = ftp_connect(ftp_host, ftp_login, 
+                         ftp_passwd, ftp_directory)
+    handle.voidcmd('TYPE I')
+    dst_filesize = handle.size(dst_filename)
+    attempts_left = 15
+    while dst_filesize > file.tell():
+        try:
+            if file.tell() == 0:
+                res = handle.retrbinary('RETR %s' % dst_filename, file.write)
+            else:
+                # retrieve file from position where we were disconnected
+                handle.retrbinary('RETR %s' % dst_filename, file.write, rest=file.tell())
+        except Exception as ex:
+            print ex
+            if attempts_left == 0:
+                print "Max number of attempts reached. Download stopped."
+                handle.quit()
+                file.close()
+                os.remove(local_path)
+                return False
+            print 'Waiting 30 sec...'
+            time.sleep(30)
+            print 'Reconnecting ...'
+            handle.quit()
+            handle = ftp_connect(ftp_host, ftp_login, 
+                                 ftp_passwd, ftp_directory)
+            print 'Connected. ' + str(attempts_left) + 'attempt(s) left.'
+        attempts_left -= 1
+    handle.quit()
+    file.close()
+    return True
 
 def remove_old_ftp_downloads(folder):
     """
@@ -134,7 +184,7 @@ def remove_old_ftp_downloads(folder):
                 os.remove(path)
                 
 def download_all_ftp(download_dir, file_match, ftp_host, ftp_login, 
-                     ftp_passwd, ftp_directory, max_wait=0.377):
+                     ftp_passwd, ftp_directory, max_wait=60):
     """
     Remove downloads from before 1 day ago
     Download all files from the ftp site matching date
