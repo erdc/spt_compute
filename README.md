@@ -6,10 +6,7 @@ Note: For steps 1-2, use the *install_rapid_htcondor.sh* at your own risk.
 ##Step 1: Install RAPID and RAPIDpy
 See: https://github.com/erdc-cm/RAPIDpy
 
-##Step 2: Install AutoRoute
-Follow the instructions here: https://github.com/erdc-cm/AutoRoute/tree/gdal
-
-##Step 3: Install HTCondor (if not using Amazon Web Services and StarCluster)
+##Step 2: Install HTCondor (if not using Amazon Web Services and StarCluster)
 ###On Ubuntu
 ```
 apt-get install -y libvirt0 libdate-manip-perl vim
@@ -37,7 +34,7 @@ and run $ . /etc/init.d/condor restart as ROOT
 ###On RedHat
 See: https://research.cs.wisc.edu/htcondor/yum/
 
-##Step 4: Install Prerequisite Packages
+##Step 3: Install Prerequisite Packages
 ###On Ubuntu:
 ```
 $ apt-get install libssl-dev libffi-dev
@@ -66,6 +63,9 @@ gpgcheck=0
 ```
 Then install packages listed above.
 
+##Step 4: Install AutoRoute and AutoRoute-pu
+Follow the instructions here: https://github.com/erdc-cm/AutoRoute-py
+
 ##Step 5: Download the source code
 ```
 $ cd /path/to/your/scripts/
@@ -75,16 +75,13 @@ $ git submodule init
 $ git submodule update
 ```
 ##Step 6: Install Submodule Dependencies
-See for instructions:
-- https://github.com/erdc-cm/AutoRoute-py
-- https://github.com/erdc-cm/spt_dataset_manager
+See: https://github.com/erdc-cm/spt_dataset_manager
 
 ##Step 7: Create folders for RAPID input and for downloading ECMWF
 In this instance:
 ```
-$ cd /mnt/sgeadmin/
-$ mkdir rapid ecmwf logs condor
-$ mkdir rapid/input
+$ cd /your/working/directory
+$ mkdir -p rapid-io/input rapid-io/output ecmwf logs condor_logs
 ```
 ##Step 8: Change the locations in the files
 Create a file *run.py* and change these variables for your instance:
@@ -100,7 +97,7 @@ if __name__ == "__main__":
         rapid_io_files_location='/home/alan/work/rapid-io',
         ecmwf_forecast_location ="/home/alan/work/ecmwf",
         era_interim_data_location="/home/alan/work/era_interim_watershed",
-        condor_log_directory='/home/alan/work/condor/',
+        condor_log_directory='/home/alan/work/condor_logs/',
         main_log_directory='/home/alan/work/logs/',
         data_store_url='http://your-ckan/api/3/action',
         data_store_api_key='your-ckan-api-key',
