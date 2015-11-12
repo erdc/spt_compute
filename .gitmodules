@@ -1,6 +1,3 @@
 [submodule "spt_dataset_manager"]
 	path = spt_dataset_manager
 	url = https://github.com/erdc-cm/spt_dataset_manager.git
-[submodule "AutoRoutePy"]
-	path = AutoRoutePy
-	url = https://github.com/erdc-cm/AutoRoute-py
