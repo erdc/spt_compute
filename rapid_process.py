@@ -209,7 +209,7 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
                 era_interim_watershed_directory = os.path.join(era_interim_data_location, rapid_input_directory)
                 if os.path.exists(era_interim_watershed_directory):
                     print "Generating Warning Points for", watershed, subbasin, "from", forecast_date_timestep
-                    era_interim_files = glob(os.path.join(era_interim_watershed_directory, "*.nc"))
+                    era_interim_files = glob(os.path.join(era_interim_watershed_directory, "return_period*.nc"))
                     if era_interim_files:
                         try:
                             generate_warning_points(forecast_directory, era_interim_files[0], forecast_directory, threshold=10)
