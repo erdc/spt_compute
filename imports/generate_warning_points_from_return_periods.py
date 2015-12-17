@@ -20,16 +20,17 @@ def generate_warning_points(ecmwf_prediction_folder, return_period_file, out_dir
     data_nc = nc.Dataset(prediction_files[0], mode="r")
     prediction_comids = data_nc.variables['COMID'][:]
     comid_list_length = len(prediction_comids)
-    time_length = len(data_nc.variables['time'][:])
-    data_nc.close()
 
     first_half_size = 40 #run 6-hr resolution for all
-    if time_length == 41 or time_length == 61:
-        #run at full or 6-hr resolution for high res and 6-hr for low res
-        first_half_size = 41
-    elif time_length == 85 or time_length == 125:
-        #run at full resolution for all
-        first_half_size = 65
+    if 'time' in data_nc.variables.keys():
+        time_length = len(data_nc.variables['time'][:])
+        if time_length == 41 or time_length == 61:
+            #run at full or 6-hr resolution for high res and 6-hr for low res
+            first_half_size = 41
+        elif time_length == 85 or time_length == 125:
+            #run at full resolution for all
+            first_half_size = 65
+    data_nc.close()
 
     print "Extracting Forecast Data ..."
     #get information from datasets
@@ -67,7 +68,7 @@ def generate_warning_points(ecmwf_prediction_folder, return_period_file, out_dir
                         streamflow_3hr_6hr = data_values_2d_array[comid_index][90:]
                         # concatenate all time series
                         reach_prediciton_array_first_half[comid_index][file_index] = np.concatenate([streamflow_1hr, streamflow_3hr_6hr])
-                    elif time_length == 125:
+                    elif len(data_values_2d_array[comid_index]) == 125:
                         #convert to 6hr
                         streamflow_1hr = data_values_2d_array[comid_index][:90:6]
                         # calculate time series of 6 hr data from 3 hr data
