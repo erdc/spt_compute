@@ -76,6 +76,14 @@ def process_ECMWF_RAPID(ecmwf_forecast, watershed, subbasin,
         if not BS_opt_Qinit:
             qinit_file = ""
             print "Error:", qinit_file, "not found. Not initializing ..."
+            
+            
+    try:
+        comid_lat_lon_z_file = case_insensitive_file_search(rapid_input_directory,
+                                                            r'comid_lat_lon_z.*?\.csv')
+    except Exception:
+        comid_lat_lon_z_file = ""
+        print "comid_lat_lon_z_file not found. Not adding lat/lon/z to output file ..."
 
     RAPIDinflowECMWF_tool = CreateInflowFileFromECMWFRunoff()
     forecast_resolution = RAPIDinflowECMWF_tool.dataIdentify(forecast_basename)
@@ -155,8 +163,7 @@ def process_ECMWF_RAPID(ecmwf_forecast, watershed, subbasin,
                                         start_datetime=datetime.datetime.strptime(forecast_date_timestep[:11], "%Y%m%d.%H"), 
                                         time_step=[interval_1hr, interval_3hr, interval_6hr], 
                                         qinit_file=qinit_file, 
-                                        comid_lat_lon_z_file=case_insensitive_file_search(rapid_input_directory,
-                                                                                          r'comid_lat_lon_z.*?\.csv'),
+                                        comid_lat_lon_z_file=comid_lat_lon_z_file,
                                         rapid_connect_file=rapid_connect_file, 
                                         project_name="ECMWF-RAPID Predicted flows by US Army ERDC", 
                                         output_id_dim_name='COMID',
@@ -231,8 +238,7 @@ def process_ECMWF_RAPID(ecmwf_forecast, watershed, subbasin,
                                         start_datetime=datetime.datetime.strptime(forecast_date_timestep[:11], "%Y%m%d.%H"), 
                                         time_step=[interval_3hr, interval_6hr], 
                                         qinit_file=qinit_file, 
-                                        comid_lat_lon_z_file=case_insensitive_file_search(rapid_input_directory,
-                                                                                          r'comid_lat_lon_z.*?\.csv'),
+                                        comid_lat_lon_z_file=comid_lat_lon_z_file,
                                         rapid_connect_file=rapid_connect_file, 
                                         project_name="ECMWF-RAPID Predicted flows by US Army ERDC", 
                                         output_id_dim_name='COMID',
@@ -275,8 +281,7 @@ def process_ECMWF_RAPID(ecmwf_forecast, watershed, subbasin,
     
             rapid_manager.run()
             rapid_manager.make_output_CF_compliant(simulation_start_datetime=datetime.datetime.strptime(forecast_date_timestep[:11], "%Y%m%d.%H"),
-                                                   comid_lat_lon_z_file=case_insensitive_file_search(rapid_input_directory,
-                                                                                                     r'comid_lat_lon_z.*?\.csv'),
+                                                   comid_lat_lon_z_file=comid_lat_lon_z_file,
                                                    project_name="ECMWF-RAPID Predicted flows by US Army ERDC")
 
         except Exception:
