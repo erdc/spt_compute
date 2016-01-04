@@ -36,16 +36,24 @@ def clean_logs(condor_log_directory, main_log_directory, prepend="rapid_"):
     #clean up condor logs
     condor_dirs = [d for d in os.listdir(condor_log_directory) if os.path.isdir(os.path.join(condor_log_directory, d))]
     for condor_dir in condor_dirs:
-        dir_datetime = datetime.datetime.strptime(condor_dir[:11], "%Y%m%d.%H")
-        if (date_today-dir_datetime > week_timedelta):
-            rmtree(os.path.join(condor_log_directory, condor_dir))
+        try:
+            dir_datetime = datetime.datetime.strptime(condor_dir[:11], "%Y%m%d.%H")
+            if (date_today-dir_datetime > week_timedelta):
+                rmtree(os.path.join(condor_log_directory, condor_dir))
+        except Exception as ex:
+            print ex
+            pass
 
     #clean up log files
     main_log_files = [f for f in os.listdir(main_log_directory) if not os.path.isdir(os.path.join(main_log_directory, f))]
     for main_log_file in main_log_files:
-        log_datetime = datetime.datetime.strptime(main_log_file, "{0}%y%m%d%H%M%S.log".format(prepend))
-        if (date_today-log_datetime > week_timedelta):
-            os.remove(os.path.join(main_log_directory, main_log_file))
+        try:
+            log_datetime = datetime.datetime.strptime(main_log_file, "{0}%y%m%d%H%M%S.log".format(prepend))
+            if (date_today-log_datetime > week_timedelta):
+                os.remove(os.path.join(main_log_directory, main_log_file))
+        except Exception as ex:
+            print ex
+            pass
 
 def find_current_rapid_output(forecast_directory, watershed, subbasin):
     """
