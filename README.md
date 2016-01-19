@@ -63,8 +63,8 @@ gpgcheck=0
 ```
 Then install packages listed above.
 
-##Step 4: Install AutoRoute and AutoRoute-py
-Follow the instructions here: https://github.com/erdc-cm/AutoRoute-py
+##Step 4: Install AutoRoute and AutoRoutePy
+Follow the instructions here: https://github.com/erdc-cm/AutoRoutePy
 
 ##Step 5: Download the source code
 ```
