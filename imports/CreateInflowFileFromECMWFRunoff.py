@@ -104,7 +104,7 @@ class CreateInflowFileFromECMWFRunoff(object):
         dict_list = {self.header_wt[0]:[], self.header_wt[1]:[], self.header_wt[2]:[],
                      self.header_wt[3]:[], self.header_wt[4]:[], self.header_wt[5]:[],
                      self.header_wt[6]:[], self.header_wt[7]:[]}
-        streamID = ""
+
         with open(in_weight_table, "rb") as csvfile:
             reader = csv.reader(csvfile)
             count = 0
@@ -116,7 +116,6 @@ class CreateInflowFileFromECMWFRunoff(object):
                     #check header
                     if row[1:len(self.header_wt)] != self.header_wt[1:len(self.header_wt)]:
                         raise Exception(self.errorMessages[5])
-                    streamID = row[0]
                     count += 1
                 else:
                     for i in range(0,8):
@@ -154,8 +153,11 @@ class CreateInflowFileFromECMWFRunoff(object):
         # data_out_nc = NET.Dataset(out_nc, "w") # by default format = "NETCDF4"
         data_out_nc = NET.Dataset(out_nc, "w", format = "NETCDF3_CLASSIC")
         dim_Time = data_out_nc.createDimension('Time', size_time)
-        dim_RiverID = data_out_nc.createDimension(streamID, size_streamID)
-        var_m3_riv = data_out_nc.createVariable('m3_riv', 'f4', ('Time', streamID))
+        dim_RiverID = data_out_nc.createDimension('rivid', size_streamID)
+        var_m3_riv = data_out_nc.createVariable('m3_riv', 'f4', 
+                                                ('Time', 'rivid'),
+                                                fill_value=0)
+                                                
         data_temp = NUM.empty(shape = [size_time, size_streamID])
 
         lon_ind_all = [long(i) for i in dict_list[self.header_wt[2]]]

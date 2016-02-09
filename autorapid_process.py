@@ -1,4 +1,12 @@
-#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+##
+##  autorapid_process.py
+##  spt_ecmwf_autorapid_process
+##
+##  Created by Alan D. Snow.
+##  Copyright © 2015-2016 Alan D Snow. All rights reserved.
+##  License: BSD-3 Clause
+
 from glob import glob
 import os
 from geoserver.catalog import FailedRequestError as geo_cat_FailedRequestError
@@ -182,10 +190,10 @@ def run_autorapid_process(autoroute_executable_location, #location of AutoRoute 
             except OSError:
                 pass
 if __name__ == "__main__":
-    run_autorapid_process(autoroute_executable_location='/home/alan/work/scripts/AutoRouteGDAL/source_code/autoroute',
+    run_autorapid_process(autoroute_executable_location='/home/alan/work/scripts/AutoRoute/source_code/autoroute',
                           autoroute_io_files_location='/home/alan/work/autoroute-io',
                           rapid_io_files_location='/home/alan/work/rapid-io',
-                          forecast_date_timestep='20151110.0',
+                          forecast_date_timestep='20151217.0',
                           condor_log_directory='/home/alan/work/condor/',
                           #geoserver_url='http://10.200.24.76:8080/geoserver/rest',
                           #geoserver_username='admin',
