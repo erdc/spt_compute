@@ -17,6 +17,7 @@ from imports.helper_functions import (clean_logs,
                                       get_date_timestep_ensemble_from_forecast,
                                       get_watershed_subbasin_from_folder,
                                       compute_initial_rapid_flows,
+                                      compute_seasonal_initial_rapid_flows,
                                       update_inital_flows_usgs)
 #package imports
 from spt_dataset_manager.dataset_manager import (ECMWFRAPIDDatasetManager,
@@ -117,6 +118,17 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
                                                               rapid_input_directory, forecast_date_timestep)
             #add USGS gage data to initialization file
             if initialize_flows:
+                #add seasonal initialization if no initialization file and historical Qout file exists
+                if era_interim_data_location and os.path.exists(era_interim_data_location):
+                    era_interim_watershed_directory = os.path.join(era_interim_data_location, rapid_input_directory)
+                    if os.path.exists(era_interim_watershed_directory):
+                        historical_qout_file = glob(os.path.join(era_interim_watershed_directory, "Qout*.nc"))
+                        if historical_qout_file:
+                            compute_seasonal_initial_rapid_flows(historical_qout_file[0], 
+                                                                 master_watershed_input_directory,
+                                                                 forecast_date_timestep)
+
+            
                 #update intial flows with usgs data
                 update_inital_flows_usgs(master_watershed_input_directory, 
                                          forecast_date_timestep)
@@ -149,7 +161,7 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
                 job.set('arguments', '%s %s %s %s %s' % (forecast, watershed.lower(), subbasin.lower(),
                                                             rapid_executable_location, initialize_flows))
                 job.set('transfer_output_remaps',"\"%s = %s\"" % (node_rapid_outflow_file, master_rapid_outflow_file))
-                job.submit()
+                #job.submit()
                 rapid_watershed_jobs[rapid_input_directory]['jobs'].append(job)
                 rapid_watershed_jobs[rapid_input_directory]['jobs_info'].append({'watershed' : watershed,
                                                                                   'subbasin' : subbasin,
@@ -162,6 +174,7 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
         
         
         for rapid_input_directory, watershed_job_info in rapid_watershed_jobs.iteritems():
+            """
             #add sub job list to master job list
             master_job_info_list = master_job_info_list + watershed_job_info['jobs_info']
             #wait for jobs to finish then upload files
@@ -198,6 +211,7 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
                         pass
                     #remove tar.gz file
                     os.remove(output_tar_file)
+            """
             #when all jobs in watershed are done, generate warning points
             if create_warning_points:
                 watershed, subbasin = get_watershed_subbasin_from_folder(rapid_input_directory)
