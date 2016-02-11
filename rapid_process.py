@@ -161,7 +161,7 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
                 job.set('arguments', '%s %s %s %s %s' % (forecast, watershed.lower(), subbasin.lower(),
                                                             rapid_executable_location, initialize_flows))
                 job.set('transfer_output_remaps',"\"%s = %s\"" % (node_rapid_outflow_file, master_rapid_outflow_file))
-                #job.submit()
+                job.submit()
                 rapid_watershed_jobs[rapid_input_directory]['jobs'].append(job)
                 rapid_watershed_jobs[rapid_input_directory]['jobs_info'].append({'watershed' : watershed,
                                                                                   'subbasin' : subbasin,
@@ -174,7 +174,6 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
         
         
         for rapid_input_directory, watershed_job_info in rapid_watershed_jobs.iteritems():
-            """
             #add sub job list to master job list
             master_job_info_list = master_job_info_list + watershed_job_info['jobs_info']
             #wait for jobs to finish then upload files
@@ -211,7 +210,7 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
                         pass
                     #remove tar.gz file
                     os.remove(output_tar_file)
-            """
+
             #when all jobs in watershed are done, generate warning points
             if create_warning_points:
                 watershed, subbasin = get_watershed_subbasin_from_folder(rapid_input_directory)
