@@ -1,15 +1,13 @@
 # -*- coding: utf-8 -*-
-import csv
 import datetime
 from glob import glob
-import netCDF4 as NET
-import numpy as np
 import os
 from pytz import utc
 import re
 from shutil import rmtree
 
 #local
+from RAPIDpy.rapid import RAPID
 from assimilate_stream_gage import StreamNetworkInitializer
 
 #----------------------------------------------------------------------------------------
@@ -97,32 +95,6 @@ def get_watershed_subbasin_from_folder(folder_name):
     subbasin = input_folder_split[1].lower()
     return watershed, subbasin
 
-def csv_to_list(csv_file, delimiter=','):
-    """
-    Reads in a CSV file and returns the contents as list,
-    where every row is stored as a sublist, and each element
-    in the sublist represents 1 cell in the table.
-
-    """
-    with open(csv_file, 'rb') as csv_con:
-        reader = csv.reader(csv_con, delimiter=delimiter)
-        return list(reader)
-
-def get_comids_in_netcdf_file(reach_id_list, prediction_file):
-    """
-    Gets the subset comid_index_list, reordered_comid_list from the netcdf file
-    """
-    data_nc = NET.Dataset(prediction_file, mode="r")
-    com_ids = data_nc.variables['COMID'][:]
-    data_nc.close()
-    try:
-        #get where comids are in netcdf file
-        netcdf_reach_indices_list = np.where(np.in1d(com_ids, reach_id_list))[0]
-    except Exception as ex:
-        print ex
-
-    return netcdf_reach_indices_list, com_ids[netcdf_reach_indices_list]
-
 def compute_initial_rapid_flows(prediction_files, input_directory, forecast_date_timestep):
     """
     Gets mean of all 52 ensembles 12-hrs in future and prints to csv as initial flow
@@ -147,6 +119,22 @@ def compute_initial_rapid_flows(prediction_files, input_directory, forecast_date
         sni.write_init_flow_file(init_file_location)        
     else:
         print "No current forecasts found. Skipping ..."
+
+def compute_seasonal_initial_rapid_flows(historical_qout_file, input_directory, forecast_date_timestep):
+    """
+    Gets the seasonal average from historical file to initialize from
+    """
+    current_forecast_date = datetime.datetime.strptime(forecast_date_timestep[:11],"%Y%m%d.%H")
+    current_forecast_date_string = current_forecast_date.strftime("%Y%m%dt%H")
+    init_file_location = os.path.join(input_directory,'Qinit_%s.csv' % current_forecast_date_string)
+    if not os.path.exists(init_file_location):
+        #check to see if exists and only perform operation once
+        if historical_qout_file and os.path.exists(historical_qout_file):
+            rapid_manager = RAPID(Qout_file=historical_qout_file,
+                                  rapid_connect_file=os.path.join(input_directory,'rapid_connect.csv'))
+            rapid_manager.generate_seasonal_intitialization(init_file_location)
+        else:
+            print "No seasonal streamflow file found. Skipping ..."
 
 def update_inital_flows_usgs(input_directory, forecast_date_timestep):
     """
