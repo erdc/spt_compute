@@ -201,6 +201,10 @@ class CreateInflowFileFromECMWFRunoff(object):
             area_sqm_npoints = NUM.array(area_sqm_npoints)
             area_sqm_npoints = area_sqm_npoints.reshape(1, npoints)
             data_goal = data_subset_new[:, pointer:(pointer + npoints)]
+            
+            
+            #remove noise from data
+            data_goal[data_goal<=0.00001] = 0
 
             ''''IMPORTANT NOTE: runoff variable in ECMWF dataset is cumulative instead of incremental through time'''
             # For data with Low Resolution, there's only one time interval 6 hrs
@@ -254,8 +258,9 @@ class CreateInflowFileFromECMWFRunoff(object):
                     ro_6hr_c = NUM.subtract(data_goal[109:,], data_goal[108:-1,])
                     # concatenate all time series
                     ro_stream = NUM.concatenate([ro_6hr_a, ro_6hr_b, ro_6hr_c]) * area_sqm_npoints
-
-
+                    
+            #remove negative values
+            ro_stream[ro_stream<0] = 0
             data_temp[:,s] = ro_stream.sum(axis = 1)
 
             pointer += npoints
