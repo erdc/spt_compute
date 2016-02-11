@@ -1,44 +1,14 @@
 # -*- coding: utf-8 -*-
-import csv
 import datetime
 from dateutil.parser import parse
 from glob import glob
-import netCDF4 as NET
 import numpy as np
 import os
 from pytz import utc
 import requests
 
-
-#-----------------------------------------------------------------------------------------------------
-# Functions
-#-----------------------------------------------------------------------------------------------------
-def csv_to_list(csv_file, delimiter=','):
-    """
-    Reads in a CSV file and returns the contents as list,
-    where every row is stored as a sublist, and each element
-    in the sublist represents 1 cell in the table.
-
-    """
-    with open(csv_file, 'rb') as csv_con:
-        reader = csv.reader(csv_con, delimiter=delimiter)
-        return list(reader)
-
-def get_comids_in_netcdf_file(reach_id_list, prediction_file):
-    """
-    Gets the subset comid_index_list, reordered_comid_list from the netcdf file
-    """
-    data_nc = NET.Dataset(prediction_file, mode="r")
-    com_ids = data_nc.variables['COMID'][:]
-    data_nc.close()
-    try:
-        #get where comids are in netcdf file
-        netcdf_reach_indices_list = np.where(np.in1d(com_ids, reach_id_list))[0]
-    except Exception as ex:
-        print ex
-
-    return netcdf_reach_indices_list, com_ids[netcdf_reach_indices_list]
-
+from RAPIDpy.dataset import RAPIDDataset
+from RAPIDpy.helper_functions import csv_to_list
 
 #-----------------------------------------------------------------------------------------------------
 # StreamSegment Class
@@ -242,7 +212,8 @@ class StreamNetworkInitializer(object):
         if prediction_files:
             #get list of COMIDS
             print "Computing initial flows from the past ECMWF forecast ensemble ..."
-            comid_index_list, reordered_comid_list = get_comids_in_netcdf_file(self.stream_id_array, prediction_files[0])
+            with RAPIDDataset(prediction_files[0]) as qout_nc:
+                comid_index_list, reordered_comid_list, ignored_comid_list = qout_nc.get_subset_riverid_index_list(self.stream_id_array)
             print "Extracting data ..."
             reach_prediciton_array = np.zeros((len(self.stream_id_array),len(prediction_files),1))
             #get information from datasets
@@ -250,30 +221,33 @@ class StreamNetworkInitializer(object):
                 try:
                     ensebmle_index_str = os.path.basename(prediction_file)[:-3].split("_")[-1]
                     ensemble_index = int(ensebmle_index_str)
-                    #Get hydrograph data from ECMWF Ensemble
-                    data_nc = NET.Dataset(prediction_file, mode="r")
-                    time_length = len(data_nc.variables['time'][:])
-                    qout_dimensions = data_nc.variables['Qout'].dimensions
-                    if qout_dimensions[0].lower() == 'time' and qout_dimensions[1].lower() == 'comid':
-                        #data is raw rapid output
-                        data_values_2d_array = data_nc.variables['Qout'][1,comid_index_list].transpose()
-                    elif qout_dimensions[1].lower() == 'time' and qout_dimensions[0].lower() == 'comid':
-                        #the data is CF compliant and has time=0 added to output
-                        if ensemble_index == 52:
-                            if time_length == 125:
-                                data_values_2d_array = data_nc.variables['Qout'][comid_index_list,12]
+                    try:
+                        #Get hydrograph data from ECMWF Ensemble
+                        with RAPIDDataset(prediction_file) as predicted_qout_nc:
+                            time_length = predicted_qout_nc.size_time
+                            if predicted_qout_nc.is_time_variable_valid():
+                                #data is raw rapid output
+                                data_values_2d_array = predicted_qout_nc.get_qout_index(comid_index_list, 
+                                                                                        time_index=1)
                             else:
-                                data_values_2d_array = data_nc.variables['Qout'][comid_index_list,2]
-                        else:
-                            if time_length == 85:
-                                data_values_2d_array = data_nc.variables['Qout'][comid_index_list,4]
-                            else:
-                                data_values_2d_array = data_nc.variables['Qout'][comid_index_list,2]
-                    else:
+                                #the data is CF compliant and has time=0 added to output
+                                if ensemble_index == 52:
+                                    if time_length == 125:
+                                        data_values_2d_array = predicted_qout_nc.get_qout_index(comid_index_list, 
+                                                                                                time_index=12)
+                                    else:
+                                        data_values_2d_array = predicted_qout_nc.get_qout_index(comid_index_list, 
+                                                                                                time_index=2)
+                                else:
+                                    if time_length == 85:
+                                        data_values_2d_array = predicted_qout_nc.get_qout_index(comid_index_list, 
+                                                                                                time_index=4)
+                                    else:
+                                        data_values_2d_array = predicted_qout_nc.get_qout_index(comid_index_list, 
+                                                                                                time_index=2)
+                    except Exception:
                         print "Invalid ECMWF forecast file", prediction_file
-                        data_nc.close()
                         continue
-                    data_nc.close()
                     #organize the data
                     for comid_index, comid in enumerate(reordered_comid_list):
                         reach_prediciton_array[comid_index][file_index] = data_values_2d_array[comid_index]

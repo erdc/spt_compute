@@ -3,6 +3,7 @@ import netCDF4 as nc
 import numpy as np
 import os
 from json import dumps
+from RAPIDpy.dataset import RAPIDDataset
 
 def generate_warning_points(ecmwf_prediction_folder, return_period_file, out_directory, threshold=1):
     """
@@ -17,20 +18,18 @@ def generate_warning_points(ecmwf_prediction_folder, return_period_file, out_dir
                               reverse=True)
 
     #get the comids in ECMWF files
-    data_nc = nc.Dataset(prediction_files[0], mode="r")
-    prediction_comids = data_nc.variables['COMID'][:]
-    comid_list_length = len(prediction_comids)
-
-    first_half_size = 40 #run 6-hr resolution for all
-    if 'time' in data_nc.variables.keys():
-        time_length = len(data_nc.variables['time'][:])
-        if time_length == 41 or time_length == 61:
-            #run at full or 6-hr resolution for high res and 6-hr for low res
-            first_half_size = 41
-        elif time_length == 85 or time_length == 125:
-            #run at full resolution for all
-            first_half_size = 65
-    data_nc.close()
+    with RAPIDDataset(prediction_files[0]) as qout_nc:
+        prediction_comids = qout_nc.get_river_id_array()
+        comid_list_length = qout_nc.size_river_id
+    
+        first_half_size = 40 #run 6-hr resolution for all
+        if qout_nc.is_time_variable_valid():
+            if qout_nc.size_time == 41 or qout_nc.size_time == 61:
+                #run at full or 6-hr resolution for high res and 6-hr for low res
+                first_half_size = 41
+            elif qout_nc.size_time == 85 or qout_nc.size_time == 125:
+                #run at full resolution for all
+                first_half_size = 65
 
     print "Extracting Forecast Data ..."
     #get information from datasets
@@ -41,16 +40,8 @@ def generate_warning_points(ecmwf_prediction_folder, return_period_file, out_dir
         try:
             ensemble_index = int(os.path.basename(prediction_file)[:-3].split("_")[-1])
             #Get hydrograph data from ECMWF Ensemble
-            data_nc = nc.Dataset(prediction_file, mode="r")
-            qout_dimensions = data_nc.variables['Qout'].dimensions
-            if qout_dimensions[0].lower() == 'time' and qout_dimensions[1].lower() == 'comid':
-                data_values_2d_array = data_nc.variables['Qout'][:].transpose()
-            elif qout_dimensions[0].lower() == 'comid' and qout_dimensions[1].lower() == 'time':
-                data_values_2d_array = data_nc.variables['Qout'][:]
-            else:
-                print "Invalid ECMWF forecast file", prediction_file
-                data_nc.close()
-
+            with RAPIDDataset(prediction_file) as qout_nc:
+                data_values_2d_array = qout_nc.get_qout()
         except Exception, e:
             print e
             #pass
@@ -82,13 +73,16 @@ def generate_warning_points(ecmwf_prediction_folder, return_period_file, out_dir
 
     print "Extracting Return Period Data ..."
     return_period_nc = nc.Dataset(return_period_file, mode="r")
-    return_period_comids = return_period_nc.variables['COMID'][:]
+    riverid_var_name = 'COMID'
+    if 'rivid' in return_period_nc.variables:
+        riverid_var_name = 'rivid'
+    return_period_comids = return_period_nc.variables[riverid_var_name][:]
     return_period_20_data = return_period_nc.variables['return_period_20'][:]
     return_period_10_data = return_period_nc.variables['return_period_10'][:]
     return_period_2_data = return_period_nc.variables['return_period_2'][:]
     return_period_lat_data = return_period_nc.variables['lat'][:]
     return_period_lon_data = return_period_nc.variables['lon'][:]
-    data_nc.close()
+    return_period_nc.close()
 
     print "Analyzing Forecast Data with Return Periods ..."
     return_20_points = []
@@ -162,12 +156,3 @@ def generate_warning_points(ecmwf_prediction_folder, return_period_file, out_dir
         outfile.write(dumps(return_10_points))
     with open(os.path.join(out_directory, "return_2_points.txt"), 'wb') as outfile:
         outfile.write(dumps(return_2_points))
-
-
-if __name__ == "__main__":
-    region_dir = 'nfie_south_atlantic_gulf_region/huc_2_3'
-    date_dir = '20150730.0'
-    ecmwf_prediction_folder = os.path.join('../../rapid/output/', region_dir, date_dir)
-    return_period_file = os.path.join('../../return_periods/', region_dir, 'return_periods.nc')
-    generate_warning_points(ecmwf_prediction_folder, return_period_file, out_directory=ecmwf_prediction_folder)
-
