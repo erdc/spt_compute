@@ -28,7 +28,7 @@ class CreateInflowFileFromECMWFRunoff(object):
         self.description = ("Creates RAPID NetCDF input of water inflow " +
                        "based on ECMWF runoff results and previously created weight table.")
         self.canRunInBackground = False
-        self.header_wt = ['StreamID', 'area_sqm', 'lon_index', 'lat_index', 'npoints', 'weight', 'Lon', 'Lat']
+        self.header_wt = ['StreamID', 'area_sqm', 'lon_index', 'lat_index', 'npoints']
         self.dims_oi = ['lon', 'lat', 'time']
         self.vars_oi = ["lon", "lat", "time", "RO"]
         self.length_time = {"LowRes": 61, "LowResFull": 85,"HighRes": 125}
@@ -102,8 +102,7 @@ class CreateInflowFileFromECMWFRunoff(object):
         ''' Read the weight table '''
         print "Reading the weight table..."
         dict_list = {self.header_wt[0]:[], self.header_wt[1]:[], self.header_wt[2]:[],
-                     self.header_wt[3]:[], self.header_wt[4]:[], self.header_wt[5]:[],
-                     self.header_wt[6]:[], self.header_wt[7]:[]}
+                     self.header_wt[3]:[], self.header_wt[4]:[]}
 
         with open(in_weight_table, "rb") as csvfile:
             reader = csv.reader(csvfile)
@@ -111,14 +110,14 @@ class CreateInflowFileFromECMWFRunoff(object):
             for row in reader:
                 if count == 0:
                     #check number of columns in the weight table
-                    if len(row) != len(self.header_wt):
+                    if len(row) < len(self.header_wt):
                         raise Exception(self.errorMessages[4])
                     #check header
-                    if row[1:len(self.header_wt)] != self.header_wt[1:len(self.header_wt)]:
+                    if row[1:len(self.header_wt)] != self.header_wt[1:]:
                         raise Exception(self.errorMessages[5])
                     count += 1
                 else:
-                    for i in range(0,8):
+                    for i in xrange(len(self.header_wt)):
                        dict_list[self.header_wt[i]].append(row[i])
                     count += 1
 
