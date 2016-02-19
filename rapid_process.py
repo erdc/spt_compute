@@ -3,6 +3,7 @@ from condorpy import Job as CJob
 from condorpy import Templates as tmplt
 import datetime
 from glob import glob
+from multiprocessing import Pool as mp_Pool
 import os
 from shutil import rmtree
 import tarfile
@@ -14,10 +15,11 @@ from imports.generate_warning_points_from_return_periods import generate_warning
 from imports.helper_functions import (clean_logs,
                                       find_current_rapid_output,
                                       get_valid_watershed_list,
-                                      get_date_timestep_ensemble_from_forecast,
+                                      get_date_timestep_from_forecast_folder,
+                                      get_ensemble_number_from_forecast,
                                       get_watershed_subbasin_from_folder,
                                       compute_initial_rapid_flows,
-                                      compute_seasonal_initial_rapid_flows,
+                                      compute_seasonal_initial_rapid_flows_multicore_worker,
                                       update_inital_flows_usgs)
 #package imports
 from spt_dataset_manager.dataset_manager import (ECMWFRAPIDDatasetManager,
@@ -57,7 +59,7 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
     """
     time_begin_all = datetime.datetime.utcnow()
     date_string = time_begin_all.strftime('%Y%m%d')
-    #date_string = datetime.datetime(2015,8,13).strftime('%Y%m%d')
+    #date_string = datetime.datetime(2016,2,12).strftime('%Y%m%d')
     local_scripts_location = os.path.dirname(os.path.realpath(__file__))
 
     if sync_rapid_input_with_ckan and app_instance_id and data_store_url and data_store_api_key:
@@ -77,7 +79,7 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
     if download_ecmwf and ftp_host:
         #download all files for today
         ecmwf_folders = sorted(download_all_ftp(ecmwf_forecast_location,
-                                                'Runoff.%s*.netcdf.tar.gz' % date_string,
+                                                'Runoff.%s*.netcdf.tar*' % date_string,
                                                 ftp_host,
                                                 ftp_login,
                                                 ftp_passwd,
@@ -92,6 +94,33 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
                                                 data_store_api_key,
                                                 data_store_owner_org)
 
+    #ADD SEASONAL INITIALIZATION WHERE APPLICABLE
+    if initialize_flows:
+        initial_forecast_date_timestep = get_date_timestep_from_forecast_folder(ecmwf_folders[0])
+        seasonal_init_job_list = []
+        for rapid_input_directory in rapid_input_directories:
+            seasonal_master_watershed_input_directory = os.path.join(rapid_io_files_location, "input", rapid_input_directory)
+            #add seasonal initialization if no initialization file and historical Qout file exists
+            if era_interim_data_location and os.path.exists(era_interim_data_location):
+                era_interim_watershed_directory = os.path.join(era_interim_data_location, rapid_input_directory)
+                if os.path.exists(era_interim_watershed_directory):
+                    historical_qout_file = glob(os.path.join(era_interim_watershed_directory, "Qout*.nc"))
+                    if historical_qout_file:
+                        seasonal_init_job_list.append((historical_qout_file[0], 
+                                                       seasonal_master_watershed_input_directory,
+                                                       initial_forecast_date_timestep))
+        if seasonal_init_job_list:
+            #use multiprocessing instead of htcondor due to potential for huge file sizes
+            if len(seasonal_init_job_list) > 1:
+                seasonal_pool = mp_Pool()
+                seasonal_pool.imap(compute_seasonal_initial_rapid_flows_multicore_worker,
+                                   seasonal_init_job_list,
+                                   chunksize=1)
+                seasonal_pool.close()
+                seasonal_pool.join()
+            else:
+                compute_seasonal_initial_rapid_flows_multicore_worker(seasonal_init_job_list[0])
+
     #prepare ECMWF files
     master_job_info_list = []
     for ecmwf_folder in ecmwf_folders:
@@ -100,7 +129,7 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
         #make the largest files first
         ecmwf_forecasts.sort(key=os.path.getsize, reverse=True)
 
-        forecast_date_timestep = get_date_timestep_ensemble_from_forecast(ecmwf_forecasts[0])[0]
+        forecast_date_timestep = get_date_timestep_from_forecast_folder(ecmwf_folder)
         print forecast_date_timestep
         #submit jobs to downsize ecmwf files to watershed
         iteration = 0
@@ -118,24 +147,13 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
                                                               rapid_input_directory, forecast_date_timestep)
             #add USGS gage data to initialization file
             if initialize_flows:
-                #add seasonal initialization if no initialization file and historical Qout file exists
-                if era_interim_data_location and os.path.exists(era_interim_data_location):
-                    era_interim_watershed_directory = os.path.join(era_interim_data_location, rapid_input_directory)
-                    if os.path.exists(era_interim_watershed_directory):
-                        historical_qout_file = glob(os.path.join(era_interim_watershed_directory, "Qout*.nc"))
-                        if historical_qout_file:
-                            compute_seasonal_initial_rapid_flows(historical_qout_file[0], 
-                                                                 master_watershed_input_directory,
-                                                                 forecast_date_timestep)
-
-            
                 #update intial flows with usgs data
                 update_inital_flows_usgs(master_watershed_input_directory, 
                                          forecast_date_timestep)
             
             #create jobs for HTCondor
             for forecast in ecmwf_forecasts:
-                ensemble_number = get_date_timestep_ensemble_from_forecast(forecast)[1]
+                ensemble_number = get_ensemble_number_from_forecast(forecast)
                 try:
                     os.makedirs(master_watershed_outflow_directory)
                 except OSError:
@@ -158,7 +176,7 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
                 job.set('executable',os.path.join(local_scripts_location,'htcondor_ecmwf_rapid.py'))
                 job.set('transfer_input_files', "%s, %s, %s" % (forecast, master_watershed_input_directory, local_scripts_location))
                 job.set('initialdir',condor_init_dir)
-                job.set('arguments', '%s %s %s %s %s' % (forecast, watershed.lower(), subbasin.lower(),
+                job.set('arguments', '%s %s %s %s %s %s' % (forecast, forecast_date_timestep, watershed.lower(), subbasin.lower(),
                                                             rapid_executable_location, initialize_flows))
                 job.set('transfer_output_remaps',"\"%s = %s\"" % (node_rapid_outflow_file, master_rapid_outflow_file))
                 job.submit()

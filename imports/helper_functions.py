@@ -77,14 +77,28 @@ def get_valid_watershed_list(input_directory):
             print directory, "incorrectly formatted. Skipping ..."
     return valid_input_directories
 
-def get_date_timestep_ensemble_from_forecast(forecast_name):
+def get_date_timestep_from_forecast_folder(forecast_folder):
     """
     Gets the datetimestep from forecast
     """
+    #OLD: Runoff.20151112.00.netcdf.tar.gz
+    #NEW: Runoff.20160209.0.exp69.Fgrid.netcdf.tar
+    forecast_split = os.path.basename(forecast_folder).split(".")
+    forecast_date_timestep = ".".join(forecast_split[1:3])
+    return re.sub("[^\d.]+", "", forecast_date_timestep)
+
+def get_ensemble_number_from_forecast(forecast_name):
+    """
+    Gets the datetimestep from forecast
+    """
+    #OLD: 20151112.00.1.205.runoff.grib.runoff.netcdf
+    #NEW: 52.Runoff.nc
     forecast_split = os.path.basename(forecast_name).split(".")
-    forecast_date_timestep = ".".join(forecast_split[:2])
-    ensemble_number = int(forecast_split[2])
-    return re.sub("[^\d.]+", "", forecast_date_timestep), ensemble_number
+    if forecast_name.endswith(".205.runoff.grib.runoff.netcdf"):
+        ensemble_number = int(forecast_split[2])
+    else:
+        ensemble_number = int(forecast_split[0])
+    return ensemble_number
 
 def get_watershed_subbasin_from_folder(folder_name):
     """
@@ -125,8 +139,9 @@ def compute_seasonal_initial_rapid_flows(historical_qout_file, input_directory, 
     Gets the seasonal average from historical file to initialize from
     """
     current_forecast_date = datetime.datetime.strptime(forecast_date_timestep[:11],"%Y%m%d.%H")
-    current_forecast_date_string = current_forecast_date.strftime("%Y%m%dt%H")
-    init_file_location = os.path.join(input_directory,'Qinit_%s.csv' % current_forecast_date_string)
+    #move the date back a forecast (12 hrs) to be used in this forecast
+    forecast_date_string = (current_forecast_date-datetime.timedelta(seconds=12*3600)).strftime("%Y%m%dt%H")
+    init_file_location = os.path.join(input_directory,'Qinit_%s.csv' % forecast_date_string)
     if not os.path.exists(init_file_location):
         #check to see if exists and only perform operation once
         if historical_qout_file and os.path.exists(historical_qout_file):
@@ -136,6 +151,12 @@ def compute_seasonal_initial_rapid_flows(historical_qout_file, input_directory, 
         else:
             print "No seasonal streamflow file found. Skipping ..."
 
+def compute_seasonal_initial_rapid_flows_multicore_worker(args):
+    """
+    Worker function using mutliprocessing for compute_seasonal_initial_rapid_flows
+    """
+    compute_seasonal_initial_rapid_flows(args[0], args[1], args[2])
+    
 def update_inital_flows_usgs(input_directory, forecast_date_timestep):
     """
     Update initial flows with USGS data
