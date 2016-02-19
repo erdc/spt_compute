@@ -1,4 +1,5 @@
 import datetime
+from extractnested import AppropriateFolderName, ExtractNested
 from glob import glob
 import os
 from shutil import rmtree
@@ -216,11 +217,7 @@ def download_all_ftp(download_dir, file_match, ftp_host, ftp_login,
             if file_list:
                 for dst_filename in file_list:
                     local_path = os.path.join(download_dir, dst_filename)
-                    #get correct local_dir
-                    if local_path.endswith('.tar.gz'):
-                        local_dir = local_path[:-7]
-                    else:
-                        local_dir = download_dir
+                    local_dir = AppropriateFolderName(local_path)
                     #download and unzip file
                     try:
                         #download from ftp site
@@ -232,20 +229,14 @@ def download_all_ftp(download_dir, file_match, ftp_host, ftp_login,
                             print dst_filename + ' already exists. Skipping download ...'
                         #extract from tar.gz
                         if unzip_file:
-                            os.mkdir(local_dir)
                             print "Extracting: " + dst_filename
-                            tar = tarfile.open(local_path)
-                            tar.extractall(local_dir)
-                            tar.close()
+                            ExtractNested(local_path, True)
                             #add successfully downloaded file to list
                             all_files_downloaded.append(local_dir)
                             #request successful when one file downloaded and extracted                            
                             request_incomplete = False
                         else:
                             print dst_filename + ' already extracted. Skipping extraction ...'
-                        #remove the tarfile
-                        if os.path.exists(local_path):
-                            os.remove(local_path)
                     except Exception as ex:
                         print ex
                         if os.path.exists(local_path):
@@ -274,9 +265,3 @@ def download_all_ftp(download_dir, file_match, ftp_host, ftp_login,
         
     print "All downloads completed!"
     return all_files_downloaded
-
-if __name__ == "__main__":
-    ecmwf_forecast_location = "C:/Users/byu_rapid/Documents/RAPID/ECMWF"
-    time_string = datetime.datetime.utcnow().strftime('%Y%m%d')
-    #time_string = datetime.datetime(2014,11,2).strftime('%Y%m%d')
-    all_ecmwf_files = download_all_ftp(ecmwf_forecast_location,'Runoff.'+time_string+'*.netcdf.tar.gz')
