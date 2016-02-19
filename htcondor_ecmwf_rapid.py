@@ -8,11 +8,11 @@ import sys
 #local imports
 from spt_ecmwf_autorapid_process.imports.CreateInflowFileFromECMWFRunoff import CreateInflowFileFromECMWFRunoff
 from spt_ecmwf_autorapid_process.imports.helper_functions import (case_insensitive_file_search,
-                                                                  get_date_timestep_ensemble_from_forecast)
+                                                                  get_ensemble_number_from_forecast)
 #------------------------------------------------------------------------------
 #functions
 #------------------------------------------------------------------------------
-def process_ECMWF_RAPID(ecmwf_forecast, watershed, subbasin,
+def process_ECMWF_RAPID(ecmwf_forecast, forecast_date_timestep, watershed, subbasin,
                         rapid_executable_location, init_flow):
     """
     prepare all ECMWF files for rapid
@@ -21,7 +21,7 @@ def process_ECMWF_RAPID(ecmwf_forecast, watershed, subbasin,
 
     node_path = os.path.dirname(os.path.realpath(__file__))
 
-    forecast_date_timestep, ensemble_number = get_date_timestep_ensemble_from_forecast(ecmwf_forecast)
+    ensemble_number = get_ensemble_number_from_forecast(ecmwf_forecast)
     forecast_basename = os.path.basename(ecmwf_forecast)
 
     old_rapid_input_directory = os.path.join(node_path, "%s-%s" % (watershed, subbasin))
@@ -298,4 +298,4 @@ def process_ECMWF_RAPID(ecmwf_forecast, watershed, subbasin,
     print "Total time to compute: %s" % (time_stop_all-time_start_all)
 
 if __name__ == "__main__":   
-    process_ECMWF_RAPID(sys.argv[1],sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])
+    process_ECMWF_RAPID(sys.argv[1],sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6])
