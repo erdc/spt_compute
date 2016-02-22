@@ -29,8 +29,8 @@ class CreateInflowFileFromECMWFRunoff(object):
                        "based on ECMWF runoff results and previously created weight table.")
         self.canRunInBackground = False
         self.header_wt = ['StreamID', 'area_sqm', 'lon_index', 'lat_index', 'npoints']
-        self.dims_oi = ['lon', 'lat', 'time']
-        self.vars_oi = ["lon", "lat", "time", "RO"]
+        self.dims_oi = [['lon', 'lat', 'time'], ['longitude', 'latitude', 'time']]
+        self.vars_oi = [["lon", "lat", "time", "RO"], ['longitude', 'latitude', 'time', 'ro']]
         self.length_time = {"LowRes": 61, "LowResFull": 85,"HighRes": 125}
         self.length_time_opt = {"LowRes-6hr": 60,
                                 "LowResFull-3hr-Sub": 48, "LowResFull-6hr-Sub": 36,
@@ -47,23 +47,29 @@ class CreateInflowFileFromECMWFRunoff(object):
 
     def dataValidation(self, in_nc):
         """Check the necessary dimensions and variables in the input netcdf data"""
-        data_nc = NET.Dataset(in_nc)
+        vars_oi_index = None
 
-        nc_dims = data_nc.dimensions.keys()
-        if nc_dims != self.dims_oi:
+        data_nc = NET.Dataset(in_nc)
+        
+        dims = data_nc.dimensions.keys()
+        if dims not in self.dims_oi:
             raise Exception(self.errorMessages[1])
 
-        nc_vars = data_nc.variables.keys()
-        if nc_vars != self.vars_oi:
+        vars = data_nc.variables.keys()
+        if vars == self.vars_oi[0]:
+            vars_oi_index = 0
+        elif vars == self.vars_oi[1]:
+            vars_oi_index = 1
+        else:    
             raise Exception(self.errorMessages[2])
 
-        return
+        return vars_oi_index
 
 
-    def dataIdentify(self, in_nc):
+    def dataIdentify(self, in_nc, vars_oi_index):
         """Check if the data is Ensemble 1-51 (low resolution) or 52 (high resolution)"""
         data_nc = NET.Dataset(in_nc)
-        name_time = self.vars_oi[2]
+        name_time = self.vars_oi[vars_oi_index][2]
         time = data_nc.variables[name_time][:]
         diff = NUM.unique(NUM.diff(time))
         data_nc.close()
@@ -78,21 +84,49 @@ class CreateInflowFileFromECMWFRunoff(object):
             return "LowRes"
         else:
             return None
+            
+    def getWeightTableName(self, in_nc, high_res=False):
+        """Return name of weight table to search for"""
+        #INDENTIFY LAT/LON DIMENSIONS
+        dim_list = in_nc.dimensions.keys()
+
+        latitude_dim = "lat"
+        if 'latitude' in dim_list:
+            latitude_dim = 'latitude'
+        
+        longitude_dim = "lon"
+        if 'longitude' in dim_list:
+            longitude_dim = 'longitude'
+
+        lat_dim_size = len(in_nc.dimensions[latitude_dim])
+        lon_dim_size = len(in_nc.dimensions[longitude_dim])
+        
+        if high_res:
+            if lat_dim_size == 2560 and lon_dim_size == 5120:
+                return r'weight_ecmwf_t1279\.csv'
+            else:
+                return r'weight_high_res\.csv'
+        else:
+            if lat_dim_size == 1280 and lon_dim_size == 2560:
+                return r'weight_ecmwf_tco639\.csv'
+            else:
+                return r'weight_low_res\.csv'
+
 
     def execute(self, in_nc, in_weight_table, out_nc, in_time_interval="6hr"):
         """The source code of the tool."""
 
         # Validate the netcdf dataset
-        self.dataValidation(in_nc)
+        vars_oi_index = self.dataValidation(in_nc)
 
         # identify if the input netcdf data is the High Resolution data with three different time intervals
-        id_data = self.dataIdentify(in_nc)
+        id_data = self.dataIdentify(in_nc, vars_oi_index)
         if id_data is None:
             raise Exception(self.errorMessages[3])
 
         ''' Read the netcdf dataset'''
         data_in_nc = NET.Dataset(in_nc)
-        time = data_in_nc.variables[self.vars_oi[2]][:]
+        time = data_in_nc.variables[self.vars_oi[vars_oi_index][2]][:]
 
         # Check the size of time variable in the netcdf data
         if len(time) != self.length_time[id_data]:
@@ -169,7 +203,7 @@ class CreateInflowFileFromECMWFRunoff(object):
         max_lat_ind_all = max(lat_ind_all)
 
 
-        data_subset_all = data_in_nc.variables[self.vars_oi[3]][:, min_lat_ind_all:max_lat_ind_all+1, min_lon_ind_all:max_lon_ind_all+1]
+        data_subset_all = data_in_nc.variables[self.vars_oi[vars_oi_index][3]][:, min_lat_ind_all:max_lat_ind_all+1, min_lon_ind_all:max_lon_ind_all+1]
         len_time_subset_all = data_subset_all.shape[0]
         len_lat_subset_all = data_subset_all.shape[1]
         len_lon_subset_all = data_subset_all.shape[2]
