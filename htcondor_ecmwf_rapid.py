@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import datetime
+from netCDF4 import Dataset as NETDataset
 import os
 from RAPIDpy.rapid import RAPID
 from RAPIDpy.make_CF_RAPID_output import ConvertRAPIDOutputToCF
@@ -93,13 +94,15 @@ def process_ECMWF_RAPID(ecmwf_forecast, forecast_date_timestep, watershed, subba
         #HIGH RES
         #generate inflows for each timestep
         weight_table_file = case_insensitive_file_search(rapid_input_directory,
-                                                         r'weight_high_res.csv')
+                                                         RAPIDinflowECMWF_tool.getWeightTableName(forecast_basename,
+                                                                                                  high_res=True))
                                                          
         inflow_file_name_1hr = 'm3_riv_bas_1hr_%s.nc' % ensemble_number
         inflow_file_name_3hr = 'm3_riv_bas_3hr_%s.nc' % ensemble_number
         inflow_file_name_6hr = 'm3_riv_bas_6hr_%s.nc' % ensemble_number
         qinit_3hr_file = os.path.join(rapid_input_directory, 'Qinit_3hr.csv')
         qinit_6hr_file = os.path.join(rapid_input_directory, 'Qinit_6hr.csv')
+        
         
         try:
         
@@ -189,7 +192,7 @@ def process_ECMWF_RAPID(ecmwf_forecast, forecast_date_timestep, watershed, subba
         #LOW RES - 3hr and 6hr timesteps
         #generate inflows for each timestep
         weight_table_file = case_insensitive_file_search(rapid_input_directory,
-                                                         r'weight_low_res.csv')
+                                                         RAPIDinflowECMWF_tool.getWeightTableName(forecast_basename))
                                                          
         inflow_file_name_3hr = 'm3_riv_bas_3hr_%s.nc' % ensemble_number
         inflow_file_name_6hr = 'm3_riv_bas_6hr_%s.nc' % ensemble_number
