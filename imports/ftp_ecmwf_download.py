@@ -1,9 +1,9 @@
 import datetime
-from extractnested import AppropriateFolderName, ExtractNested
+from extractnested import AppropriateFolderName, ExtractNested, FileExtension
 from glob import glob
 import os
 from shutil import rmtree
-import tarfile
+
 """
 This section adapted from https://github.com/keepitsimple/pyFTPclient
 """
@@ -195,11 +195,6 @@ def download_all_ftp(download_dir, file_match, ftp_host, ftp_login,
         max_wait = 0
         
     remove_old_ftp_downloads(download_dir)
-    #init FTPClient
-    ftp_client = PyFTPclient(host=ftp_host,
-                             login=ftp_login,
-                             passwd=ftp_passwd,
-                             directory=ftp_directory)
     #open the file for writing in binary mode
     all_files_downloaded = []
     print 'Opening local file'
@@ -210,6 +205,11 @@ def download_all_ftp(download_dir, file_match, ftp_host, ftp_login,
     while ((datetime.datetime.utcnow()-time_start_connect_attempt)<datetime.timedelta(minutes=max_wait) \
           or attempt_count == 1) and request_incomplete:
         try:
+            #init FTPClient (moved here because of traffic issues)
+            ftp_client = PyFTPclient(host=ftp_host,
+                                     login=ftp_login,
+                                     passwd=ftp_passwd,
+                                     directory=ftp_directory)
             ftp_client.connect()
             file_list = ftp_client.ftp.nlst(file_match)
             ftp_client.ftp.quit()
@@ -217,7 +217,8 @@ def download_all_ftp(download_dir, file_match, ftp_host, ftp_login,
             if file_list:
                 for dst_filename in file_list:
                     local_path = os.path.join(download_dir, dst_filename)
-                    local_dir = AppropriateFolderName(local_path)
+                    local_dir = AppropriateFolderName(local_path[:\
+                                                      -1*len(FileExtension(local_path))-1])
                     #download and unzip file
                     try:
                         #download from ftp site
