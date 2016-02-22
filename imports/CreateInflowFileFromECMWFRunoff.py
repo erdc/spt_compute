@@ -66,11 +66,10 @@ class CreateInflowFileFromECMWFRunoff(object):
         return vars_oi_index
 
 
-    def dataIdentify(self, in_nc, vars_oi_index):
+    def dataIdentify(self, in_nc):
         """Check if the data is Ensemble 1-51 (low resolution) or 52 (high resolution)"""
         data_nc = NET.Dataset(in_nc)
-        name_time = self.vars_oi[vars_oi_index][2]
-        time = data_nc.variables[name_time][:]
+        time = data_nc.variables['time'][:]
         diff = NUM.unique(NUM.diff(time))
         data_nc.close()
         time_interval_highres = NUM.array([1.0,3.0,6.0],dtype=float)
@@ -88,7 +87,8 @@ class CreateInflowFileFromECMWFRunoff(object):
     def getWeightTableName(self, in_nc, high_res=False):
         """Return name of weight table to search for"""
         #INDENTIFY LAT/LON DIMENSIONS
-        dim_list = in_nc.dimensions.keys()
+        data_nc = NET.Dataset(in_nc)
+        dim_list = data_nc.dimensions.keys()
 
         latitude_dim = "lat"
         if 'latitude' in dim_list:
@@ -98,8 +98,9 @@ class CreateInflowFileFromECMWFRunoff(object):
         if 'longitude' in dim_list:
             longitude_dim = 'longitude'
 
-        lat_dim_size = len(in_nc.dimensions[latitude_dim])
-        lon_dim_size = len(in_nc.dimensions[longitude_dim])
+        lat_dim_size = len(data_nc.dimensions[latitude_dim])
+        lon_dim_size = len(data_nc.dimensions[longitude_dim])
+        data_nc.close()
         
         if high_res:
             if lat_dim_size == 2560 and lon_dim_size == 5120:
@@ -120,13 +121,13 @@ class CreateInflowFileFromECMWFRunoff(object):
         vars_oi_index = self.dataValidation(in_nc)
 
         # identify if the input netcdf data is the High Resolution data with three different time intervals
-        id_data = self.dataIdentify(in_nc, vars_oi_index)
+        id_data = self.dataIdentify(in_nc)
         if id_data is None:
             raise Exception(self.errorMessages[3])
 
         ''' Read the netcdf dataset'''
         data_in_nc = NET.Dataset(in_nc)
-        time = data_in_nc.variables[self.vars_oi[vars_oi_index][2]][:]
+        time = data_in_nc.variables['time'][:]
 
         # Check the size of time variable in the netcdf data
         if len(time) != self.length_time[id_data]:
