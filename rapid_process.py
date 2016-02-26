@@ -38,7 +38,8 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
                             data_store_owner_org="", #CKAN owner organization
                             app_instance_id="", #Streamflow Prediction tool instance ID
                             sync_rapid_input_with_ckan=False, #match Streamflow Prediciton tool RAPID input
-                            download_ecmwf=True, #Download recent ECMWF forecast before running
+                            download_ecmwf=True, #Download recent ECMWF forecast before running,
+                            date_string=None, #string of date of interest
                             ftp_host="", #ECMWF ftp site path
                             ftp_login="", #ECMWF ftp login name
                             ftp_passwd="", #ECMWF ftp password
@@ -58,7 +59,8 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
     This it the main ECMWF RAPID process
     """
     time_begin_all = datetime.datetime.utcnow()
-    date_string = time_begin_all.strftime('%Y%m%d')
+    if date_string == None:
+        date_string = time_begin_all.strftime('%Y%m%d')
     #date_string = datetime.datetime(2016,2,12).strftime('%Y%m%d')
     local_scripts_location = os.path.dirname(os.path.realpath(__file__))
 
