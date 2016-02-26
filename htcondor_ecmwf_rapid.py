@@ -92,10 +92,10 @@ def process_ECMWF_RAPID(ecmwf_forecast, forecast_date_timestep, watershed, subba
     #determine weight table from resolution
     if forecast_resolution == "HighRes":
         #HIGH RES
+        grid_name = RAPIDinflowECMWF_tool.getWeightTableName(forecast_basename, high_res=True)
         #generate inflows for each timestep
         weight_table_file = case_insensitive_file_search(rapid_input_directory,
-                                                         RAPIDinflowECMWF_tool.getWeightTableName(forecast_basename,
-                                                                                                  high_res=True))
+                                                         r'weight_{0}./csv'.format(grid_name))
                                                          
         inflow_file_name_1hr = 'm3_riv_bas_1hr_%s.nc' % ensemble_number
         inflow_file_name_3hr = 'm3_riv_bas_3hr_%s.nc' % ensemble_number
@@ -109,6 +109,7 @@ def process_ECMWF_RAPID(ecmwf_forecast, forecast_date_timestep, watershed, subba
             RAPIDinflowECMWF_tool.execute(forecast_basename, 
                                           weight_table_file, 
                                           inflow_file_name_1hr,
+                                          grid_name,
                                           "1hr")
 
             #from Hour 0 to 90 (the first 91 time points) are of 1 hr time interval
@@ -131,6 +132,7 @@ def process_ECMWF_RAPID(ecmwf_forecast, forecast_date_timestep, watershed, subba
             RAPIDinflowECMWF_tool.execute(forecast_basename, 
                                           weight_table_file, 
                                           inflow_file_name_3hr,
+                                          grid_name,
                                           "3hr_subset")
             interval_3hr = 3*60*60 #3hr
             duration_3hr = 54*60*60 #54hrs
@@ -149,6 +151,7 @@ def process_ECMWF_RAPID(ecmwf_forecast, forecast_date_timestep, watershed, subba
             RAPIDinflowECMWF_tool.execute(forecast_basename, 
                                           weight_table_file, 
                                           inflow_file_name_6hr,
+                                          grid_name,
                                           "6hr_subset")
             interval_6hr = 6*60*60 #6hr
             duration_6hr = 96*60*60 #96hrs
@@ -190,9 +193,10 @@ def process_ECMWF_RAPID(ecmwf_forecast, forecast_date_timestep, watershed, subba
 
     elif forecast_resolution == "LowResFull":
         #LOW RES - 3hr and 6hr timesteps
+        grid_name = RAPIDinflowECMWF_tool.getGridName(forecast_basename, high_res=False)
         #generate inflows for each timestep
         weight_table_file = case_insensitive_file_search(rapid_input_directory,
-                                                         RAPIDinflowECMWF_tool.getWeightTableName(forecast_basename))
+                                                         r'weight_{0}./csv'.format(grid_name))
                                                          
         inflow_file_name_3hr = 'm3_riv_bas_3hr_%s.nc' % ensemble_number
         inflow_file_name_6hr = 'm3_riv_bas_6hr_%s.nc' % ensemble_number
@@ -203,6 +207,7 @@ def process_ECMWF_RAPID(ecmwf_forecast, forecast_date_timestep, watershed, subba
             RAPIDinflowECMWF_tool.execute(forecast_basename, 
                                           weight_table_file, 
                                           inflow_file_name_3hr,
+                                          grid_name,
                                           "3hr_subset")
 
             #from Hour 0 to 144 (the first 49 time points) are of 3 hr time interval
@@ -224,6 +229,7 @@ def process_ECMWF_RAPID(ecmwf_forecast, forecast_date_timestep, watershed, subba
             RAPIDinflowECMWF_tool.execute(forecast_basename, 
                                           weight_table_file, 
                                           inflow_file_name_6hr,
+                                          grid_name,
                                           "6hr_subset")
             interval_6hr = 6*60*60 #6hr
             duration_6hr = 216*60*60 #216hrs
@@ -262,15 +268,19 @@ def process_ECMWF_RAPID(ecmwf_forecast, forecast_date_timestep, watershed, subba
     elif forecast_resolution == "LowRes":
         #LOW RES - 6hr only
         inflow_file_name = 'm3_riv_bas_%s.nc' % ensemble_number
+
+        grid_name = RAPIDinflowECMWF_tool.getGridName(forecast_basename, high_res=False)
+        #generate inflows for each timestep
         weight_table_file = case_insensitive_file_search(rapid_input_directory,
-                                                         r'weight_low_res.csv')
+                                                         r'weight_{0}./csv'.format(grid_name))
 
         try:
 
             print "Converting ECMWF inflow"
             RAPIDinflowECMWF_tool.execute(forecast_basename, 
                                           weight_table_file, 
-                                          inflow_file_name)
+                                          inflow_file_name,
+                                          grid_name)
     
             interval = 6*60*60 #6hr
             duration = 15*24*60*60 #15 days
