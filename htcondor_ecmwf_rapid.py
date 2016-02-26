@@ -95,7 +95,7 @@ def process_ECMWF_RAPID(ecmwf_forecast, forecast_date_timestep, watershed, subba
         grid_name = RAPIDinflowECMWF_tool.getGridName(forecast_basename, high_res=True)
         #generate inflows for each timestep
         weight_table_file = case_insensitive_file_search(rapid_input_directory,
-                                                         r'weight_{0}./csv'.format(grid_name))
+                                                         r'weight_{0}/.csv'.format(grid_name))
                                                          
         inflow_file_name_1hr = 'm3_riv_bas_1hr_%s.nc' % ensemble_number
         inflow_file_name_3hr = 'm3_riv_bas_3hr_%s.nc' % ensemble_number
@@ -196,7 +196,7 @@ def process_ECMWF_RAPID(ecmwf_forecast, forecast_date_timestep, watershed, subba
         grid_name = RAPIDinflowECMWF_tool.getGridName(forecast_basename, high_res=False)
         #generate inflows for each timestep
         weight_table_file = case_insensitive_file_search(rapid_input_directory,
-                                                         r'weight_{0}./csv'.format(grid_name))
+                                                         r'weight_{0}/.csv'.format(grid_name))
                                                          
         inflow_file_name_3hr = 'm3_riv_bas_3hr_%s.nc' % ensemble_number
         inflow_file_name_6hr = 'm3_riv_bas_6hr_%s.nc' % ensemble_number
@@ -272,7 +272,7 @@ def process_ECMWF_RAPID(ecmwf_forecast, forecast_date_timestep, watershed, subba
         grid_name = RAPIDinflowECMWF_tool.getGridName(forecast_basename, high_res=False)
         #generate inflows for each timestep
         weight_table_file = case_insensitive_file_search(rapid_input_directory,
-                                                         r'weight_{0}./csv'.format(grid_name))
+                                                         r'weight_{0}/.csv'.format(grid_name))
 
         try:
 
