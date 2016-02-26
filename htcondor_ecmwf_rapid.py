@@ -92,7 +92,7 @@ def process_ECMWF_RAPID(ecmwf_forecast, forecast_date_timestep, watershed, subba
     #determine weight table from resolution
     if forecast_resolution == "HighRes":
         #HIGH RES
-        grid_name = RAPIDinflowECMWF_tool.getWeightTableName(forecast_basename, high_res=True)
+        grid_name = RAPIDinflowECMWF_tool.getGridName(forecast_basename, high_res=True)
         #generate inflows for each timestep
         weight_table_file = case_insensitive_file_search(rapid_input_directory,
                                                          r'weight_{0}./csv'.format(grid_name))
