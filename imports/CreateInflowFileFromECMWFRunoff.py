@@ -84,8 +84,8 @@ class CreateInflowFileFromECMWFRunoff(object):
         else:
             return None
             
-    def getWeightTableName(self, in_nc, high_res=False):
-        """Return name of weight table to search for"""
+    def getGridName(self, in_nc, high_res=False):
+        """Return name of grid"""
         #INDENTIFY LAT/LON DIMENSIONS
         data_nc = NET.Dataset(in_nc)
         dim_list = data_nc.dimensions.keys()
@@ -104,21 +104,27 @@ class CreateInflowFileFromECMWFRunoff(object):
         
         if high_res:
             if lat_dim_size == 2560 and lon_dim_size == 5120:
-                return r'weight_ecmwf_t1279\.csv'
+                return 'ecmwf_t1279'
             else:
-                return r'weight_high_res\.csv'
+                return 'high_res'
         else:
             if lat_dim_size == 1280 and lon_dim_size == 2560:
-                return r'weight_ecmwf_tco639\.csv'
+                return 'ecmwf_tco639'
             else:
-                return r'weight_low_res\.csv'
+                return 'low_res'
 
 
-    def execute(self, in_nc, in_weight_table, out_nc, in_time_interval="6hr"):
+    def execute(self, in_nc, in_weight_table, out_nc, grid_name, in_time_interval="6hr"):
         """The source code of the tool."""
 
         # Validate the netcdf dataset
         vars_oi_index = self.dataValidation(in_nc)
+        
+        #get conversion factor
+        conversion_factor = 1.0
+        if grid_name == 'ecmwf_t1279' or grid_name == 'ecmwf_tco639':
+            #new grids in mm instead of m
+            conversion_factor = 0.001
 
         # identify if the input netcdf data is the High Resolution data with three different time intervals
         id_data = self.dataIdentify(in_nc)
@@ -219,7 +225,7 @@ class CreateInflowFileFromECMWFRunoff(object):
             index_new.append((ind_lat_orig - min_lat_ind_all)*len_lon_subset_all + (ind_lon_orig - min_lon_ind_all))
 
         # obtain a new subset of data
-        data_subset_new = data_subset_all[:,index_new]
+        data_subset_new = data_subset_all[:,index_new]*conversion_factor
 
         # start compute inflow
         pointer = 0
