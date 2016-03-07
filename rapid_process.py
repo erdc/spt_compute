@@ -17,10 +17,11 @@ from imports.helper_functions import (clean_logs,
                                       get_valid_watershed_list,
                                       get_date_timestep_from_forecast_folder,
                                       get_ensemble_number_from_forecast,
-                                      get_watershed_subbasin_from_folder,
-                                      compute_initial_rapid_flows,
-                                      compute_seasonal_initial_rapid_flows_multicore_worker,
-                                      update_inital_flows_usgs)
+                                      get_watershed_subbasin_from_folder,)
+                                      
+from imports.streamflow_assimilation import (compute_initial_rapid_flows,
+                                             compute_seasonal_initial_rapid_flows_multicore_worker,
+                                             update_inital_flows_usgs,)
 #package imports
 from spt_dataset_manager.dataset_manager import (ECMWFRAPIDDatasetManager,
                                                  RAPIDInputDatasetManager)
