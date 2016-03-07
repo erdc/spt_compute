@@ -10,6 +10,8 @@ import requests
 from RAPIDpy.dataset import RAPIDDataset
 from RAPIDpy.helper_functions import csv_to_list
 
+
+from helper_function import get_ensemble_number_from_forecast
 #-----------------------------------------------------------------------------------------------------
 # StreamSegment Class
 #-----------------------------------------------------------------------------------------------------
@@ -219,13 +221,12 @@ class StreamNetworkInitializer(object):
             #get information from datasets
             for file_index, prediction_file in enumerate(prediction_files):
                 try:
-                    ensebmle_index_str = os.path.basename(prediction_file)[:-3].split("_")[-1]
-                    ensemble_index = int(ensebmle_index_str)
+                    ensemble_index = int(get_ensemble_number_from_forecast(prediction_file))
                     try:
                         #Get hydrograph data from ECMWF Ensemble
                         with RAPIDDataset(prediction_file) as predicted_qout_nc:
                             time_length = predicted_qout_nc.size_time
-                            if predicted_qout_nc.is_time_variable_valid():
+                            if not predicted_qout_nc.is_time_variable_valid():
                                 #data is raw rapid output
                                 data_values_2d_array = predicted_qout_nc.get_qout_index(comid_index_list, 
                                                                                         time_index=1)
