@@ -195,8 +195,8 @@ if __name__ == "__main__":
                           rapid_io_files_location='/home/alan/work/rapid-io',
                           forecast_date_timestep='20151217.0',
                           condor_log_directory='/home/alan/work/condor/',
-                          #geoserver_url='http://10.200.24.76:8080/geoserver/rest',
-                          #geoserver_username='admin',
-                          #geoserver_password='RTh+xL;,qA]H*nL]kz68e<ZD',
-                          #app_instance_id='106153e7efde5994bc2bccb021bfd461',
+                          #geoserver_url=',
+                          #geoserver_username='',
+                          #geoserver_password='',
+                          #app_instance_id='',
                           )
