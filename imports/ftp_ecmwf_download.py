@@ -1,5 +1,5 @@
 import datetime
-from extractnested import AppropriateFolderName, ExtractNested, FileExtension
+from extractnested import ExtractNested, FileExtension
 from glob import glob
 import os
 from shutil import rmtree
@@ -217,8 +217,9 @@ def download_all_ftp(download_dir, file_match, ftp_host, ftp_login,
             if file_list:
                 for dst_filename in file_list:
                     local_path = os.path.join(download_dir, dst_filename)
-                    local_dir = AppropriateFolderName(local_path[:\
-                                                      -1*len(FileExtension(local_path))-1])
+                    local_dir = local_path[:-1*len(FileExtension(local_path))-1]
+                    print "local_path", local_path
+                    print "local_dir", local_dir
                     #download and unzip file
                     try:
                         #download from ftp site
