@@ -2,13 +2,8 @@
 import datetime
 from glob import glob
 import os
-from pytz import utc
 import re
 from shutil import rmtree
-
-#local
-from RAPIDpy.rapid import RAPID
-from assimilate_stream_gage import StreamNetworkInitializer
 
 #----------------------------------------------------------------------------------------
 # HELPER FUNCTIONS
@@ -108,81 +103,6 @@ def get_watershed_subbasin_from_folder(folder_name):
     watershed = input_folder_split[0].lower()
     subbasin = input_folder_split[1].lower()
     return watershed, subbasin
-
-def compute_initial_rapid_flows(prediction_files, input_directory, forecast_date_timestep):
-    """
-    Gets mean of all 52 ensembles 12-hrs in future and prints to csv as initial flow
-    Qinit_file (BS_opt_Qinit)
-    The assumptions are that Qinit_file is ordered the same way as rapid_connect_file
-    if subset of list, add zero where there is no flow
-    """
-    #remove old init files for this basin
-    past_init_flow_files = glob(os.path.join(input_directory, 'Qinit_*.csv'))
-    for past_init_flow_file in past_init_flow_files:
-        try:
-            os.remove(past_init_flow_file)
-        except:
-            pass
-    current_forecast_date = datetime.datetime.strptime(forecast_date_timestep[:11],"%Y%m%d.%H")
-    current_forecast_date_string = current_forecast_date.strftime("%Y%m%dt%H")
-    init_file_location = os.path.join(input_directory,'Qinit_%s.csv' % current_forecast_date_string)
-    #check to see if exists and only perform operation once
-    if prediction_files:
-        sni = StreamNetworkInitializer(connectivity_file=os.path.join(input_directory,'rapid_connect.csv'))
-        sni.compute_init_flows_from_past_forecast(prediction_files)
-        sni.write_init_flow_file(init_file_location)        
-    else:
-        print "No current forecasts found. Skipping ..."
-
-def compute_seasonal_initial_rapid_flows(historical_qout_file, input_directory, forecast_date_timestep):
-    """
-    Gets the seasonal average from historical file to initialize from
-    """
-    current_forecast_date = datetime.datetime.strptime(forecast_date_timestep[:11],"%Y%m%d.%H")
-    #move the date back a forecast (12 hrs) to be used in this forecast
-    forecast_date_string = (current_forecast_date-datetime.timedelta(seconds=12*3600)).strftime("%Y%m%dt%H")
-    init_file_location = os.path.join(input_directory,'Qinit_%s.csv' % forecast_date_string)
-    if not os.path.exists(init_file_location):
-        #check to see if exists and only perform operation once
-        if historical_qout_file and os.path.exists(historical_qout_file):
-            rapid_manager = RAPID(Qout_file=historical_qout_file,
-                                  rapid_connect_file=os.path.join(input_directory,'rapid_connect.csv'))
-            rapid_manager.generate_seasonal_intitialization(init_file_location)
-        else:
-            print "No seasonal streamflow file found. Skipping ..."
-
-def compute_seasonal_initial_rapid_flows_multicore_worker(args):
-    """
-    Worker function using mutliprocessing for compute_seasonal_initial_rapid_flows
-    """
-    compute_seasonal_initial_rapid_flows(args[0], args[1], args[2])
-    
-def update_inital_flows_usgs(input_directory, forecast_date_timestep):
-    """
-    Update initial flows with USGS data
-    """
-    gage_flow_info = os.path.join(input_directory, 'usgs_gages.csv')
-    current_forecast_date = datetime.datetime.strptime(forecast_date_timestep[:11],"%Y%m%d.%H").replace(tzinfo=utc)
-    past_date = (datetime.datetime.strptime(forecast_date_timestep[:11],"%Y%m%d.%H") - \
-                 datetime.timedelta(hours=12)).replace(tzinfo=utc).strftime("%Y%m%dt%H")
-
-    qinit_file = os.path.join(input_directory, 'Qinit_%s.csv' % past_date)
-
-    if os.path.exists(gage_flow_info) and os.path.exists(qinit_file):
-        print "Updating initial flows with USGS data for:", \
-              input_directory, forecast_date_timestep , "..."
-              
-        sni = StreamNetworkInitializer(connectivity_file=os.path.join(input_directory,'rapid_connect.csv'),
-                                       gage_ids_natur_flow_file=gage_flow_info)
-        sni.read_init_flows_from_past_forecast(qinit_file)
-        sni.add_usgs_flows(current_forecast_date)
-        sni.modify_init_flows_from_gage_flows()
-        try:
-            os.remove(qinit_file)
-        except OSError:
-            pass
-        
-        sni.write_init_flow_file(qinit_file)        
 
 def log(message, severity):
     """Logs, prints, or raises a message.
