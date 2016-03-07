@@ -11,7 +11,7 @@ from RAPIDpy.dataset import RAPIDDataset
 from RAPIDpy.helper_functions import csv_to_list
 
 
-from helper_function import get_ensemble_number_from_forecast
+from helper_functions import get_ensemble_number_from_forecast
 #-----------------------------------------------------------------------------------------------------
 # StreamSegment Class
 #-----------------------------------------------------------------------------------------------------
