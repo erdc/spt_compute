@@ -209,24 +209,24 @@ class StreamNetworkInitializer(object):
                 
                 
 
-    def compute_init_flows_from_past_forecast(self, prediction_files):
+    def compute_init_flows_from_past_forecast(self, forecasted_streamflow_files):
         """
         Compute initial flows from the past ECMWF forecast ensemble
         """
-        if prediction_files:
+        if forecasted_streamflow_files:
             #get list of COMIDS
             print "Computing initial flows from the past ECMWF forecast ensemble ..."
-            with RAPIDDataset(prediction_files[0]) as qout_nc:
+            with RAPIDDataset(forecasted_streamflow_files[0]) as qout_nc:
                 comid_index_list, reordered_comid_list, ignored_comid_list = qout_nc.get_subset_riverid_index_list(self.stream_id_array)
             print "Extracting data ..."
-            reach_prediciton_array = np.zeros((len(self.stream_id_array),len(prediction_files),1))
+            reach_prediciton_array = np.zeros((len(self.stream_id_array),len(forecasted_streamflow_files),1))
             #get information from datasets
-            for file_index, prediction_file in enumerate(prediction_files):
+            for file_index, forecasted_streamflow_file in enumerate(forecasted_streamflow_files):
                 try:
-                    ensemble_index = int(get_ensemble_number_from_forecast(prediction_file))
+                    ensemble_index = int(os.path.basename(forecasted_streamflow_file).split(".")[0].split("_")[-1])
                     try:
                         #Get hydrograph data from ECMWF Ensemble
-                        with RAPIDDataset(prediction_file) as predicted_qout_nc:
+                        with RAPIDDataset(forecasted_streamflow_file) as predicted_qout_nc:
                             time_length = predicted_qout_nc.size_time
                             if not predicted_qout_nc.is_time_variable_valid():
                                 #data is raw rapid output
@@ -249,7 +249,7 @@ class StreamNetworkInitializer(object):
                                         data_values_2d_array = predicted_qout_nc.get_qout_index(comid_index_list, 
                                                                                                 time_index=2)
                     except Exception:
-                        print "Invalid ECMWF forecast file", prediction_file
+                        print "Invalid ECMWF forecast file", forecasted_streamflow_file
                         continue
                     #organize the data
                     for comid_index, comid in enumerate(reordered_comid_list):
