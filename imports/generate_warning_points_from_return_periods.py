@@ -1,4 +1,12 @@
-#generate_warning_points_from_return_periods.py
+# -*- coding: utf-8 -*-
+##
+##  generate_warning_points_from_return_periods.py
+##  spt_ecmwf_autorapid_process
+##
+##  Created by Alan D. Snow and Scott D. Christensen.
+##  Copyright © 2015-2016 Alan D Snow and Scott D. Christensen. All rights reserved.
+##  License: BSD-3 Clause
+
 import netCDF4 as nc
 import numpy as np
 import os

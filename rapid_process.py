@@ -1,4 +1,12 @@
-#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+##
+##  rapid_process.py
+##  spt_ecmwf_autorapid_process
+##
+##  Created by Alan D. Snow.
+##  Copyright © 2015-2016 Alan D Snow. All rights reserved.
+##  License: BSD-3 Clause
+
 from condorpy import Job as CJob
 from condorpy import Templates as tmplt
 import datetime

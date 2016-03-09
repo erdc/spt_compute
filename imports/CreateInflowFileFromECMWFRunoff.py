@@ -3,7 +3,7 @@
  Source Name: CreateInflowFileFromECMWFRunoff.py
  Version:     ArcGIS 10.3
  Author:      Environmental Systems Research Institute Inc.
- Updated by:  Environmental Systems Research Institute Inc.
+ Updated by:  Alan D. Snow, US Army ERDC
  Description: Creates RAPID inflow file based on the WRF_Hydro land model output
               and the weight table previously created.
  History:     Initial coding - 10/21/2014, version 1.0

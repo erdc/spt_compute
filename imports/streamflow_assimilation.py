@@ -1,4 +1,12 @@
 # -*- coding: utf-8 -*-
+##
+##  ftp_ecmwf_download.py
+##  spt_ecmwf_autorapid_process
+##
+##  Created by Alan D. Snow.
+##  Copyright © 2015-2016 Alan D Snow. All rights reserved.
+##  License: BSD-3 Clause
+
 import datetime
 from dateutil.parser import parse
 from glob import glob
@@ -10,9 +18,6 @@ import requests
 from RAPIDpy.rapid import RAPID
 from RAPIDpy.dataset import RAPIDDataset
 from RAPIDpy.helper_functions import csv_to_list
-
-
-from helper_functions import get_ensemble_number_from_forecast
 
 #-----------------------------------------------------------------------------------------------------
 # StreamSegment Class
