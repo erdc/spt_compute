@@ -1,3 +1,12 @@
+# -*- coding: utf-8 -*-
+##
+##  ftp_ecmwf_download.py
+##  spt_ecmwf_autorapid_process
+##
+##  Created by Alan D. Snow.
+##  Copyright © 2015-2016 Alan D Snow. All rights reserved.
+##  License: BSD-3 Clause
+
 import datetime
 from extractnested import ExtractNested, FileExtension
 from glob import glob

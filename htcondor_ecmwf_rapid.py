@@ -1,6 +1,14 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+##
+##  htcondor_ecmwf_rapid.py
+##  spt_ecmwf_autorapid_process
+##
+##  Created by Alan D. Snow.
+##  Copyright © 2015-2016 Alan D Snow. All rights reserved.
+##  License: BSD-3 Clause
+
 import datetime
-from netCDF4 import Dataset as NETDataset
 import os
 from RAPIDpy.rapid import RAPID
 from RAPIDpy.make_CF_RAPID_output import ConvertRAPIDOutputToCF
