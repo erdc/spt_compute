@@ -227,8 +227,6 @@ def download_all_ftp(download_dir, file_match, ftp_host, ftp_login,
                 for dst_filename in file_list:
                     local_path = os.path.join(download_dir, dst_filename)
                     local_dir = local_path[:-1*len(FileExtension(local_path))-1]
-                    print "local_path", local_path
-                    print "local_dir", local_dir
                     #download and unzip file
                     try:
                         #download from ftp site
