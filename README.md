@@ -21,7 +21,7 @@ NOTE: if you forgot to change lines for master node, change CONDOR_HOST = $(IP_A
 and run $ . /etc/init.d/condor restart as ROOT
 ###On RedHat/CentOS 7
 See: https://research.cs.wisc.edu/htcondor/yum/
-##After Installation:
+###After Installation:
 ```
 #if master node uncomment CONDOR_HOST and comment out CONDOR_HOST and DAEMON_LIST lines
 #echo CONDOR_HOST = \$\(IP_ADDRESS\) >> /etc/condor/condor_config.local
