@@ -10,12 +10,19 @@ Note: For steps 1-2, use the *install_rapid_htcondor.sh* at your own risk.
 ##Step 1: Install RAPID and RAPIDpy
 See: https://github.com/erdc-cm/RAPIDpy
 
-##Step 2: Install HTCondor (if not using Amazon Web Services and StarCluster)
+##Step 2: Install HTCondor (if not using Amazon Web Services and StarCluster or not using Multiprocessing mode)
 ###On Ubuntu
 ```
 apt-get install -y libvirt0 libdate-manip-perl vim
 wget http://ciwckan.chpc.utah.edu/dataset/be272798-f2a7-4b27-9dc8-4a131f0bb3f0/resource/86aa16c9-0575-44f7-a143-a050cd72f4c8/download/condor8.2.8312769ubuntu14.04amd64.deb
 dpkg -i condor8.2.8312769ubuntu14.04amd64.deb
+```
+NOTE: if you forgot to change lines for master node, change CONDOR_HOST = $(IP_ADDRESS)
+and run $ . /etc/init.d/condor restart as ROOT
+###On RedHat/CentOS 7
+See: https://research.cs.wisc.edu/htcondor/yum/
+##After Installation:
+```
 #if master node uncomment CONDOR_HOST and comment out CONDOR_HOST and DAEMON_LIST lines
 #echo CONDOR_HOST = \$\(IP_ADDRESS\) >> /etc/condor/condor_config.local
 echo CONDOR_HOST = 10.8.123.71 >> /etc/condor/condor_config.local
@@ -31,13 +38,15 @@ echo PREEMPT = False >> /etc/condor/condor_config.local
 echo KILL = False >> /etc/condor/condor_config.local
 echo WANT_SUSPEND = False >> /etc/condor/condor_config.local
 echo WANT_VACATE = False >> /etc/condor/condor_config.local
-. /etc/init.d/condor start
 ```
-NOTE: if you forgot to change lines for master node, change CONDOR_HOST = $(IP_ADDRESS)
-and run $ . /etc/init.d/condor restart as ROOT
-###On RedHat
-See: https://research.cs.wisc.edu/htcondor/yum/
-
+If Ubuntu:
+```
+# . /etc/init.d/condor start
+```
+If RedHat:
+```
+# systemctl start condor
+```
 ##Step 3: Install Prerequisite Packages
 ###On Ubuntu:
 ```
@@ -46,24 +55,21 @@ $ sudo su
 $ pip install requests_toolbelt tethys_dataset_services condorpy
 $ exit
 ```
-###On Redhat:
-*Note: this tool was desgined and tested in Ubuntu*
+###On RedHat/CentOS 7:
 ```
 $ yum install libffi-devel openssl-devel
 $ sudo su
 $ pip install requests_toolbelt tethys_dataset_services condorpy
 $ exit
 ```
-If you are on RHEL 7 and having troubles, add & edit a new repo file:
+If you are on RHEL 7 and having troubles, add the epel repo:
 ```
-$ vim /etc/yum.repos.d/netcdf4.repo
+$ wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+$ sudo rpm -Uvh epel-release-7*.rpm
 ```
-Add to the repo file:
+If you are on CentOS 7 and having troubles, add the epel repo:
 ```
-[netcdf4]
-name=netCDF4
-baseurl=ftp://ftp.muug.mb.ca/mirror/fedora/epel/7/x86_64/
-gpgcheck=0
+$ sudo yum install epel-release
 ```
 Then install packages listed above.
 
@@ -101,7 +107,7 @@ if __name__ == "__main__":
         rapid_io_files_location='/home/alan/work/rapid-io',
         ecmwf_forecast_location ="/home/alan/work/ecmwf",
         era_interim_data_location="/home/alan/work/era_interim_watershed",
-        condor_log_directory='/home/alan/work/condor_logs/',
+        subprocess_log_directory='/home/alan/work/condor_logs/', #path to store HTCondor/multiprocess logs
         main_log_directory='/home/alan/work/logs/',
         data_store_url='http://your-ckan/api/3/action',
         data_store_api_key='your-ckan-api-key',
@@ -122,6 +128,8 @@ if __name__ == "__main__":
         geoserver_url='http://localhost:8181/geoserver/rest',
         geoserver_username='admin',
         geoserver_password='password',
+        mp_mode='htcondor', #valid options are htcondor and multiprocess,
+        mp_execute_directory='',#required if using multiprocess mode
     )
 
 
@@ -144,11 +152,12 @@ Example:
 $ ls /rapid/input
 nfie_texas_gulf_region-huc_2_12
 $ ls /rapid/input/nfie_texas_gulf_region-huc_2_12
+comid_lat_lon_z.csv
 k.csv
 rapid_connect.csv
 riv_bas_id.csv
-weight_high_res.csv
-weight_low_res.csv
+weight_ecmwf_t1279.csv
+weight_ecmwf_tco639.csv
 x.csv
 ```
 ##Step 11: Create CRON job to run the scripts twice daily
