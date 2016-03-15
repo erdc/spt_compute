@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 ##
-##  ftp_ecmwf_download.py
+##  helper_functions.py
 ##  spt_ecmwf_autorapid_process
 ##
 ##  Created by Alan D. Snow.
