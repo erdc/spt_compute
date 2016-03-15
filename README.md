@@ -3,6 +3,8 @@ Code to use to prepare input data for RAPID from ECMWF forecast using HTCondor
 
 [![License (3-Clause BSD)](https://img.shields.io/badge/license-BSD%203--Clause-yellow.svg)](https://github.com/erdc-cm/spt_ecmwf_autorapid_process/blob/master/LICENSE)
 
+[![DOI](https://zenodo.org/badge/19918/erdc-cm/spt_ecmwf_autorapid_process.svg)](https://zenodo.org/badge/latestdoi/19918/erdc-cm/spt_ecmwf_autorapid_process)
+
 Note: For steps 1-2, use the *install_rapid_htcondor.sh* at your own risk.
 
 ##Step 1: Install RAPID and RAPIDpy
