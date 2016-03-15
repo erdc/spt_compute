@@ -42,12 +42,15 @@ and restart condor as ROOT
 
 If Ubuntu:
 ```
+# . /etc/init.d/condor stop
 # . /etc/init.d/condor start
 ```
 If RedHat:
 ```
+# systemctl stop condor
 # systemctl start condor
 ```
+
 ##Step 3: Install Prerequisite Packages
 ###On Ubuntu:
 ```
