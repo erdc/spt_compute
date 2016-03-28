@@ -9,8 +9,8 @@
 
 import datetime
 import os
-from RAPIDpy.rapid import RAPID
-from RAPIDpy.make_CF_RAPID_output import ConvertRAPIDOutputToCF
+from RAPIDpy import RAPID
+from RAPIDpy.postprocess import ConvertRAPIDOutputToCF
 from shutil import move, rmtree
 import sys
 
