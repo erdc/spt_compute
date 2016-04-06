@@ -147,6 +147,8 @@ $ chmod u+x run.py
 $ chmod u+x rapid_process.sh
 ```
 ##Step 10: Add RAPID files to the work/rapid/input directory
+To generate these files see: https://github.com/erdc-cm/RAPIDpy/wiki/GIS-Tools
+
 Make sure the directory is in the format [watershed name]-[subbasin name]
 with lowercase letters, numbers, and underscores only. No spaces!
 
