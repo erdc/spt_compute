@@ -1,18 +1,35 @@
 # -*- coding: utf-8 -*-
 ##
-##  generate_warning_points_from_return_periods.py
+##  generate_warning_points.py
 ##  spt_ecmwf_autorapid_process
 ##
 ##  Created by Alan D. Snow and Scott D. Christensen.
 ##  Copyright © 2015-2016 Alan D Snow and Scott D. Christensen. All rights reserved.
 ##  License: BSD-3 Clause
 
+from datetime import datetime
 import netCDF4 as nc
 import numpy as np
 import os
 from json import dumps
 from RAPIDpy.dataset import RAPIDDataset
 
+def calc_daily_peak(daily_time_index_array, idx, qout_arr, size_time):
+    """
+    retrieves daily qout
+    """
+    len_daily_time_array = len(daily_time_index_array)
+    time_index_start = daily_time_index_array[idx]
+    if idx+1 < len_daily_time_array:
+        next_time_index = daily_time_index_array[idx+1]
+        return np.max(qout_arr[time_index_start:next_time_index])
+    elif idx+1 == len_daily_time_array:
+        if time_index_start < size_time - 1:
+            return np.max(qout_arr[time_index_start:-1])	
+        else:
+            return qout_arr[time_index_start]
+    return 0
+    
 def generate_warning_points(ecmwf_prediction_folder, return_period_file, out_directory, threshold=1):
     """
     Create warning points from return periods and ECMWD prediction data
@@ -20,26 +37,36 @@ def generate_warning_points(ecmwf_prediction_folder, return_period_file, out_dir
     """
 
     #Get list of prediciton files
-
     prediction_files = sorted([os.path.join(ecmwf_prediction_folder,f) for f in os.listdir(ecmwf_prediction_folder) \
-                              if not os.path.isdir(os.path.join(ecmwf_prediction_folder, f)) and f.lower().endswith('.nc')],
-                              reverse=True)
+                              if not os.path.isdir(os.path.join(ecmwf_prediction_folder, f)) and f.lower().endswith('.nc')])
 
     #get the comids in ECMWF files
     with RAPIDDataset(prediction_files[0]) as qout_nc:
         prediction_comids = qout_nc.get_river_id_array()
         comid_list_length = qout_nc.size_river_id
-    
+        size_time = qout_nc.size_time
         first_half_size = 40 #run 6-hr resolution for all
         if qout_nc.is_time_variable_valid():
-            if qout_nc.size_time == 41 or qout_nc.size_time == 61:
+            if size_time == 41 or size_time == 61:
                 #run at full or 6-hr resolution for high res and 6-hr for low res
                 first_half_size = 41
-            elif qout_nc.size_time == 85 or qout_nc.size_time == 125:
+            elif size_time == 85 or size_time == 125:
                 #run at full resolution for all
                 first_half_size = 65
+        forecast_date_timestep = os.path.basename(ecmwf_prediction_folder)
+        forecast_start_date = datetime.strptime(forecast_date_timestep[:11],"%Y%m%d.%H")
+        time_array = qout_nc.get_time_array(datetime_simulation_start=forecast_start_date,
+                                            simulation_time_step_seconds=6*3600,
+                                            return_datetime=True)
+        current_day = forecast_start_date
+        daily_time_index_array = [0]
+        for idx, var_time in enumerate(time_array):
+            if current_day.day != var_time.day:
+                 daily_time_index_array.append(idx)
+                 current_day = var_time
 
-    print "Extracting Forecast Data ..."
+
+    print("Extracting Forecast Data ...")
     #get information from datasets
     reach_prediciton_array_first_half = np.zeros((comid_list_length,len(prediction_files),first_half_size))
     reach_prediciton_array_second_half = np.zeros((comid_list_length,len(prediction_files),20))
@@ -51,8 +78,8 @@ def generate_warning_points(ecmwf_prediction_folder, return_period_file, out_dir
             with RAPIDDataset(prediction_file) as qout_nc:
                 data_values_2d_array = qout_nc.get_qout()
         except Exception, e:
-            print e
-            #pass
+            print(e)
+            
         #add data to main arrays and order in order of interim comids
         if len(data_values_2d_array) > 0:
             for comid_index, comid in enumerate(prediction_comids):
@@ -79,7 +106,7 @@ def generate_warning_points(ecmwf_prediction_folder, return_period_file, out_dir
                     else:
                         reach_prediciton_array_first_half[comid_index][file_index] = data_values_2d_array[comid_index][:]
 
-    print "Extracting Return Period Data ..."
+    print("Extracting Return Period Data ...")
     return_period_nc = nc.Dataset(return_period_file, mode="r")
     riverid_var_name = 'COMID'
     if 'rivid' in return_period_nc.variables:
@@ -92,7 +119,7 @@ def generate_warning_points(ecmwf_prediction_folder, return_period_file, out_dir
     return_period_lon_data = return_period_nc.variables['lon'][:]
     return_period_nc.close()
 
-    print "Analyzing Forecast Data with Return Periods ..."
+    print("Analyzing Forecast Data with Return Periods ...")
     return_20_points = []
     return_10_points = []
     return_2_points = []
@@ -110,54 +137,69 @@ def generate_warning_points(ecmwf_prediction_folder, return_period_file, out_dir
         mean_data_first = np.mean(all_data_first, axis=0)
         mean_data_second = np.mean(all_data_second, axis=0)
         mean_series = np.concatenate([mean_data_first,mean_data_second])
-        mean_peak = np.amax(mean_series)
-        if mean_peak > threshold:
-            if mean_peak > return_period_20:
-                return_20_points.append({ "lat" : return_period_lat_data[return_period_comid_index],
-                                          "lon" : return_period_lon_data[return_period_comid_index],
-                                          "size": 1,
-                                          })
-            elif mean_peak > return_period_10:
-                return_10_points.append({ "lat" : return_period_lat_data[return_period_comid_index],
-                                          "lon" : return_period_lon_data[return_period_comid_index],
-                                          "size": 1,
-                                          })
-            elif mean_peak > return_period_2:
-                return_2_points.append({ "lat" : return_period_lat_data[return_period_comid_index],
-                                          "lon" : return_period_lon_data[return_period_comid_index],
-                                          "size": 1,
-                                          })
-
         #get max
         max_data_first = np.amax(all_data_first, axis=0)
         max_data_second = np.amax(all_data_second, axis=0)
         max_series = np.concatenate([max_data_first,max_data_second])
-        max_peak = np.amax(max_series)
         #get std dev
         std_dev_first = np.std(all_data_first, axis=0)
         std_dev_second = np.std(all_data_second, axis=0)
         std_dev = np.concatenate([std_dev_first,std_dev_second])
         #mean plus std
         mean_plus_std_series = mean_series + std_dev
-        mean_plus_std_peak = min(np.amax(mean_plus_std_series), max_peak)
-        if mean_plus_std_peak > threshold:
-            if mean_plus_std_peak > return_period_20:
-                return_20_points.append({ "lat" : return_period_lat_data[return_period_comid_index],
-                                          "lon" : return_period_lon_data[return_period_comid_index],
-                                          "size": 0,
-                                          })
-            elif mean_plus_std_peak > return_period_10:
-                return_10_points.append({ "lat" : return_period_lat_data[return_period_comid_index],
-                                          "lon" : return_period_lon_data[return_period_comid_index],
-                                          "size": 0,
-                                          })
-            elif mean_plus_std_peak > return_period_2:
-                return_2_points.append({ "lat" : return_period_lat_data[return_period_comid_index],
-                                          "lon" : return_period_lon_data[return_period_comid_index],
-                                          "size": 0,
-                                          })
+        for idx, daily_time_index in enumerate(daily_time_index_array):
+            daily_mean_peak = calc_daily_peak(daily_time_index_array, idx, mean_series, size_time)
+            current_date = time_array[daily_time_index]
+            current_date = datetime(current_date.year, current_date.month, current_date.day)
+            if daily_mean_peak > threshold:
+                if daily_mean_peak > return_period_20:
+                    return_20_points.append({ "lat" : return_period_lat_data[return_period_comid_index],
+                                              "lon" : return_period_lon_data[return_period_comid_index],
+                                              "size": 1,
+                                              "mean_peak": float("{0:.2f}".format(daily_mean_peak)),
+                                              "peak_date": str(current_date),
+                                              })
+                elif daily_mean_peak > return_period_10:
+                    return_10_points.append({ "lat" : return_period_lat_data[return_period_comid_index],
+                                              "lon" : return_period_lon_data[return_period_comid_index],
+                                              "size": 1,
+                                              "mean_peak": float("{0:.2f}".format(daily_mean_peak)),
+                                              "peak_date": str(current_date),
+                                              })
+                elif daily_mean_peak > return_period_2:
+                    return_2_points.append({ "lat" : return_period_lat_data[return_period_comid_index],
+                                              "lon" : return_period_lon_data[return_period_comid_index],
+                                              "size": 1,
+                                              "mean_peak": float("{0:.2f}".format(daily_mean_peak)),
+                                              "peak_date": str(current_date),
+                                              })
+    
+            daily_mean_plus_std_peak = min(calc_daily_peak(daily_time_index_array, idx, mean_plus_std_series, size_time),
+                                           calc_daily_peak(daily_time_index_array, idx, max_series, size_time))
+            if daily_mean_plus_std_peak > threshold:
+                if daily_mean_plus_std_peak > return_period_20:
+                    return_20_points.append({ "lat" : return_period_lat_data[return_period_comid_index],
+                                              "lon" : return_period_lon_data[return_period_comid_index],
+                                              "size": 0,
+                                              "mean_plus_std_peak": float("{0:.2f}".format(daily_mean_plus_std_peak)),
+                                              "peak_date": str(current_date),
+                                              })
+                elif daily_mean_plus_std_peak > return_period_10:
+                    return_10_points.append({ "lat" : return_period_lat_data[return_period_comid_index],
+                                              "lon" : return_period_lon_data[return_period_comid_index],
+                                              "size": 0,
+                                              "mean_plus_std_peak": float("{0:.2f}".format(daily_mean_plus_std_peak)),
+                                              "peak_date": str(current_date),
+                                              })
+                elif daily_mean_plus_std_peak > return_period_2:
+                    return_2_points.append({ "lat" : return_period_lat_data[return_period_comid_index],
+                                              "lon" : return_period_lon_data[return_period_comid_index],
+                                              "size": 0,
+                                              "mean_plus_std_peak": float("{0:.2f}".format(daily_mean_plus_std_peak)),
+                                              "peak_date": str(current_date),
+                                              })
 
-    print "Writing Output ..."
+    print("Writing Output ...")
     with open(os.path.join(out_directory, "return_20_points.txt"), 'wb') as outfile:
         outfile.write(dumps(return_20_points))
     with open(os.path.join(out_directory, "return_10_points.txt"), 'wb') as outfile:
