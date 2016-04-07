@@ -19,7 +19,7 @@ import tarfile
 #local imports
 from autorapid_process import run_autorapid_process
 from imports.ftp_ecmwf_download import download_all_ftp
-from imports.generate_warning_points_from_return_periods import generate_warning_points
+from imports.generate_warning_points import generate_warning_points
 from imports.helper_functions import (clean_logs,
                                       find_current_rapid_output,
                                       get_valid_watershed_list,
