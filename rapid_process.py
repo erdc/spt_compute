@@ -17,7 +17,7 @@ from shutil import rmtree
 import tarfile
 
 #local imports
-from autorapid_process import run_autorapid_process
+#from autorapid_process import run_autorapid_process
 from imports.ftp_ecmwf_download import download_all_ftp
 from imports.generate_warning_points_from_return_periods import generate_warning_points
 from imports.helper_functions import (clean_logs,
@@ -354,7 +354,7 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
                         except Exception, ex:
                             print ex
                             pass
-
+	"""
     
         #run autoroute process if added                
         if autoroute_executable_location and autoroute_io_files_location:
@@ -368,6 +368,7 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
                                   geoserver_username,
                                   geoserver_password,
                                   app_instance_id)
+	"""
                 
     if delete_output_when_done:
         #delete local datasets
