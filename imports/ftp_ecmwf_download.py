@@ -186,12 +186,13 @@ def remove_old_ftp_downloads(folder):
     date_now = datetime.datetime.utcnow()
     all_paths = glob(os.path.join(folder,'Runoff*netcdf*'))
     for path in all_paths:
-        date_file = datetime.datetime.strptime(os.path.basename(path).split('.')[1],'%Y%m%d')
-        if date_now - date_file > datetime.timedelta(1):
-            if os.path.isdir(path):
-                rmtree(path)
-            else:
-                os.remove(path)
+	date_file = datetime.datetime.strptime(os.path.basename(path).split('.')[1],'%Y%m%d')
+        if os.path.isdir(path):
+            rmtree(path)
+        else:
+            os.remove(path)
+	if date_now - date_file < datetime.timedelta(1):
+	    os.mkdir(path)
                 
 def download_all_ftp(download_dir, file_match, ftp_host, ftp_login, 
                      ftp_passwd, ftp_directory, max_wait=60):
@@ -238,7 +239,7 @@ def download_all_ftp(download_dir, file_match, ftp_host, ftp_login,
                             print dst_filename + ' already exists. Skipping download ...'
                         #extract from tar.gz
                         if unzip_file:
-                            print "Extracting: " + dst_filename
+			    print "Extracting: " + dst_filename
                             ExtractNested(local_path, True)
                             #add successfully downloaded file to list
                             all_files_downloaded.append(local_dir)

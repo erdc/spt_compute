@@ -354,8 +354,7 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
                         except Exception, ex:
                             print ex
                             pass
-
-    
+	
         #run autoroute process if added                
         if autoroute_executable_location and autoroute_io_files_location:
             #run autoroute on all of the watersheds
