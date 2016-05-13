@@ -30,7 +30,7 @@ def calc_daily_peak(daily_time_index_array, idx, qout_arr, size_time):
             return qout_arr[time_index_start]
     return 0
     
-def generate_warning_points(ecmwf_prediction_folder, return_period_file, out_directory, threshold=1):
+def generate_warning_points(ecmwf_prediction_folder, return_period_file, out_directory, threshold):
     """
     Create warning points from return periods and ECMWD prediction data
 
@@ -133,6 +133,13 @@ def generate_warning_points(ecmwf_prediction_folder, return_period_file, out_dir
         return_period_20 = return_period_20_data[return_period_comid_index]
         return_period_10 = return_period_10_data[return_period_comid_index]
         return_period_2 = return_period_2_data[return_period_comid_index]
+        
+        #create graduated thresholds if needed
+        if return_period_20 < threshold:
+            return_perod_20 = threshold*10
+            return_perod_10 = threshold*5
+            return_perod_2 = threshold
+            
         #get mean
         mean_data_first = np.mean(all_data_first, axis=0)
         mean_data_second = np.mean(all_data_second, axis=0)
@@ -149,53 +156,52 @@ def generate_warning_points(ecmwf_prediction_folder, return_period_file, out_dir
         mean_plus_std_series = mean_series + std_dev
         for idx, daily_time_index in enumerate(daily_time_index_array):
             daily_mean_peak = calc_daily_peak(daily_time_index_array, idx, mean_series, size_time)
-            if daily_mean_peak > threshold:
-                if daily_mean_peak > return_period_20:
-                    return_20_points.append({ "lat" : return_period_lat_data[return_period_comid_index],
-                                              "lon" : return_period_lon_data[return_period_comid_index],
-                                              "size": 1,
-                                              "mean_peak": float("{0:.2f}".format(daily_mean_peak)),
-                                              "peak_date": time_array[daily_time_index].strftime("%Y-%m-%d"),
-                                              })
-                elif daily_mean_peak > return_period_10:
-                    return_10_points.append({ "lat" : return_period_lat_data[return_period_comid_index],
-                                              "lon" : return_period_lon_data[return_period_comid_index],
-                                              "size": 1,
-                                              "mean_peak": float("{0:.2f}".format(daily_mean_peak)),
-                                              "peak_date": time_array[daily_time_index].strftime("%Y-%m-%d"),
-                                              })
-                elif daily_mean_peak > return_period_2:
-                    return_2_points.append({ "lat" : return_period_lat_data[return_period_comid_index],
-                                              "lon" : return_period_lon_data[return_period_comid_index],
-                                              "size": 1,
-                                              "mean_peak": float("{0:.2f}".format(daily_mean_peak)),
-                                              "peak_date": time_array[daily_time_index].strftime("%Y-%m-%d"),
-                                              })
+            if daily_mean_peak > return_period_20:
+                return_20_points.append({ "lat" : return_period_lat_data[return_period_comid_index],
+                                          "lon" : return_period_lon_data[return_period_comid_index],
+                                          "size": 1,
+                                          "mean_peak": float("{0:.2f}".format(daily_mean_peak)),
+                                          "peak_date": time_array[daily_time_index].strftime("%Y-%m-%d"),
+                                          })
+            elif daily_mean_peak > return_period_10:
+                return_10_points.append({ "lat" : return_period_lat_data[return_period_comid_index],
+                                          "lon" : return_period_lon_data[return_period_comid_index],
+                                          "size": 1,
+                                          "mean_peak": float("{0:.2f}".format(daily_mean_peak)),
+                                          "peak_date": time_array[daily_time_index].strftime("%Y-%m-%d"),
+                                          })
+            elif daily_mean_peak > return_period_2:
+                return_2_points.append({ "lat" : return_period_lat_data[return_period_comid_index],
+                                          "lon" : return_period_lon_data[return_period_comid_index],
+                                          "size": 1,
+                                          "mean_peak": float("{0:.2f}".format(daily_mean_peak)),
+                                          "peak_date": time_array[daily_time_index].strftime("%Y-%m-%d"),
+                                          })
     
             daily_mean_plus_std_peak = min(calc_daily_peak(daily_time_index_array, idx, mean_plus_std_series, size_time),
                                            calc_daily_peak(daily_time_index_array, idx, max_series, size_time))
-            if daily_mean_plus_std_peak > threshold:
-                if daily_mean_plus_std_peak > return_period_20:
-                    return_20_points.append({ "lat" : return_period_lat_data[return_period_comid_index],
-                                              "lon" : return_period_lon_data[return_period_comid_index],
-                                              "size": 0,
-                                              "mean_plus_std_peak": float("{0:.2f}".format(daily_mean_plus_std_peak)),
-                                              "peak_date": time_array[daily_time_index].strftime("%Y-%m-%d"),
-                                              })
-                elif daily_mean_plus_std_peak > return_period_10:
-                    return_10_points.append({ "lat" : return_period_lat_data[return_period_comid_index],
-                                              "lon" : return_period_lon_data[return_period_comid_index],
-                                              "size": 0,
-                                              "mean_plus_std_peak": float("{0:.2f}".format(daily_mean_plus_std_peak)),
-                                              "peak_date": time_array[daily_time_index].strftime("%Y-%m-%d"),
-                                              })
-                elif daily_mean_plus_std_peak > return_period_2:
-                    return_2_points.append({ "lat" : return_period_lat_data[return_period_comid_index],
-                                              "lon" : return_period_lon_data[return_period_comid_index],
-                                              "size": 0,
-                                              "mean_plus_std_peak": float("{0:.2f}".format(daily_mean_plus_std_peak)),
-                                              "peak_date": time_array[daily_time_index].strftime("%Y-%m-%d"),
-                                              })
+            
+            if daily_mean_plus_std_peak > return_period_20:
+                return_20_points.append({ "lat" : return_period_lat_data[return_period_comid_index],
+                                          "lon" : return_period_lon_data[return_period_comid_index],
+                                          "size": 0,
+                                          "mean_plus_std_peak": float("{0:.2f}".format(daily_mean_plus_std_peak)),
+                                          "peak_date": time_array[daily_time_index].strftime("%Y-%m-%d"),
+                                          })
+            elif daily_mean_plus_std_peak > return_period_10:
+                return_10_points.append({ "lat" : return_period_lat_data[return_period_comid_index],
+                                          "lon" : return_period_lon_data[return_period_comid_index],
+                                          "size": 0,
+                                          "mean_plus_std_peak": float("{0:.2f}".format(daily_mean_plus_std_peak)),
+                                          "peak_date": time_array[daily_time_index].strftime("%Y-%m-%d"),
+                                          })
+            elif daily_mean_plus_std_peak > return_period_2:
+                return_2_points.append({ "lat" : return_period_lat_data[return_period_comid_index],
+                                          "lon" : return_period_lon_data[return_period_comid_index],
+                                          "size": 0,
+                                          "mean_plus_std_peak": float("{0:.2f}".format(daily_mean_plus_std_peak)),
+                                          "peak_date": time_array[daily_time_index].strftime("%Y-%m-%d"),
+                                          })
 
     print("Writing Output ...")
     with open(os.path.join(out_directory, "return_20_points.txt"), 'wb') as outfile:
