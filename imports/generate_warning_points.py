@@ -136,9 +136,9 @@ def generate_warning_points(ecmwf_prediction_folder, return_period_file, out_dir
         
         #create graduated thresholds if needed
         if return_period_20 < threshold:
-            return_perod_20 = threshold*10
-            return_perod_10 = threshold*5
-            return_perod_2 = threshold
+            return_period_20 = threshold*10
+            return_period_10 = threshold*5
+            return_period_2 = threshold
             
         #get mean
         mean_data_first = np.mean(all_data_first, axis=0)
