@@ -16,8 +16,8 @@ from imports.helper_functions import (get_valid_watershed_list,
                                       get_watershed_subbasin_from_folder)
 
 #package imports
-from AutoRoutePy.run_autoroute_multicore import run_autoroute_multicore 
-from AutoRoutePy.post_process import get_shapefile_layergroup_bounds, rename_shapefiles
+from AutoRoutePy.run import run_autoroute_multiprocess
+from AutoRoutePy.post.post_process import get_shapefile_layergroup_bounds, rename_shapefiles
 from spt_dataset_manager.dataset_manager import GeoServerDatasetManager
 
 #----------------------------------------------------------------------------------------
@@ -79,13 +79,13 @@ def run_autorapid_process(autoroute_executable_location, #location of AutoRoute 
 
         #loop through sub-directories
         autoroute_watershed_directory_path = os.path.join(autoroute_input_folder, autoroute_input_directory)
-        autoroute_watershed_jobs[autoroute_input_directory] = run_autoroute_multicore(autoroute_executable_location, #location of AutoRoute executable
-                                                                                      autoroute_input_directory=autoroute_watershed_directory_path, #path to AutoRoute input directory
-                                                                                      autoroute_output_directory=master_watershed_autoroute_output_directory, #path to AutoRoute output directory
-                                                                                      rapid_output_directory=master_watershed_rapid_output_directory, #path to ECMWF RAPID input/output directory
-                                                                                      mode="htcondor", #multiprocess or htcondor
-                                                                                      condor_log_directory=condor_init_dir,
-                                                                                      wait_for_all_processes_to_finish=False
+        autoroute_watershed_jobs[autoroute_input_directory] = run_autoroute_multiprocess(autoroute_executable_location, #location of AutoRoute executable
+                                                                                         autoroute_input_directory=autoroute_watershed_directory_path, #path to AutoRoute input directory
+                                                                                         autoroute_output_directory=master_watershed_autoroute_output_directory, #path to AutoRoute output directory
+                                                                                         log_directory=condor_init_dir,
+                                                                                         rapid_output_directory=master_watershed_rapid_output_directory, #path to ECMWF RAPID input/output directory
+                                                                                         mode="htcondor", #multiprocess or htcondor
+                                                                                         wait_for_all_processes_to_finish=False
                                                                                       )
     geoserver_manager = None
     if geoserver_url and geoserver_username and geoserver_password and app_instance_id:
