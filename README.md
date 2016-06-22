@@ -5,7 +5,10 @@ Code to use to prepare input data for RAPID from ECMWF forecast using HTCondor
 
 [![DOI](https://zenodo.org/badge/19918/erdc-cm/spt_ecmwf_autorapid_process.svg)](https://zenodo.org/badge/latestdoi/19918/erdc-cm/spt_ecmwf_autorapid_process)
 
-Note: For steps 1-2, use the *install_rapid_htcondor.sh* at your own risk.
+##Publications:
+
+Snow, Alan Dee, "A New Global Forecasting Model to Produce High-Resolution Stream Forecasts" (2015). All Theses and Dissertations. Paper 5272.
+http://scholarsarchive.byu.edu/etd/5272
 
 ##Step 1: Install RAPID and RAPIDpy
 See: https://github.com/erdc-cm/RAPIDpy
