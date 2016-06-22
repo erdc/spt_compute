@@ -176,7 +176,7 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
                                         comid_lat_lon_z_file=comid_lat_lon_z_file,
                                         rapid_connect_file=rapid_connect_file, 
                                         project_name="ECMWF-RAPID Predicted flows by US Army ERDC", 
-                                        output_id_dim_name='COMID',
+                                        output_id_dim_name='rivid',
                                         output_flow_var_name='Qout',
                                         print_debug=False)
             cv.convert()
@@ -254,7 +254,7 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
                                         comid_lat_lon_z_file=comid_lat_lon_z_file,
                                         rapid_connect_file=rapid_connect_file, 
                                         project_name="ECMWF-RAPID Predicted flows by US Army ERDC", 
-                                        output_id_dim_name='COMID',
+                                        output_id_dim_name='rivid',
                                         output_flow_var_name='Qout',
                                         print_debug=False)
             cv.convert()
