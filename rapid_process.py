@@ -296,10 +296,9 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
                                                                     watershed_job_info['jobs'], 
                                                                     chunksize=1)
                 if data_manager:
-                    for multi_job_output in multiprocess_worker_list:
-                        job_index = multi_job_output[0]
+                    for multi_job_index in multiprocess_worker_list:
                         #upload file when done
-                        upload_single_forecast(watershed_job_info['jobs_info'][job_index], data_manager)
+                        upload_single_forecast(watershed_job_info['jobs_info'][multi_job_index], data_manager)
                         
                 #just in case ...
                 pool_main.close()
