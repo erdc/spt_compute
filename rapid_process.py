@@ -231,6 +231,14 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
                 master_rapid_outflow_file = os.path.join(master_watershed_outflow_directory, outflow_file_name)
 
                 job_name = 'job_%s_%s_%s_%s_%s' % (forecast_date_timestep, watershed, subbasin, ensemble_number, iteration)
+
+                rapid_watershed_jobs[rapid_input_directory]['jobs_info'].append({'watershed' : watershed,
+                                                                                 'subbasin' : subbasin,
+                                                                                 'outflow_file_name' : master_rapid_outflow_file,
+                                                                                 'forecast_date_timestep' : forecast_date_timestep,
+                                                                                 'ensemble_number': ensemble_number,
+                                                                                 'master_watershed_outflow_directory': master_watershed_outflow_directory,
+                                                                                 })
                 if mp_mode == "htcondor":
                     #create job to downscale forecasts for watershed
                     job = CJob(job_name, tmplt.vanilla_transfer_files)
@@ -242,13 +250,6 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
                     job.set('transfer_output_remaps',"\"%s = %s\"" % (node_rapid_outflow_file, master_rapid_outflow_file))
                     job.submit()
                     rapid_watershed_jobs[rapid_input_directory]['jobs'].append(job)
-                    rapid_watershed_jobs[rapid_input_directory]['jobs_info'].append({'watershed' : watershed,
-                                                                                     'subbasin' : subbasin,
-                                                                                     'outflow_file_name' : master_rapid_outflow_file,
-                                                                                     'forecast_date_timestep' : forecast_date_timestep,
-                                                                                     'ensemble_number': ensemble_number,
-                                                                                     'master_watershed_outflow_directory': master_watershed_outflow_directory,
-                                                                                     })
                 elif mp_mode == "multiprocess":
                     rapid_watershed_jobs[rapid_input_directory]['jobs'].append((forecast,
                                                                                 forecast_date_timestep,
