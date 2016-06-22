@@ -76,7 +76,7 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
         #check for qinit file
         past_date = (datetime.datetime.strptime(forecast_date_timestep[:11],"%Y%m%d.%H") - \
                      datetime.timedelta(hours=12)).strftime("%Y%m%dt%H")
-        qinit_file = os.path.join(rapid_input_directory, 'Qinit_%s.csv' % past_date)
+        qinit_file = os.path.join(node_path, 'Qinit_%s.csv' % past_date)
         BS_opt_Qinit = qinit_file and os.path.exists(qinit_file)
         if not BS_opt_Qinit:
             qinit_file = ""
@@ -104,8 +104,8 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
         inflow_file_name_1hr = os.path.join(node_path, 'm3_riv_bas_1hr_%s.nc' % ensemble_number)
         inflow_file_name_3hr = os.path.join(node_path, 'm3_riv_bas_3hr_%s.nc' % ensemble_number)
         inflow_file_name_6hr = os.path.join(node_path, 'm3_riv_bas_6hr_%s.nc' % ensemble_number)
-        qinit_3hr_file = os.path.join(rapid_input_directory, 'Qinit_3hr.csv')
-        qinit_6hr_file = os.path.join(rapid_input_directory, 'Qinit_6hr.csv')
+        qinit_3hr_file = os.path.join(node_path, 'Qinit_3hr.csv')
+        qinit_6hr_file = os.path.join(node_path, 'Qinit_6hr.csv')
         
         
         try:
@@ -204,7 +204,7 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
                                                          
         inflow_file_name_3hr = os.path.join(node_path, 'm3_riv_bas_3hr_%s.nc' % ensemble_number)
         inflow_file_name_6hr = os.path.join(node_path, 'm3_riv_bas_6hr_%s.nc' % ensemble_number)
-        qinit_6hr_file = os.path.join(rapid_input_directory, 'Qinit_6hr.csv')
+        qinit_6hr_file = os.path.join(node_path, 'Qinit_6hr.csv')
         
         try:
         
