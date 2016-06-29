@@ -5,10 +5,14 @@ Code to use to prepare input data for RAPID from ECMWF forecast using HTCondor
 
 [![DOI](https://zenodo.org/badge/19918/erdc-cm/spt_ecmwf_autorapid_process.svg)](https://zenodo.org/badge/latestdoi/19918/erdc-cm/spt_ecmwf_autorapid_process)
 
-##Publications:
+##How it works:
 
-Snow, Alan Dee, "A New Global Forecasting Model to Produce High-Resolution Stream Forecasts" (2015). All Theses and Dissertations. Paper 5272.
-http://scholarsarchive.byu.edu/etd/5272
+Snow, Alan D., Scott D. Christensen, Nathan R. Swain, E. James Nelson, Daniel P. Ames, Norman L. Jones,
+Deng Ding, Nawajish S. Noman, Cedric H. David, Florian Pappenberger, and Ervin Zsoter, 2016. A High-Resolution
+National-Scale Hydrologic Forecast System from a Global Ensemble Land Surface Model. *Journal of the
+American Water Resources Association (JAWRA)* 1-15, DOI: 10.1111/1752-1688.12434
+
+Snow, Alan Dee, "A New Global Forecasting Model to Produce High-Resolution Stream Forecasts" (2015). All Theses and Dissertations. Paper 5272. http://scholarsarchive.byu.edu/etd/5272
 
 ##Step 1: Install RAPID and RAPIDpy
 See: https://github.com/erdc-cm/RAPIDpy
