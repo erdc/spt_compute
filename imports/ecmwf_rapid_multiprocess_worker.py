@@ -76,7 +76,7 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
         #check for qinit file
         past_date = (datetime.datetime.strptime(forecast_date_timestep[:11],"%Y%m%d.%H") - \
                      datetime.timedelta(hours=12)).strftime("%Y%m%dt%H")
-        qinit_file = os.path.join(node_path, 'Qinit_%s.csv' % past_date)
+        qinit_file = os.path.join(rapid_input_directory, 'Qinit_%s.csv' % past_date)
         BS_opt_Qinit = qinit_file and os.path.exists(qinit_file)
         if not BS_opt_Qinit:
             qinit_file = ""
