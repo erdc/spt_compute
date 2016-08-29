@@ -166,13 +166,13 @@ if __name__ == "__main__":
 |*initialize_flows*|String|(Optional) If true, this will initialize flows from all avaialble methods (e.g. Past forecasts, historical data, streamgage data). |False|
 |*era_interim_data_location*|String|(Optional) Path to ERA Interim based historical streamflow, return period data, and seasonal average data. |""|
 |*create_warning_points*|Boolean|(Optional) Generate waring points for Streamflow Prediction Tool. This requires return period data to be located in the *era_interim_data_location*. |False|
-|*autoroute_executable_location*|String|(Optional|Beta) Path to AutoRoute executable. |""|
-|*autoroute_io_files_location*|String|(Optional|Beta) Path to AutoRoute input/output directory. |""|
-|*geoserver_url*|String|(Optional|Beta) Url to API endpoint ending in geoserver/rest. |""|
-|*geoserver_username*|String|(Optional|Beta) Username for geoserver. |""|
-|*geoserver_password*|String|(Optional|Beta) Password for geoserver. |""|
+|*autoroute_executable_location*|String|(Optional/Beta) Path to AutoRoute executable. |""|
+|*autoroute_io_files_location*|String|(Optional/Beta) Path to AutoRoute input/output directory. |""|
+|*geoserver_url*|String|(Optional/Beta) Url to API endpoint ending in geoserver/rest. |""|
+|*geoserver_username*|String|(Optional/Beta) Username for geoserver. |""|
+|*geoserver_password*|String|(Optional/Beta) Password for geoserver. |""|
 |*mp_mode*|String|(Optional) This defines how the process is run (HTCondor or Python's Multiprocessing). Valid options are htcondor and multiprocess. |htcondor|
-|*mp_execute_directory*|String|(Optional|Required if using multiprocess mode) Directory used in multiprocessing mode to temporarily store files begin generated.  |""|
+|*mp_execute_directory*|String|(Optional/Required if using multiprocess mode) Directory used in multiprocessing mode to temporarily store files begin generated.  |""|
 
 #### Possible run configurations
 There are many different configurations. Here are some examples.
