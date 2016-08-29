@@ -11,7 +11,7 @@ from calendar import isleap
 import datetime
 from dateutil.parser import parse
 from glob import glob
-from netCDF import Dataset
+from netCDF4 import Dataset
 import numpy as np
 import os
 from pytz import utc
