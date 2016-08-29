@@ -12,10 +12,24 @@ from glob import glob
 import os
 import re
 from shutil import rmtree
+import sys
 
 #----------------------------------------------------------------------------------------
 # HELPER FUNCTIONS
 #----------------------------------------------------------------------------------------
+class CaptureStdOutToLog(object):
+    def __init__(self, out_file_path):
+        self.out_file_path = out_file_path
+    def __enter__(self):
+        self._stdout = sys.stdout
+        self._stderr = sys.stderr
+        sys.stdout = sys.stderr = open(self.out_file_path, 'w')
+        return self
+    def __exit__(self, *args):
+        sys.stdout.close()
+        sys.stdout = self._stdout
+        sys.stderr = self._stderr
+
 def case_insensitive_file_search(directory, pattern):
     """
     Looks for file with pattern with case insensitive search
@@ -28,7 +42,7 @@ def case_insensitive_file_search(directory, pattern):
         print pattern, "not found"
         raise
 
-def clean_logs(condor_log_directory, main_log_directory, prepend="rapid_"):
+def clean_logs(condor_log_directory, main_log_directory, prepend="rapid_", log_file_path=""):
     """
     This removed logs older than one week old
     """
@@ -46,7 +60,8 @@ def clean_logs(condor_log_directory, main_log_directory, prepend="rapid_"):
             pass
 
     #clean up log files
-    main_log_files = [f for f in os.listdir(main_log_directory) if not os.path.isdir(os.path.join(main_log_directory, f))]
+    main_log_files = [f for f in os.listdir(main_log_directory) if not os.path.isdir(os.path.join(main_log_directory, f)) \
+                                                                    and not log_file_path.endswith(f)]
     for main_log_file in main_log_files:
         try:
             log_datetime = datetime.datetime.strptime(main_log_file, "{0}%y%m%d%H%M%S.log".format(prepend))
@@ -127,7 +142,3 @@ def log(message, severity):
     else:
         raise Exception(message)
 
-
-if __name__=="__main__":
-    #update_inital_flows_usgs('/home/alan/work/rapid-io/input/erdc_texas_gulf_region-huc_2_12/', '20150826.0')
-    print datetime.datetime(2015, 9, 9, 18) - datetime.datetime(2015, 8, 26, 0)

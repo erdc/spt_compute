@@ -12,12 +12,12 @@ import os
 from RAPIDpy import RAPID
 from RAPIDpy.postprocess import ConvertRAPIDOutputToCF
 from shutil import move, rmtree
-import sys
 
 #local imports
 from CreateInflowFileFromECMWFRunoff import CreateInflowFileFromECMWFRunoff
 from helper_functions import (case_insensitive_file_search,
-                              get_ensemble_number_from_forecast)
+                              get_ensemble_number_from_forecast,
+                              CaptureStdOutToLog)
                               
 #------------------------------------------------------------------------------
 #functions
@@ -314,17 +314,6 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
     time_stop_all = datetime.datetime.utcnow()
     print "Total time to compute: %s" % (time_stop_all-time_start_all)
 
-class CaptureStdOutToLog(object):
-    def __init__(self, out_file_path):
-        self.out_file_path = out_file_path
-    def __enter__(self):
-        self._stdout = sys.stdout
-        sys.stdout = open(self.out_file_path, 'w')
-        return self
-    def __exit__(self, *args):
-        sys.stdout.close()
-        sys.stdout = self._stdout
-        
 def run_ecmwf_rapid_multiprocess_worker(args):
     """
     Duplicate HTCondor behavior for multiprocess worker
