@@ -87,16 +87,18 @@ Then install packages listed above.
 ##Step 4: Install AutoRoute and AutoRoutePy
 Follow the instructions here: https://github.com/erdc-cm/AutoRoutePy
 
-##Step 5: Download the source code
+##Step 5: Install Submodule Dependencies
+See: https://github.com/erdc-cm/spt_dataset_manager
+
+##Step 6: Download and install the source code
 ```
 $ cd /path/to/your/scripts/
 $ git clone https://github.com/erdc-cm/spt_ecmwf_autorapid_process.git
 $ cd spt_ecmwf_autorapid_process
 $ git submodule init
 $ git submodule update
+$ python setup.py install
 ```
-##Step 6: Install Submodule Dependencies
-See: https://github.com/erdc-cm/spt_dataset_manager
 
 ##Step 7: Create folders for RAPID input and for downloading ECMWF
 In this instance:
@@ -105,10 +107,10 @@ $ cd /your/working/directory
 $ mkdir -p rapid-io/input rapid-io/output ecmwf logs condor_logs
 ```
 ##Step 8: Change the locations in the files
-Create a file *run.py* and change these variables for your instance:
+Create a file *run_ecmwf_rapid.py* and change these variables for your instance:
 ```python
 # -*- coding: utf-8 -*-
-from rapid_process import run_ecmwf_rapid_process
+from spt_ecmwf_autorapid_process import run_ecmwf_rapid_process
 #------------------------------------------------------------------------------
 #main process
 #------------------------------------------------------------------------------
@@ -150,9 +152,9 @@ if __name__ == "__main__":
 
 Example:
 ```
-$ chmod u+x run.py
-$ chmod u+x rapid_process.sh
+$ chmod u+x run_ecmwf_rapid.py
 ```
+
 ##Step 10: Add RAPID files to the work/rapid/input directory
 To generate these files see: https://github.com/erdc-cm/RAPIDpy/wiki/GIS-Tools
 
@@ -173,30 +175,37 @@ weight_ecmwf_t1279.csv
 weight_ecmwf_tco639.csv
 x.csv
 ```
-##Step 11: Create CRON job to run the scripts twice daily
-See: http://askubuntu.com/questions/2368/how-do-i-set-up-a-cron-job
 
-You only need to run rapid_process.sh
+##Step 11: Create CRON job to run the scripts hourly
+To run this automatically, it is necessary to generate cron jobs to run the script. There are many ways to do this and two are presented here.
+
+### Method 1: In terminal using crontab command
 ```
-$ ./rapid_process.sh
+$ crontab -e
 ```
-###How to use *create_cron.py* to create the CRON jobs:
+Then add:
+```
+45 5 * * * /usr/bin/python /path/to/run_ecmwf_rapid.py # ECMWF RAPID PROCESS
+45 17 * * * /usr/bin/python /path/to/run_ecmwf_rapid.py # ECMWF RAPID PROCESS
+``` 
+Note: The time varies based on the time zone of your machine. The example here is for CT.
+
+### Method 2: Use *create_cron.py* to create the CRON jobs:
 
 1) Install crontab Python package.
 ```
 $ pip install python-crontab
 ```
-2) Modify location of script in *create_cron.py*
+2) Create a script to initialize cron job *create_cron.py*. Change execution times based on your time zone (Note: It is CT in this example).
+
 ```python
-cron_command = '/home/cecsr/scripts/erfp_data_process_ubuntu_aws/rapid_process.sh'
-```
-3) Change execution times to suit your needs in *create_cron.py*
-```python
-cron_job_morning.minute.on(30)
-cron_job_morning.hour.on(9)
-...
-cron_job_evening.minute.on(30)
-cron_job_evening.hour.on(21)
+        from spt_ecmwf_autorapid_process.setup import create_cron
+        
+        create_cron(execute_command='/usr/bin/python /path/to/run_ecmwf_rapid.py', 
+                    job_1_start_hour=5,
+                    job_1_start_minute=45,
+                    job_2_start_hour=17,
+                    job_2_start_minute=45)
 ```
 
 #Troubleshooting

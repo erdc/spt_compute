@@ -195,7 +195,7 @@ def remove_old_ftp_downloads(folder):
 	    os.mkdir(path)
                 
 def download_all_ftp(download_dir, file_match, ftp_host, ftp_login, 
-                     ftp_passwd, ftp_directory, max_wait=60):
+                     ftp_passwd, ftp_directory, max_wait=45):
     """
     Remove downloads from before 1 day ago
     Download all files from the ftp site matching date
