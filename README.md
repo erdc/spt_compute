@@ -1,5 +1,5 @@
 # spt_ecmwf_autorapid_process
-Code to use to prepare input data for RAPID from ECMWF forecast using HTCondor
+Computational framework to ingest ECMWF ensemble runoff forcasts; generate input for and run the RAPID (rapid-hub.org) program using HTCondor or Python\'s Multiprocessing; and upload to CKAN in order to be used by the Streamflow Prediction Tool (SPT). There is also an experimental option to use the AutoRoute program for flood inundation mapping.
 
 [![License (3-Clause BSD)](https://img.shields.io/badge/license-BSD%203--Clause-yellow.svg)](https://github.com/erdc-cm/spt_ecmwf_autorapid_process/blob/master/LICENSE)
 
@@ -13,6 +13,8 @@ National-Scale Hydrologic Forecast System from a Global Ensemble Land Surface Mo
 American Water Resources Association (JAWRA)* 1-15, DOI: 10.1111/1752-1688.12434
 
 Snow, Alan Dee, "A New Global Forecasting Model to Produce High-Resolution Stream Forecasts" (2015). All Theses and Dissertations. Paper 5272. http://scholarsarchive.byu.edu/etd/5272
+
+#Installation
 
 ##Step 1: Install RAPID and RAPIDpy
 See: https://github.com/erdc-cm/RAPIDpy
@@ -101,13 +103,13 @@ $ python setup.py install
 ```
 
 ##Step 7: Create folders for RAPID input and for downloading ECMWF
-In this instance:
 ```
 $ cd /your/working/directory
-$ mkdir -p rapid-io/input rapid-io/output ecmwf logs condor_logs
+$ mkdir -p rapid-io/input rapid-io/output ecmwf logs subprocess_logs era_interim_watershed mp_execute 
 ```
 ##Step 8: Change the locations in the files
-Create a file *run_ecmwf_rapid.py* and change these variables for your instance:
+Create a file *run_ecmwf_rapid.py* and change these variables for your instance. See below for different configurations.
+
 ```python
 # -*- coding: utf-8 -*-
 from spt_ecmwf_autorapid_process import run_ecmwf_rapid_process
@@ -116,19 +118,19 @@ from spt_ecmwf_autorapid_process import run_ecmwf_rapid_process
 #------------------------------------------------------------------------------
 if __name__ == "__main__":
     run_ecmwf_rapid_process(
-        rapid_executable_location='/home/alan/work/rapid/src/rapid',
-        rapid_io_files_location='/home/alan/work/rapid-io',
-        ecmwf_forecast_location ="/home/alan/work/ecmwf",
-        era_interim_data_location="/home/alan/work/era_interim_watershed",
-        subprocess_log_directory='/home/alan/work/condor_logs/', #path to store HTCondor/multiprocess logs
-        main_log_directory='/home/alan/work/logs/',
+        rapid_executable_location='/home/alan/scripts/rapid/src/rapid',
+        rapid_io_files_location='/home/alan/rapid-io',
+        ecmwf_forecast_location ="/home/alan/ecmwf",
+        era_interim_data_location="/home/alan/era_interim_watershed",
+        subprocess_log_directory='/home/alan/subprocess_logs',
+        main_log_directory='/home/alan/logs',
         data_store_url='http://your-ckan/api/3/action',
         data_store_api_key='your-ckan-api-key',
-        data_store_owner_org="your-organizatopn",
+        data_store_owner_org="your-organization",
         app_instance_id='your-streamflow_prediction_tool-app-id',
-        sync_rapid_input_with_ckan=False, #make rapid input sync with your app
+        #sync_rapid_input_with_ckan=False, 
         download_ecmwf=True,
-        ftp_host="ftp.ecmwf",
+        ftp_host="ftp.ecmwf.int",
         ftp_login="",
         ftp_passwd="",
         ftp_directory="",
@@ -136,16 +138,149 @@ if __name__ == "__main__":
         initialize_flows=True,
         create_warning_points=True,
         delete_output_when_done=True,
-        autoroute_executable_location='/home/alan/work/scripts/AutoRouteGDAL/source_code/autoroute',
-        autoroute_io_files_location='/home/alan/work/autoroute-io',
-        geoserver_url='http://localhost:8181/geoserver/rest',
-        geoserver_username='admin',
-        geoserver_password='password',
-        mp_mode='htcondor', #valid options are htcondor and multiprocess,
-        mp_execute_directory='',#required if using multiprocess mode
+        mp_mode='htcondor',
+        #mp_execute_directory='',
     )
+```
+###run_ecmwf_rapid_process Function Variables
 
+|Variable|Data Type|Description|Default|
+|---|:---:|---|:---:|
+|*rapid_executable_location*|String|Path to RAPID executable.||
+|*rapid_io_files_location*|String|Path to RAPID input/output directory.||
+|*ecmwf_forecast_location*|String|Path to ECMWF forecasts.||
+|*main_log_directory*|String|Path to store HTCondor/multiprocess logs.||
+|*data_store_url*|String|(Optional) CKAN API url (e.g. http://your-ckan/api/3/action)|""|
+|*data_store_api_key*|String|(Optional) CKAN API Key (e.g. abcd-1234-defr-3345)|""|
+|*data_store_owner_org*|String|(Optional) CKAN owner organization (e.g. erdc).|""|
+|*app_instance_id*|String|(Optional) Streamflow Prediction tool instance ID. |""|
+|*sync_rapid_input_with_ckan*|Boolean|(Optional) If set to true, this will download ECMWF-RAPID input cooresponding to your instance of the Streamflow Prediction Tool. |False|
+|*download_ecmwf*|Boolean|(Optional) If set to true, this will download the most recent ECMWF forecasts for today before runnning the process. |True|
+|*date_string*|String|(Optional) This string will be used to modify the date of the forecasts downloaded and/or the forecasts ran. It is in the format yyyymmdd (e.g. 20160808). |None|
+|*ftp_host*|String|(Optional) ECMWF ftp site path (e.g. ftp.ecmwf.int). |""|
+|*ftp_login*|String|(Optional) ECMWF ftp login name. |""|
+|*ftp_passwd*|String|(Optional) ECMWF ftp password. |""|
+|*ftp_directory*|String|(Optional) ECMWF ftp directory. |""|
+|*upload_output_to_ckan*|Boolean|(Optional) If true, this will upload the output to CKAN for the Streamflow Prediction Tool to download. |False|
+|*delete_output_when_done*|String|(Optional) If true, all output will be deleted when the process completes. It is used when using operationally with *upload_output_to_ckan* set to true. |False|
+|*initialize_flows*|String|(Optional) If true, this will initialize flows from all avaialble methods (e.g. Past forecasts, historical data, streamgage data). |False|
+|*era_interim_data_location*|String|(Optional) Path to ERA Interim based historical streamflow, return period data, and seasonal average data. |""|
+|*create_warning_points*|Boolean|(Optional) Generate waring points for Streamflow Prediction Tool. This requires return period data to be located in the *era_interim_data_location*. |False|
+|*autoroute_executable_location*|String|(Optional|Beta) Path to AutoRoute executable. |""|
+|*autoroute_io_files_location*|String|(Optional|Beta) Path to AutoRoute input/output directory. |""|
+|*geoserver_url*|String|(Optional|Beta) Url to API endpoint ending in geoserver/rest. |""|
+|*geoserver_username*|String|(Optional|Beta) Username for geoserver. |""|
+|*geoserver_password*|String|(Optional|Beta) Password for geoserver. |""|
+|*mp_mode*|String|(Optional) This defines how the process is run (HTCondor or Python's Multiprocessing). Valid options are htcondor and multiprocess. |htcondor|
+|*mp_execute_directory*|String|(Optional|Required if using multiprocess mode) Directory used in multiprocessing mode to temporarily store files begin generated.  |""|
 
+#### Possible run configurations
+There are many different configurations. Here are some examples.
+
+#####Mode 1: Run ECMWF-RAPID for Streamflow Prediction Tool using HTCondor to run and CKAN to upload
+```python
+run_ecmwf_rapid_process(
+    rapid_executable_location='/home/alan/scripts/rapid/src/rapid',
+    rapid_io_files_location='/home/alan/rapid-io',
+    ecmwf_forecast_location ="/home/alan/ecmwf",
+    era_interim_data_location="/home/alan/era_interim_watershed",
+    subprocess_log_directory='/home/alan/subprocess_logs',
+    main_log_directory='/home/alan/logs',
+    data_store_url='http://your-ckan/api/3/action',
+    data_store_api_key='your-ckan-api-key',
+    data_store_owner_org="your-organization",
+    app_instance_id='your-streamflow_prediction_tool-app-id',
+    download_ecmwf=True,
+    ftp_host="ftp.ecmwf",
+    ftp_login="",
+    ftp_passwd="",
+    ftp_directory="",
+    upload_output_to_ckan=True,
+    initialize_flows=True,
+    create_warning_points=True,
+    delete_output_when_done=True,
+)
+```
+
+#####Mode 2: Run ECMWF-RAPID for Streamflow Prediction Tool using HTCondor to run and CKAN to upload & to download model files 
+```python
+run_ecmwf_rapid_process(
+    rapid_executable_location='/home/alan/scripts/rapid/src/rapid',
+    rapid_io_files_location='/home/alan/rapid-io',
+    ecmwf_forecast_location ="/home/alan/ecmwf",
+    era_interim_data_location="/home/alan/era_interim_watershed",
+    subprocess_log_directory='/home/alan/subprocess_logs',
+    main_log_directory='/home/alan/logs',
+    data_store_url='http://your-ckan/api/3/action',
+    data_store_api_key='your-ckan-api-key',
+    data_store_owner_org="your-organization",
+    app_instance_id='your-streamflow_prediction_tool-app-id',
+    sync_rapid_input_with_ckan=True,
+    download_ecmwf=True,
+    ftp_host="ftp.ecmwf",
+    ftp_login="",
+    ftp_passwd="",
+    ftp_directory="",
+    upload_output_to_ckan=True,
+    initialize_flows=True,
+    create_warning_points=True,
+    delete_output_when_done=True,
+)
+```
+#####Mode 3: Run ECMWF-RAPID for Streamflow Prediction Tool using Multiprocessing to run and CKAN to upload
+```python
+run_ecmwf_rapid_process(
+    rapid_executable_location='/home/alan/scripts/rapid/src/rapid',
+    rapid_io_files_location='/home/alan/rapid-io',
+    ecmwf_forecast_location ="/home/alan/ecmwf",
+    era_interim_data_location="/home/alan/era_interim_watershed",
+    subprocess_log_directory='/home/alan/subprocess_logs', 
+    main_log_directory='/home/alan/work/logs',
+    data_store_url='http://your-ckan/api/3/action',
+    data_store_api_key='your-ckan-api-key',
+    data_store_owner_org="your-organization",
+    app_instance_id='your-streamflow_prediction_tool-app-id',
+    download_ecmwf=True,
+    ftp_host="ftp.ecmwf",
+    ftp_login="",
+    ftp_passwd="",
+    ftp_directory="",
+    upload_output_to_ckan=True,
+    initialize_flows=True,
+    create_warning_points=True,
+    delete_output_when_done=True,
+    mp_mode='multiprocess',
+    mp_execute_directory='/home/alan/mp_execute',
+)
+```
+#####Mode 4: (BETA) Run ECMWF-RAPID for Streamflow Prediction Tool with AutoRoute using Multiprocessing to run
+Note that in this example, CKAN was not used. However, you can still add CKAN back in to this example with the parameters shown in the previous examples.
+
+```python
+run_ecmwf_rapid_process(
+    rapid_executable_location='/home/alan/rapid/src/rapid',
+    rapid_io_files_location='/home/alan/rapid-io',
+    ecmwf_forecast_location ="/home/alan/ecmwf",
+    era_interim_data_location="/home/alan/era_interim_watershed",
+    subprocess_log_directory='/home/alan/subprocess_logs/', #path to store HTCondor/multiprocess logs
+    main_log_directory='/home/alan/logs/',
+    download_ecmwf=True,
+    ftp_host="ftp.ecmwf",
+    ftp_login="",
+    ftp_passwd="",
+    ftp_directory="",
+    upload_output_to_ckan=True,
+    initialize_flows=True,
+    create_warning_points=True,
+    delete_output_when_done=False,
+    autoroute_executable_location='/home/alan/scripts/AutoRoute/src/autoroute',
+    autoroute_io_files_location='/home/alan/autoroute-io',
+    geoserver_url='http://localhost:8181/geoserver/rest',
+    geoserver_username='admin',
+    geoserver_password='password',
+    mp_mode='multiprocess',
+    mp_execute_directory='/home/alan/mp_execute',
+)
 ```
 
 ##Step 9: Make sure permissions are correct for these files and any directories the script will use
