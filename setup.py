@@ -17,7 +17,7 @@ setup(
     download_url='https://github.com/erdc-cm/spt_ecmwf_autorapid_process/archive/1.1.0.tar.gz',
     license='BSD 3-Clause',
     packages=find_packages(),
-    install_requires=['numpy', 'netCDF4', 'RAPIDpy'],
+    install_requires=['numpy', 'netCDF4', 'RAPIDpy', 'tethys_dataset_services'],
     classifiers=[
                 'Intended Audience :: Developers',
                 'Intended Audience :: Science/Research',
