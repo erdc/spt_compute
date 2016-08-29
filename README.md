@@ -235,7 +235,7 @@ run_ecmwf_rapid_process(
     ecmwf_forecast_location ="/home/alan/ecmwf",
     era_interim_data_location="/home/alan/era_interim_watershed",
     subprocess_log_directory='/home/alan/subprocess_logs', 
-    main_log_directory='/home/alan/work/logs',
+    main_log_directory='/home/alan/logs',
     data_store_url='http://your-ckan/api/3/action',
     data_store_api_key='your-ckan-api-key',
     data_store_owner_org="your-organization",
@@ -262,8 +262,8 @@ run_ecmwf_rapid_process(
     rapid_io_files_location='/home/alan/rapid-io',
     ecmwf_forecast_location ="/home/alan/ecmwf",
     era_interim_data_location="/home/alan/era_interim_watershed",
-    subprocess_log_directory='/home/alan/subprocess_logs/', #path to store HTCondor/multiprocess logs
-    main_log_directory='/home/alan/logs/',
+    subprocess_log_directory='/home/alan/subprocess_logs', #path to store HTCondor/multiprocess logs
+    main_log_directory='/home/alan/logs',
     download_ecmwf=True,
     ftp_host="ftp.ecmwf.int",
     ftp_login="",
@@ -290,8 +290,8 @@ Example:
 $ chmod u+x run_ecmwf_rapid.py
 ```
 
-##Step 10: Add RAPID files to the work/rapid/input directory
-To generate these files see: https://github.com/erdc-cm/RAPIDpy/wiki/GIS-Tools
+##Step 10: Add RAPID files to the rapid-io/input directory
+To generate these files see: https://github.com/erdc-cm/RAPIDpy/wiki/GIS-Tools. If you are using the *sync_rapid_input_with_ckan* option, then you would upload these files through the Streamflow Prediction Tool web interface and this step is unnecessary.
 
 Make sure the directory is in the format [watershed name]-[subbasin name]
 with lowercase letters, numbers, and underscores only. No spaces!
