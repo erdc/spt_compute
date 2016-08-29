@@ -100,7 +100,7 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
                             app_instance_id="", #Streamflow Prediction tool instance ID
                             sync_rapid_input_with_ckan=False, #match Streamflow Prediciton tool RAPID input
                             download_ecmwf=True, #Download recent ECMWF forecast before running,
-                            date_string=None, #string of date of interest
+                            date_string="", #string of date of interest
                             ftp_host="", #ECMWF ftp site path
                             ftp_login="", #ECMWF ftp login name
                             ftp_passwd="", #ECMWF ftp password
@@ -112,16 +112,18 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
                             create_warning_points=False, #generate waring points for Streamflow Prediction Tool
                             autoroute_executable_location="", #location of AutoRoute executable
                             autoroute_io_files_location="", #path to AutoRoute input/outpuf directory
-                            geoserver_url='', #url to API endpoint ending in geoserver/rest
-                            geoserver_username='', #username for geoserver
-                            geoserver_password='', #password for geoserver
+                            geoserver_url="", #url to API endpoint ending in geoserver/rest
+                            geoserver_username="", #username for geoserver
+                            geoserver_password="", #password for geoserver
                             mp_mode='htcondor', #valid options are htcondor and multiprocess,
-                            mp_execute_directory='',#required if using multiprocess mode
+                            mp_execute_directory="",#required if using multiprocess mode
                             ):
     """
     This it the main ECMWF RAPID process
     """
     time_begin_all = datetime.datetime.utcnow()
+
+    LOCAL_SCRIPTS_DIRECTORY = os.path.dirname(os.path.realpath(__file__))
 
     log_file_path = os.path.join(main_log_directory, 
                                  "rapid_{0}.log".format(time_begin_all.strftime("%y%m%d%H%M%S")))
@@ -135,16 +137,10 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
             raise ImportError("AutoRoute is not enabled. Please install tethys_dataset_services"
                               " and AutoRoutePy to use the AutoRoute option.")
         
-        if date_string == None:
-            date_string = time_begin_all.strftime('%Y%m%d')
-
         if mp_mode == "multiprocess":
             if not mp_execute_directory or not os.path.exists(mp_execute_directory):
                 raise Exception("If mode is multiprocess, mp_execute_directory is required ...")
                 
-        #date_string = datetime.datetime(2016,2,12).strftime('%Y%m%d')
-        local_scripts_location = os.path.dirname(os.path.realpath(__file__))
-
         if sync_rapid_input_with_ckan and app_instance_id and data_store_url and data_store_api_key:
             #sync with data store
             ri_manager = RAPIDInputDatasetManager(data_store_url,
@@ -187,11 +183,21 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
                 if era_interim_data_location and os.path.exists(era_interim_data_location):
                     era_interim_watershed_directory = os.path.join(era_interim_data_location, rapid_input_directory)
                     if os.path.exists(era_interim_watershed_directory):
-                        historical_qout_file = glob(os.path.join(era_interim_watershed_directory, "Qout*.nc"))
-                        if historical_qout_file:
-                            seasonal_init_job_list.append((historical_qout_file[0], 
+                        #INITIALIZE FROM SEASONAL AVERAGE FILE
+                        seasonal_streamflow_file = glob(os.path.join(era_interim_watershed_directory, "seasonal_average*.nc"))
+                        if seasonal_streamflow_file:
+                            seasonal_init_job_list.append((seasonal_streamflow_file[0], 
                                                            seasonal_master_watershed_input_directory,
-                                                           initial_forecast_date_timestep))
+                                                           initial_forecast_date_timestep,
+                                                           "seasonal_average_file"))
+                        else:
+                        #INITIALIZE FROM HISTORICAL STREAMFLOW FILE
+                            historical_qout_file = glob(os.path.join(era_interim_watershed_directory, "Qout*.nc"))
+                            if historical_qout_file:
+                                seasonal_init_job_list.append((historical_qout_file[0], 
+                                                               seasonal_master_watershed_input_directory,
+                                                               initial_forecast_date_timestep,
+                                                               "historical_streamflow_file"))
             if seasonal_init_job_list:
                 #use multiprocessing instead of htcondor due to potential for huge file sizes
                 if len(seasonal_init_job_list) > 1:
@@ -272,8 +278,8 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
                     if mp_mode == "htcondor":
                         #create job to downscale forecasts for watershed
                         job = CJob(job_name, tmplt.vanilla_transfer_files)
-                        job.set('executable',os.path.join(local_scripts_location,'htcondor_ecmwf_rapid.py'))
-                        job.set('transfer_input_files', "%s, %s, %s" % (forecast, master_watershed_input_directory, local_scripts_location))
+                        job.set('executable',os.path.join(LOCAL_SCRIPTS_DIRECTORY,'htcondor_ecmwf_rapid.py'))
+                        job.set('transfer_input_files', "%s, %s, %s" % (forecast, master_watershed_input_directory, LOCAL_SCRIPTS_DIRECTORY))
                         job.set('initialdir', subprocess_forecast_log_dir)
                         job.set('arguments', '%s %s %s %s %s %s' % (forecast, forecast_date_timestep, watershed.lower(), subbasin.lower(),
                                                                     rapid_executable_location, initialize_flows))

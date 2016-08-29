@@ -7,13 +7,16 @@
 ##  Copyright © 2015-2016 Alan D Snow. All rights reserved.
 ##  License: BSD-3 Clause
 
+from calendar import isleap
 import datetime
 from dateutil.parser import parse
 from glob import glob
+from netCDF import Dataset
 import numpy as np
 import os
 from pytz import utc
 import requests
+from time import gmtime
 
 from RAPIDpy.rapid import RAPID
 from RAPIDpy.dataset import RAPIDDataset
@@ -273,6 +276,32 @@ class StreamNetworkInitializer(object):
             print("Initialization Complete!")
         
         
+    def generate_qinit_from_seasonal_average(self, seasonal_average_file):
+        """
+        Generate initial flows from seasonal average file
+        """
+        var_time = gmtime()
+        yday_index = var_time.tm_yday - 1 #convert from 1-366 to 0-365
+        #move day back one past because of leap year adds 
+        #a day after feb 29 (day 60, but index 59)
+        if isleap(var_time.tm_year) and yday_index > 59:
+            yday_index -= 1
+
+        seasonal_nc = Dataset(seasonal_average_file)
+        nc_rivid_array = seasonal_nc.variables['rivid'][:]
+        seasonal_qout_average_array = seasonal_nc.variables['average_flow'][:,yday_index]
+        
+        for index in range(len(self.stream_segments)):
+            try:
+                #get where comids are in netcdf file
+                data_index = np.where(nc_rivid_array==self.stream_segments[index].stream_id)[0][0]
+                self.stream_segments[index].init_flow = seasonal_qout_average_array[data_index]
+            except Exception:
+                #stream id not found in list. Adding zero init flow ...
+                self.stream_segments[index].init_flow = 0
+                pass
+                continue
+
     def modify_flow_connected(self, stream_id, master_station_flow, master_error, master_natur_flow):
         """
         IModify connected stream segment with gage data
@@ -357,14 +386,10 @@ def compute_initial_rapid_flows(prediction_files, input_directory, forecast_date
     else:
         print("No current forecasts found. Skipping ...")
 
-def compute_seasonal_initial_rapid_flows(historical_qout_file, input_directory, forecast_date_timestep):
+def compute_seasonal_initial_rapid_flows(historical_qout_file, input_directory, init_file_location):
     """
     Gets the seasonal average from historical file to initialize from
     """
-    current_forecast_date = datetime.datetime.strptime(forecast_date_timestep[:11],"%Y%m%d.%H")
-    #move the date back a forecast (12 hrs) to be used in this forecast
-    forecast_date_string = (current_forecast_date-datetime.timedelta(seconds=12*3600)).strftime("%Y%m%dt%H")
-    init_file_location = os.path.join(input_directory,'Qinit_%s.csv' % forecast_date_string)
     if not os.path.exists(init_file_location):
         #check to see if exists and only perform operation once
         if historical_qout_file and os.path.exists(historical_qout_file):
@@ -372,13 +397,39 @@ def compute_seasonal_initial_rapid_flows(historical_qout_file, input_directory, 
                                   rapid_connect_file=os.path.join(input_directory,'rapid_connect.csv'))
             rapid_manager.generate_seasonal_intitialization(init_file_location)
         else:
+            print("No historical streamflow file found. Skipping ...")
+            
+def generate_initial_rapid_flow_from_seasonal_average(seasonal_average_file, input_directory, init_file_location):
+    """
+    Generates a qinit file from seasonal average file
+    """
+    if not os.path.exists(init_file_location):
+        #check to see if exists and only perform operation once
+        if seasonal_average_file and os.path.exists(seasonal_average_file):
+            #Generate initial flow from seasonal average file
+            sni = StreamNetworkInitializer(connectivity_file=os.path.join(input_directory,'rapid_connect.csv'))
+            sni.generate_qinit_from_seasonal_average(seasonal_average_file)
+            sni.write_init_flow_file(init_file_location)        
+        else:
             print("No seasonal streamflow file found. Skipping ...")
-
+    
 def compute_seasonal_initial_rapid_flows_multicore_worker(args):
     """
     Worker function using mutliprocessing for compute_seasonal_initial_rapid_flows
     """
-    compute_seasonal_initial_rapid_flows(args[0], args[1], args[2])
+    input_directory = args[1]
+    forecast_date_timestep = args[2]
+    
+    current_forecast_date = datetime.datetime.strptime(forecast_date_timestep[:11],"%Y%m%d.%H")
+    #move the date back a forecast (12 hrs) to be used in this forecast
+    forecast_date_string = (current_forecast_date-datetime.timedelta(seconds=12*3600)).strftime("%Y%m%dt%H")
+    init_file_location = os.path.join(input_directory,'Qinit_%s.csv' % forecast_date_string)
+
+    if args[3] == "seasonal_average_file":
+        generate_initial_rapid_flow_from_seasonal_average(args[0], input_directory, init_file_location)
+        
+    elif args[3] == "historical_streamflow_file":
+        compute_seasonal_initial_rapid_flows(args[0], input_directory, init_file_location)
     
 def update_inital_flows_usgs(input_directory, forecast_date_timestep):
     """
