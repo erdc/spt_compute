@@ -14,10 +14,10 @@ from RAPIDpy.postprocess import ConvertRAPIDOutputToCF
 from shutil import move, rmtree
 
 #local imports
-from CreateInflowFileFromECMWFRunoff import CreateInflowFileFromECMWFRunoff
-from helper_functions import (case_insensitive_file_search,
-                              get_ensemble_number_from_forecast,
-                              CaptureStdOutToLog)
+from .CreateInflowFileFromECMWFRunoff import CreateInflowFileFromECMWFRunoff
+from .helper_functions import (case_insensitive_file_search,
+                               get_ensemble_number_from_forecast,
+                               CaptureStdOutToLog)
                               
 #------------------------------------------------------------------------------
 #functions

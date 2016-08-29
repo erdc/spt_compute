@@ -282,7 +282,9 @@ class StreamNetworkInitializer(object):
             if self.stream_segments[connected_segment_index].station_distance != 0:
                 connected_natur_flow = self.stream_segments[connected_segment_index].natural_flow 
                 if connected_natur_flow != None and master_natur_flow:
-                    self.stream_segments[connected_segment_index].station_flow = max(0, self.stream_segments[connected_segment_index].init_flow + master_error*connected_natur_flow/master_natur_flow)
+                    self.stream_segments[connected_segment_index].station_flow = \
+                        max(0, self.stream_segments[connected_segment_index].init_flow + \
+                               master_error*connected_natur_flow/master_natur_flow)
                 else:
                     self.stream_segments[connected_segment_index].station_flow = master_station_flow
 
