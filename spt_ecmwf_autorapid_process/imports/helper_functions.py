@@ -60,8 +60,10 @@ def clean_logs(condor_log_directory, main_log_directory, prepend="rapid_", log_f
             pass
 
     #clean up log files
-    main_log_files = [f for f in os.listdir(main_log_directory) if not os.path.isdir(os.path.join(main_log_directory, f)) \
-                                                                    and not log_file_path.endswith(f)]
+    main_log_files = [f for f in os.listdir(main_log_directory) if (not os.path.isdir(os.path.join(main_log_directory, f))) \
+                                                                    and (not log_file_path.endswith(f)) \
+                                                                    and f != 'ecmwf_rapid_run_info_lock.txt' \
+                                                                    ]
     for main_log_file in main_log_files:
         try:
             log_datetime = datetime.datetime.strptime(main_log_file, "{0}%y%m%d%H%M%S.log".format(prepend))

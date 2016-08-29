@@ -320,10 +320,8 @@ $ crontab -e
 ```
 Then add:
 ```
-45 5 * * * /usr/bin/python /path/to/run_ecmwf_rapid.py # ECMWF RAPID PROCESS
-45 17 * * * /usr/bin/python /path/to/run_ecmwf_rapid.py # ECMWF RAPID PROCESS
+@hourly /usr/bin/python /path/to/run_ecmwf_rapid.py # ECMWF RAPID PROCESS
 ``` 
-Note: The time varies based on the time zone of your machine. The example here is for CT.
 
 ### Method 2: Use *create_cron.py* to create the CRON jobs:
 
@@ -331,16 +329,12 @@ Note: The time varies based on the time zone of your machine. The example here i
 ```
 $ pip install python-crontab
 ```
-2) Create a script to initialize cron job *create_cron.py*. Change execution times based on your time zone (Note: It is CT in this example).
+2) Create and run a script to initialize cron job *create_cron.py*. 
 
 ```python
 from spt_ecmwf_autorapid_process.setup import create_cron
 
-create_cron(execute_command='/usr/bin/python /path/to/run_ecmwf_rapid.py', 
-            job_1_start_hour=5,
-            job_1_start_minute=45,
-            job_2_start_hour=17,
-            job_2_start_minute=45)
+create_cron(execute_command='/usr/bin/env python /path/to/run_ecmwf_rapid.py')
 ```
 
 #Troubleshooting
