@@ -88,7 +88,7 @@ class PyFTPclient:
                 if not self.waiting:
                     i = f.tell()
                     if self.ptr < i:
-                        print "DEBUG: %d  -  %0.1f Kb/s" % (i, (i-self.ptr)/(1024*self.monitor_interval))
+                        print("DEBUG: %d  -  %0.1f Kb/s" % (i, (i-self.ptr)/(1024*self.monitor_interval)))
                         self.ptr = i
                     else:
                         self.ftp.close()
@@ -112,17 +112,17 @@ class PyFTPclient:
                         mon.set()
                         raise
                     self.waiting = True
-                    print 'INFO: waiting 30 sec...'
+                    print('INFO: waiting 30 sec...')
                     time.sleep(30)
-                    print 'INFO: reconnect'
+                    print('INFO: reconnect')
 
 
             mon.set() #stop monitor
             self.ftp.close()
 
             if not res.startswith('226'): #file successfully transferred
-                print 'ERROR: Downloaded file {0} is not full.'.format(dst_filename)
-                print res
+                print('ERROR: Downloaded file {0} is not full.'.format(dst_filename))
+                print(res)
                 return False
             return True
 """
@@ -146,7 +146,7 @@ def download_ftp(dst_filename, local_path, ftp_host, ftp_login,
     Download single file from the ftp site
     """
     file = open(local_path, 'wb')
-    print 'Reconnecting ...'
+    print('Reconnecting ...')
     handle = ftp_connect(ftp_host, ftp_login, 
                          ftp_passwd, ftp_directory)
     handle.voidcmd('TYPE I')
@@ -160,20 +160,20 @@ def download_ftp(dst_filename, local_path, ftp_host, ftp_login,
                 # retrieve file from position where we were disconnected
                 handle.retrbinary('RETR %s' % dst_filename, file.write, rest=file.tell())
         except Exception as ex:
-            print ex
+            print(ex)
             if attempts_left == 0:
-                print "Max number of attempts reached. Download stopped."
+                print("Max number of attempts reached. Download stopped.")
                 handle.quit()
                 file.close()
                 os.remove(local_path)
                 return False
-            print 'Waiting 30 sec...'
+            print('Waiting 30 sec...')
             time.sleep(30)
-            print 'Reconnecting ...'
+            print('Reconnecting ...')
             handle.quit()
             handle = ftp_connect(ftp_host, ftp_login, 
                                  ftp_passwd, ftp_directory)
-            print 'Connected. ' + str(attempts_left) + 'attempt(s) left.'
+            print('Connected. {0} attempt(s) left.'.format(attempts_left))
         attempts_left -= 1
     handle.quit()
     file.close()
@@ -207,7 +207,7 @@ def download_all_ftp(download_dir, file_match, ftp_host, ftp_login,
     remove_old_ftp_downloads(download_dir)
     #open the file for writing in binary mode
     all_files_downloaded = []
-    print 'Opening local file'
+    print('Opening local file')
     time_start_connect_attempt = datetime.datetime.utcnow()
     request_incomplete = True
     ftp_exception = "FTP Request Incomplete"
@@ -233,22 +233,22 @@ def download_all_ftp(download_dir, file_match, ftp_host, ftp_login,
                         #download from ftp site
                         unzip_file = False
                         if not os.path.exists(local_path) and not os.path.exists(local_dir):
-                            print "Downloading from ftp site: " + dst_filename
+                            print("Downloading from ftp site: {0}".format(dst_filename))
                             unzip_file = ftp_client.download_file(dst_filename, local_path)
                         else:
-                            print dst_filename + ' already exists. Skipping download ...'
+                            print('{0} already exists. Skipping download ...'.format(dst_filename))
                         #extract from tar.gz
                         if unzip_file:
-			    print "Extracting: " + dst_filename
+                            print("Extracting: {0}".format(dst_filename))
                             ExtractNested(local_path, True)
                             #add successfully downloaded file to list
                             all_files_downloaded.append(local_dir)
                             #request successful when one file downloaded and extracted                            
                             request_incomplete = False
                         else:
-                            print dst_filename + ' already extracted. Skipping extraction ...'
+                            print('{0} already extracted. Skipping extraction ...'.format(dst_filename))
                     except Exception as ex:
-                        print ex
+                        print(ex)
                         if os.path.exists(local_path):
                             os.remove(local_path)
                         continue
@@ -258,20 +258,21 @@ def download_all_ftp(download_dir, file_match, ftp_host, ftp_login,
             pass
         
         if request_incomplete:
-            print "Attempt", attempt_count, "failed ..."
+            print("Attempt {0} failed ...".format(attempt_count))
             attempt_count += 1
             if max_wait > 0:
                 sleep_time = 5.1
                 if max_wait < 5.1:
                     sleep_time = max(max_wait, 0.1)
-                print "Sleeping for", (sleep_time-0.1), "minutes and trying again ..."
+                print("Sleeping for {0} minutes and trying again ...".format(sleep_time-0.1))
                 time.sleep((sleep_time-0.1)*60)
             
         
         
     if request_incomplete:
-        print "Maximum wait time of", max_wait, "minutes exeeded and request still failed. Quitting ..."
+        print("Maximum wait time of {0} minutes exeeded"
+              " and request still failed. Quitting ...".format(max_wait))
         raise Exception(ftp_exception)
         
-    print "All downloads completed!"
+    print("All downloads completed!")
     return all_files_downloaded
