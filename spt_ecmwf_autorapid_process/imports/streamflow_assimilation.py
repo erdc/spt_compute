@@ -144,7 +144,7 @@ class StreamNetworkInitializer(object):
         """
         Generate river network from connectivity file
         """
-        print "Generating river network from connectivity file ..."
+        print("Generating river network from connectivity file ...")
         connectivity_table = csv_to_list(self.connectivity_file)
         self.stream_id_array = np.array([row[0] for row in connectivity_table], dtype=np.int)
         #add each stream segment to network
@@ -164,7 +164,7 @@ class StreamNetworkInitializer(object):
         This adds gage and natural flow information 
         to the network from the file
         """
-        print "Adding Gage Station and Natur Flow info from:" , self.gage_ids_natur_flow_file
+        print("Adding Gage Station and Natur Flow info from: {0}".format(self.gage_ids_natur_flow_file))
         gage_id_natur_flow_table = csv_to_list(self.gage_ids_natur_flow_file)
         for stream_info in gage_id_natur_flow_table[1:]:
             if stream_info[0] != "":
@@ -188,24 +188,19 @@ class StreamNetworkInitializer(object):
         """
         Based on the stream_id, query USGS to get the flows for the date of interest
         """
-        print "Adding USGS flows to network ..."
+        print("Adding USGS flows to network ...")
         #datetime_end = datetime.datetime(2015, 8, 20, tzinfo=utc)
-        num_printed = 0
         for stream_index in self.stream_undex_with_usgs_station:
             station_flow = self.stream_segments[stream_index].station.get_gage_data(datetime_tzinfo_object)
             if station_flow != None:
                 self.stream_segments[stream_index].station_flow = station_flow
                 self.stream_segments[stream_index].station_distance = 0
-                if num_printed < 10:
-                    print stream_index, self.stream_segments[stream_index].stream_id, \
-                        self.stream_segments[stream_index].station.station_id, station_flow, self.stream_segments[stream_index].init_flow
-                num_printed += 1
         
     def read_init_flows_from_past_forecast(self, init_flow_file_path):
         """
         Read in initial flows from the past ECMWF forecast ensemble
         """
-        print "Readin in initial flows from forecast ..."
+        print("Reading in initial flows from forecast ...")
         with open(init_flow_file_path, 'r') as init_flow_file:
             for index, line in enumerate(init_flow_file):
                 line = line.strip()
@@ -220,10 +215,10 @@ class StreamNetworkInitializer(object):
         """
         if forecasted_streamflow_files:
             #get list of COMIDS
-            print "Computing initial flows from the past ECMWF forecast ensemble ..."
+            print("Computing initial flows from the past ECMWF forecast ensemble ...")
             with RAPIDDataset(forecasted_streamflow_files[0]) as qout_nc:
                 comid_index_list, reordered_comid_list, ignored_comid_list = qout_nc.get_subset_riverid_index_list(self.stream_id_array)
-            print "Extracting data ..."
+            print("Extracting data ...")
             reach_prediciton_array = np.zeros((len(self.stream_id_array),len(forecasted_streamflow_files),1))
             #get information from datasets
             for file_index, forecasted_streamflow_file in enumerate(forecasted_streamflow_files):
@@ -254,16 +249,16 @@ class StreamNetworkInitializer(object):
                                         data_values_2d_array = predicted_qout_nc.get_qout_index(comid_index_list, 
                                                                                                 time_index=2)
                     except Exception:
-                        print "Invalid ECMWF forecast file", forecasted_streamflow_file
+                        print("Invalid ECMWF forecast file {0}".format(forecasted_streamflow_file))
                         continue
                     #organize the data
                     for comid_index, comid in enumerate(reordered_comid_list):
                         reach_prediciton_array[comid_index][file_index] = data_values_2d_array[comid_index]
-                except Exception, e:
-                    print e
+                except Exception as e:
+                    print(e)
                     #pass
     
-            print "Analyzing data ..."
+            print("Analyzing data ...")
             for index in range(len(self.stream_segments)):
                 try:
                     #get where comids are in netcdf file
@@ -275,7 +270,7 @@ class StreamNetworkInitializer(object):
                     pass
                     continue
             
-            print "Initialization Complete!"
+            print("Initialization Complete!")
         
         
     def modify_flow_connected(self, stream_id, master_station_flow, master_error, master_natur_flow):
@@ -296,7 +291,7 @@ class StreamNetworkInitializer(object):
         If gage flow data is available, use the gage data to modify surrounding 
         stream segments with error
         """
-        print "Modifying surrounding sreams with gage data ..."
+        print("Modifying surrounding sreams with gage data ...")
         for stream_index in self.stream_undex_with_usgs_station:
             if self.stream_segments[stream_index].station_distance == 0:
                 master_natur_flow = self.stream_segments[stream_index].natural_flow
@@ -321,17 +316,13 @@ class StreamNetworkInitializer(object):
 
     def write_init_flow_file(self, out_file):
         """
-        Print initial flow file
+        Write initial flow file
         """
-        print "Writing to initial flow file:", out_file
-        num_printed = 0
+        print("Writing to initial flow file: {0}".format(out_file))
         with open(out_file, 'wb') as init_flow_file:
             for stream_index, stream_segment in enumerate(self.stream_segments):
                 if stream_segment.station_flow != None:
                     init_flow_file.write("{}\n".format(stream_segment.station_flow))
-                    if num_printed < 10:
-                        print stream_index, stream_segment.stream_id, stream_segment.station_flow, stream_segment.init_flow
-                    num_printed += 1
                 else:                            
                     init_flow_file.write("{}\n".format(stream_segment.init_flow))
         
@@ -362,7 +353,7 @@ def compute_initial_rapid_flows(prediction_files, input_directory, forecast_date
         sni.compute_init_flows_from_past_forecast(prediction_files)
         sni.write_init_flow_file(init_file_location)        
     else:
-        print "No current forecasts found. Skipping ..."
+        print("No current forecasts found. Skipping ...")
 
 def compute_seasonal_initial_rapid_flows(historical_qout_file, input_directory, forecast_date_timestep):
     """
@@ -379,7 +370,7 @@ def compute_seasonal_initial_rapid_flows(historical_qout_file, input_directory, 
                                   rapid_connect_file=os.path.join(input_directory,'rapid_connect.csv'))
             rapid_manager.generate_seasonal_intitialization(init_file_location)
         else:
-            print "No seasonal streamflow file found. Skipping ..."
+            print("No seasonal streamflow file found. Skipping ...")
 
 def compute_seasonal_initial_rapid_flows_multicore_worker(args):
     """
@@ -399,8 +390,8 @@ def update_inital_flows_usgs(input_directory, forecast_date_timestep):
     qinit_file = os.path.join(input_directory, 'Qinit_%s.csv' % past_date)
 
     if os.path.exists(gage_flow_info) and os.path.exists(qinit_file):
-        print "Updating initial flows with USGS data for:", \
-              input_directory, forecast_date_timestep , "..."
+        print("Updating initial flows with USGS data for: {0} {1} ...".format(input_directory, 
+                                                                              forecast_date_timestep))
               
         sni = StreamNetworkInitializer(connectivity_file=os.path.join(input_directory,'rapid_connect.csv'),
                                        gage_ids_natur_flow_file=gage_flow_info)

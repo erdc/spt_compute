@@ -45,8 +45,10 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
             pass
 
     #prepare ECMWF file for RAPID
-    print "Running all ECMWF downscaling for watershed:", watershed, subbasin, \
-        forecast_date_timestep, ensemble_number
+    print("Running all ECMWF downscaling for watershed: {0}-{1} {2} {3}".format(watershed, 
+                                                                                subbasin,
+                                                                                forecast_date_timestep,
+                                                                                ensemble_number))
 
     #set up RAPID manager
     rapid_connect_file=case_insensitive_file_search(rapid_input_directory,
@@ -80,7 +82,7 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
         BS_opt_Qinit = qinit_file and os.path.exists(qinit_file)
         if not BS_opt_Qinit:
             qinit_file = ""
-            print "Error:", qinit_file, "not found. Not initializing ..."
+            print("Error: {0} not found. Not initializing ...".format(qinit_file))
             
             
     try:
@@ -88,7 +90,7 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
                                                             r'comid_lat_lon_z.*?\.csv')
     except Exception:
         comid_lat_lon_z_file = ""
-        print "comid_lat_lon_z_file not found. Not adding lat/lon/z to output file ..."
+        print("comid_lat_lon_z_file not found. Not adding lat/lon/z to output file ...")
 
     RAPIDinflowECMWF_tool = CreateInflowFileFromECMWFRunoff()
     forecast_resolution = RAPIDinflowECMWF_tool.dataIdentify(ecmwf_forecast)
@@ -280,7 +282,7 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
 
         try:
 
-            print "Converting ECMWF inflow"
+            print("Converting ECMWF inflow ...")
             RAPIDinflowECMWF_tool.execute(ecmwf_forecast, 
                                           weight_table_file, 
                                           inflow_file_name,
@@ -312,7 +314,7 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
         raise Exception("ERROR: invalid forecast resolution ...")
         
     time_stop_all = datetime.datetime.utcnow()
-    print "Total time to compute: %s" % (time_stop_all-time_start_all)
+    print("Total time to compute: {0}".format(time_stop_all-time_start_all))
 
 def run_ecmwf_rapid_multiprocess_worker(args):
     """
