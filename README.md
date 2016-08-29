@@ -174,10 +174,10 @@ if __name__ == "__main__":
 |*mp_mode*|String|(Optional) This defines how the process is run (HTCondor or Python's Multiprocessing). Valid options are htcondor and multiprocess. |htcondor|
 |*mp_execute_directory*|String|(Optional/Required if using multiprocess mode) Directory used in multiprocessing mode to temporarily store files begin generated.  |""|
 
-#### Possible run configurations
+### Possible run configurations
 There are many different configurations. Here are some examples.
 
-#####Mode 1: Run ECMWF-RAPID for Streamflow Prediction Tool using HTCondor to run and CKAN to upload
+####Mode 1: Run ECMWF-RAPID for Streamflow Prediction Tool using HTCondor to run and CKAN to upload
 ```python
 run_ecmwf_rapid_process(
     rapid_executable_location='/home/alan/scripts/rapid/src/rapid',
@@ -202,7 +202,7 @@ run_ecmwf_rapid_process(
 )
 ```
 
-#####Mode 2: Run ECMWF-RAPID for Streamflow Prediction Tool using HTCondor to run and CKAN to upload & to download model files 
+####Mode 2: Run ECMWF-RAPID for Streamflow Prediction Tool using HTCondor to run and CKAN to upload & to download model files 
 ```python
 run_ecmwf_rapid_process(
     rapid_executable_location='/home/alan/scripts/rapid/src/rapid',
@@ -227,7 +227,7 @@ run_ecmwf_rapid_process(
     delete_output_when_done=True,
 )
 ```
-#####Mode 3: Run ECMWF-RAPID for Streamflow Prediction Tool using Multiprocessing to run and CKAN to upload
+####Mode 3: Run ECMWF-RAPID for Streamflow Prediction Tool using Multiprocessing to run and CKAN to upload
 ```python
 run_ecmwf_rapid_process(
     rapid_executable_location='/home/alan/scripts/rapid/src/rapid',
@@ -253,7 +253,7 @@ run_ecmwf_rapid_process(
     mp_execute_directory='/home/alan/mp_execute',
 )
 ```
-#####Mode 4: (BETA) Run ECMWF-RAPID for Streamflow Prediction Tool with AutoRoute using Multiprocessing to run
+####Mode 4: (BETA) Run ECMWF-RAPID for Streamflow Prediction Tool with AutoRoute using Multiprocessing to run
 Note that in this example, CKAN was not used. However, you can still add CKAN back in to this example with the parameters shown in the previous examples.
 
 ```python
