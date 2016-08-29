@@ -334,13 +334,13 @@ $ pip install python-crontab
 2) Create a script to initialize cron job *create_cron.py*. Change execution times based on your time zone (Note: It is CT in this example).
 
 ```python
-        from spt_ecmwf_autorapid_process.setup import create_cron
-        
-        create_cron(execute_command='/usr/bin/python /path/to/run_ecmwf_rapid.py', 
-                    job_1_start_hour=5,
-                    job_1_start_minute=45,
-                    job_2_start_hour=17,
-                    job_2_start_minute=45)
+from spt_ecmwf_autorapid_process.setup import create_cron
+
+create_cron(execute_command='/usr/bin/python /path/to/run_ecmwf_rapid.py', 
+            job_1_start_hour=5,
+            job_1_start_minute=45,
+            job_2_start_hour=17,
+            job_2_start_minute=45)
 ```
 
 #Troubleshooting
