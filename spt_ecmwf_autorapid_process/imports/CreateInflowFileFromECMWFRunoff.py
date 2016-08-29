@@ -141,7 +141,7 @@ class CreateInflowFileFromECMWFRunoff(object):
 
 
         ''' Read the weight table '''
-        print "Reading the weight table..."
+        print("Reading the weight table...")
         dict_list = {self.header_wt[0]:[], self.header_wt[1]:[], self.header_wt[2]:[],
                      self.header_wt[3]:[], self.header_wt[4]:[]}
 
@@ -163,7 +163,7 @@ class CreateInflowFileFromECMWFRunoff(object):
                     count += 1
 
         '''Calculate water inflows'''
-        print "Calculating water inflows..."
+        print("Calculating water inflows...")
 
         # Obtain size information
         if id_data == "LowRes":
@@ -233,8 +233,8 @@ class CreateInflowFileFromECMWFRunoff(object):
             npoints = int(dict_list[self.header_wt[4]][pointer])
             # Check if all npoints points correspond to the same streamID
             if len(set(dict_list[self.header_wt[0]][pointer : (pointer + npoints)])) != 1:
-                print "ROW INDEX", pointer
-                print "COMID", dict_list[self.header_wt[0]][pointer]
+                print("ROW INDEX {0}".format(pointer))
+                print("RIVID {0}".format(dict_list[self.header_wt[0]][pointer]))
                 raise Exception(self.errorMessages[2])
 
             area_sqm_npoints = [float(k) for k in dict_list[self.header_wt[1]][pointer : (pointer + npoints)]]
@@ -307,7 +307,7 @@ class CreateInflowFileFromECMWFRunoff(object):
 
 
         '''Write inflow data'''
-        print "Writing inflow data..."
+        print("Writing inflow data...")
         var_m3_riv[:] = data_temp
         # close the input and output netcdf datasets
         data_in_nc.close()

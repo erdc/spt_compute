@@ -39,7 +39,7 @@ def case_insensitive_file_search(directory, pattern):
                             [filename for filename in os.listdir(directory) \
                              if re.search(pattern, filename, re.IGNORECASE)][0])
     except IndexError:
-        print pattern, "not found"
+        print("{0} not found".format(pattern))
         raise
 
 def clean_logs(condor_log_directory, main_log_directory, prepend="rapid_", log_file_path=""):
@@ -56,7 +56,7 @@ def clean_logs(condor_log_directory, main_log_directory, prepend="rapid_", log_f
             if (date_today-dir_datetime > week_timedelta):
                 rmtree(os.path.join(condor_log_directory, condor_dir))
         except Exception as ex:
-            print ex
+            print(ex)
             pass
 
     #clean up log files
@@ -68,7 +68,7 @@ def clean_logs(condor_log_directory, main_log_directory, prepend="rapid_", log_f
             if (date_today-log_datetime > week_timedelta):
                 os.remove(os.path.join(main_log_directory, main_log_file))
         except Exception as ex:
-            print ex
+            print(ex)
             pass
 
 def find_current_rapid_output(forecast_directory, watershed, subbasin):
@@ -92,7 +92,7 @@ def get_valid_watershed_list(input_directory):
             and len(directory.split("-")) == 2:
             valid_input_directories.append(directory)
         else:
-            print directory, "incorrectly formatted. Skipping ..."
+            print("{0} incorrectly formatted. Skipping ...".format(directory))
     return valid_input_directories
 
 def get_date_timestep_from_forecast_folder(forecast_folder):
@@ -138,7 +138,7 @@ def log(message, severity):
 
     print_me = ['WARNING', 'INFO', 'DEBUG']
     if severity in print_me:
-        print severity, message
+        print("{0} {1}".format(severity, message))
     else:
         raise Exception(message)
 
