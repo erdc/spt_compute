@@ -86,14 +86,14 @@ def upload_single_forecast(job_info, data_manager):
     #remove tar.gz file
     os.remove(output_tar_file)
 
-def update_lock_info_file(lock_info_file_path, currently_running, completed_forecasts):
+def update_lock_info_file(lock_info_file_path, currently_running, last_forecast_date):
     """
     This function updates the lock info file
     """
     with open(lock_info_file_path, "w") as fp_lock_info:
         lock_info_data = { 
                             'running' : currently_running,
-                            'last_run_forecasts' : completed_forecasts
+                            'last_forecast_date' : last_forecast_date,
                          }
         json.dump(lock_info_data, fp_lock_info)
                                             
@@ -176,8 +176,7 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
         
         if download_ecmwf and ftp_host:
             #get list of folders to download
-            ecmwf_folders = sorted(get_ftp_forecast_list(ecmwf_forecast_location,
-                                                         'Runoff.%s*.netcdf.tar*' % date_string,
+            ecmwf_folders = sorted(get_ftp_forecast_list('Runoff.%s*.netcdf.tar*' % date_string,
                                                          ftp_host,
                                                          ftp_login,
                                                          ftp_passwd,
@@ -188,21 +187,30 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
                                                      'Runoff.'+date_string+'*.netcdf')))
 
         #LOAD LOCK INFO FILE
+        last_forecast_date = datetime.datetime.utcfromtimestamp(0)
         if os.path.exists(LOCK_INFO_FILE):
             with open(LOCK_INFO_FILE) as fp_lock_info:
                 previous_lock_info = json.load(fp_lock_info)
             
             if previous_lock_info['running']:
-                print("Another ECMWF-RAPID process is running. "
-                      "If this is an error, delete the file: {0}"
-                      ". Then, re-run this script. \nExiting ...".format(LOCK_INFO_FILE))
+                print("Another ECMWF-RAPID process is running.\n"
+                      "The lock file is located here: {0}\n"
+                      "If this is an error, you have two options:\n"
+                      "1) Delete the lock file.\n"
+                      "2) Edit the lock file and set \"running\" to false. \n"
+                      "Then, re-run this script. \n Exiting ...".format(LOCK_INFO_FILE))
                 return
-            
             else:
+                last_forecast_date = datetime.datetime.strptime(previous_lock_info['last_forecast_date'],'%Y%m%d%H')
                 run_ecmwf_folders = []
-                for forecast in ecmwf_folders:
-                    if os.path.basename(forecast) not in previous_lock_info['last_run_forecasts']:
-                        run_ecmwf_folders.append(forecast)
+                for ecmwf_folder in ecmwf_folders:
+                    #get date
+                    forecast_date_timestep = get_date_timestep_from_forecast_folder(ecmwf_folder)
+                    forecast_date = datetime.datetime.strptime(forecast_date_timestep[:11],'%Y%m%d.%H')
+                    #if more recent, add to list
+                    if forecast_date > last_forecast_date:
+                        run_ecmwf_folders.append(ecmwf_folder)
+                        
                 ecmwf_folders = run_ecmwf_folders
                 
         if not ecmwf_folders:
@@ -210,9 +218,8 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
             return
                 
         #GENERATE NEW LOCK INFO FILE
-        update_lock_info_file(LOCK_INFO_FILE, True, [])
+        update_lock_info_file(LOCK_INFO_FILE, True, last_forecast_date.strftime('%Y%m%d%H'))
 
-        completed_forecasts = []
         #Try/Except added for lock file
         try:
             #ADD SEASONAL INITIALIZATION WHERE APPLICABLE
@@ -456,10 +463,10 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
                                           geoserver_password,
                                           app_instance_id)
                 
-                completed_forecasts.append(os.path.basename(ecmwf_folder))
-                
+                last_forecast_date = datetime.datetime.strptime(forecast_date_timestep[:11],'%Y%m%d.%H')
+
                 #update lock info file with next forecast
-                update_lock_info_file(LOCK_INFO_FILE, True, completed_forecasts)
+                update_lock_info_file(LOCK_INFO_FILE, True, last_forecast_date.strftime('%Y%m%d%H'))
     
             #----------------------------------------------------------------------
             # END FORECAST LOOP
@@ -469,7 +476,7 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
             pass
             
         #Release & update lock info file with all completed forecasts      
-        update_lock_info_file(LOCK_INFO_FILE, False, completed_forecasts)
+        update_lock_info_file(LOCK_INFO_FILE, False, last_forecast_date.strftime('%Y%m%d%H'))
 
         if delete_output_when_done:
             #delete local datasets
