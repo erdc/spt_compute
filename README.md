@@ -320,7 +320,7 @@ $ crontab -e
 ```
 Then add:
 ```
-@hourly /usr/bin/python /path/to/run_ecmwf_rapid.py # ECMWF RAPID PROCESS
+@hourly /usr/bin/env python /path/to/run_ecmwf_rapid.py # ECMWF RAPID PROCESS
 ``` 
 
 ### Method 2: Use *create_cron.py* to create the CRON jobs:
