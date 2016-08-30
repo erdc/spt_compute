@@ -361,6 +361,7 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
                                                                                         mp_execute_directory,
                                                                                         subprocess_forecast_log_dir,
                                                                                         watershed_job_index))
+                              #COMMENTED CODE FOR DEBUGGING SERIALLY
         ##                    run_ecmwf_rapid_multiprocess_worker((forecast,
         ##                                                         forecast_date_timestep,
         ##                                                         watershed.lower(),
