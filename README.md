@@ -86,7 +86,9 @@ $ sudo yum install epel-release
 ```
 Then install packages listed above.
 
-##Step 4: Install AutoRoute and AutoRoutePy
+##Step 4: (Optional) Install AutoRoute and AutoRoutePy
+If you want to try out the forecasted AutoRoute flood inundation (BETA), you will need to complete this section.
+ 
 Follow the instructions here: https://github.com/erdc-cm/AutoRoutePy
 
 ##Step 5: Install Submodule Dependencies
