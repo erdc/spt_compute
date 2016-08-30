@@ -267,11 +267,14 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
                     #download forecast
                     download_and_extract_ftp(ecmwf_forecast_location, ecmwf_folder, 
                                              ftp_host, ftp_login, 
-                                             ftp_passwd, ftp_directory)                
+                                             ftp_passwd, ftp_directory)
+                    #add full path to folder                 
+                    ecmwf_folder = os.path.join(ecmwf_forecast_location, ecmwf_folder)
                 
                 #get list of forecast files
                 ecmwf_forecasts = glob(os.path.join(ecmwf_folder,'full_*.runoff.netcdf')) + \
                                   glob(os.path.join(ecmwf_folder,'*.52.205.*.runoff.netcdf'))
+                                  
                 #look for new version of forecasts
                 if not ecmwf_forecasts:
                     ecmwf_forecasts = glob(os.path.join(ecmwf_folder,'*.runoff.nc'))
@@ -298,26 +301,27 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
                     master_watershed_input_directory = os.path.join(rapid_io_files_location, "input", rapid_input_directory)
                     master_watershed_outflow_directory = os.path.join(rapid_io_files_location, 'output',
                                                                       rapid_input_directory, forecast_date_timestep)
+                    try:
+                        os.makedirs(master_watershed_outflow_directory)
+                    except OSError:
+                        pass
+
+                    #initialize HTCondor/multiprocess Logging Directory
+                    subprocess_forecast_log_dir = os.path.join(subprocess_log_directory, forecast_date_timestep)
+                    try:
+                        os.makedirs(subprocess_forecast_log_dir)
+                    except OSError:
+                        pass
+
                     #add USGS gage data to initialization file
                     if initialize_flows:
                         #update intial flows with usgs data
                         update_inital_flows_usgs(master_watershed_input_directory, 
                                                  forecast_date_timestep)
                     
-                    #create jobs for HTCondor
+                    #create jobs for HTCondor/multiprocess
                     for watershed_job_index, forecast in enumerate(ecmwf_forecasts):
                         ensemble_number = get_ensemble_number_from_forecast(forecast)
-                        try:
-                            os.makedirs(master_watershed_outflow_directory)
-                        except OSError:
-                            pass
-    
-                        #initialize HTCondor Logging Directory
-                        subprocess_forecast_log_dir = os.path.join(subprocess_log_directory, forecast_date_timestep)
-                        try:
-                            os.makedirs(subprocess_forecast_log_dir)
-                        except OSError:
-                            pass
                         
                         #get basin names
                         outflow_file_name = 'Qout_%s_%s_%s.nc' % (watershed.lower(), subbasin.lower(), ensemble_number)
