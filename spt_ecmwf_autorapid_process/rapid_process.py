@@ -279,6 +279,7 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
                 
                 if not ecmwf_forecasts:
                     print("ERROR: Forecasts not found in folder. Exiting ...")
+                    update_lock_info_file(LOCK_INFO_FILE, False, last_forecast_date.strftime('%Y%m%d%H'))
                     return
                     
                 #make the largest files first
