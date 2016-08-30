@@ -196,3 +196,4 @@ def download_and_extract_ftp(download_dir, file_to_download,
             if os.path.exists(local_path):
                 os.remove(local_path)
             raise
+        return local_dir
