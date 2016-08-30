@@ -295,7 +295,7 @@ $ chmod u+x run_ecmwf_rapid.py
 ##Step 10: Add RAPID files to the rapid-io/input directory
 To generate these files see: https://github.com/erdc-cm/RAPIDpy/wiki/GIS-Tools. If you are using the *sync_rapid_input_with_ckan* option, then you would upload these files through the Streamflow Prediction Tool web interface and this step is unnecessary.
 
-Make sure the directory is in the format [watershed name]-[subbasin name]
+Make sure the directory is in the format [watershed_name]-[subbasin_name]
 with lowercase letters, numbers, and underscores only. No spaces!
 
 
