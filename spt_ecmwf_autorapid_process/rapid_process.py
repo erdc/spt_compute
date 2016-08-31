@@ -271,12 +271,12 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
                                                             ftp_passwd, ftp_directory)
 
                 #get list of forecast files
-                ecmwf_forecasts = glob(os.path.join(ecmwf_folder,'full_*.runoff.netcdf')) + \
-                                  glob(os.path.join(ecmwf_folder,'*.52.205.*.runoff.netcdf'))
+                ecmwf_forecasts = glob(os.path.join(ecmwf_folder,'*.runoff.nc'))
                                   
-                #look for new version of forecasts
+                #look for old version of forecasts
                 if not ecmwf_forecasts:
-                    ecmwf_forecasts = glob(os.path.join(ecmwf_folder,'*.runoff.nc'))
+                    ecmwf_forecasts = glob(os.path.join(ecmwf_folder,'full_*.runoff.netcdf')) + \
+                                      glob(os.path.join(ecmwf_folder,'*.52.205.*.runoff.netcdf'))
                 
                 if not ecmwf_forecasts:
                     print("ERROR: Forecasts not found in folder. Exiting ...")
