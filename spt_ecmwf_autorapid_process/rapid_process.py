@@ -289,7 +289,6 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
                 print("Running ECMWF Forecast: {0}".format(forecast_date_timestep))
 
                 #submit jobs to downsize ecmwf files to watershed
-                iteration = 0
                 rapid_watershed_jobs = {}
                 for rapid_input_directory in rapid_input_directories:
                     #keep list of jobs
@@ -331,7 +330,7 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
                         node_rapid_outflow_file = outflow_file_name
                         master_rapid_outflow_file = os.path.join(master_watershed_outflow_directory, outflow_file_name)
     
-                        job_name = 'job_%s_%s_%s_%s_%s' % (forecast_date_timestep, watershed, subbasin, ensemble_number, iteration)
+                        job_name = 'job_%s_%s_%s_%s' % (forecast_date_timestep, watershed, subbasin, ensemble_number)
     
                         rapid_watershed_jobs[rapid_input_directory]['jobs_info'].append({'watershed' : watershed,
                                                                                          'subbasin' : subbasin,
@@ -379,7 +378,6 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
         ##                                                         watershed_job_index))
                         else:
                             raise Exception("ERROR: Invalid mp_mode. Valid types are htcondor and multiprocess ...")
-                        iteration += 1
                 
                 
                 for rapid_input_directory, watershed_job_info in rapid_watershed_jobs.iteritems():
