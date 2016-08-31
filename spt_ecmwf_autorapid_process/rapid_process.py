@@ -14,6 +14,7 @@ from multiprocessing import Pool as mp_Pool
 import os
 from shutil import rmtree
 import tarfile
+from traceback import print_exc
 
 try:
     from condorpy import Job as CJob
@@ -423,8 +424,8 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
                                     if upload_output_to_ckan and data_store_url and data_store_api_key:
                                         data_manager.initialize_run_ecmwf(watershed, subbasin, forecast_date_timestep)
                                         data_manager.zip_upload_warning_points_in_directory(forecast_directory)
-                                except Exception, ex:
-                                    print ex
+                                except Exception as ex:
+                                    print(ex)
                                     pass
                             else:
                                 print("No ERA Interim file found. Skipping ...")
@@ -478,6 +479,7 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
             # END FORECAST LOOP
             #----------------------------------------------------------------------
         except Exception as ex:
+            print_exc()
             print(ex)
             pass
             
