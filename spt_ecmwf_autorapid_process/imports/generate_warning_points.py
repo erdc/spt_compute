@@ -42,7 +42,7 @@ def generate_warning_points(ecmwf_prediction_folder, return_period_file, out_dir
 
     #get the comids in ECMWF files
     with RAPIDDataset(prediction_files[0]) as qout_nc:
-        prediction_comids = qout_nc.get_river_id_array()
+        prediction_rivids = qout_nc.get_river_id_array()
         comid_list_length = qout_nc.size_river_id
         size_time = qout_nc.size_time
         first_half_size = 40 #run 6-hr resolution for all
@@ -80,9 +80,9 @@ def generate_warning_points(ecmwf_prediction_folder, return_period_file, out_dir
         except Exception, e:
             print(e)
             
-        #add data to main arrays and order in order of interim comids
+        #add data to main arrays and order in order of interim rivids
         if len(data_values_2d_array) > 0:
-            for comid_index, comid in enumerate(prediction_comids):
+            for comid_index, comid in enumerate(prediction_rivids):
                 if(ensemble_index < 52):
                     reach_prediciton_array_first_half[comid_index][file_index] = data_values_2d_array[comid_index][:first_half_size]
                     reach_prediciton_array_second_half[comid_index][file_index] = data_values_2d_array[comid_index][first_half_size:]
@@ -111,7 +111,7 @@ def generate_warning_points(ecmwf_prediction_folder, return_period_file, out_dir
     riverid_var_name = 'COMID'
     if 'rivid' in return_period_nc.variables:
         riverid_var_name = 'rivid'
-    return_period_comids = return_period_nc.variables[riverid_var_name][:]
+    return_period_rivids = return_period_nc.variables[riverid_var_name][:]
     return_period_20_data = return_period_nc.variables['return_period_20'][:]
     return_period_10_data = return_period_nc.variables['return_period_10'][:]
     return_period_2_data = return_period_nc.variables['return_period_2'][:]
@@ -123,9 +123,9 @@ def generate_warning_points(ecmwf_prediction_folder, return_period_file, out_dir
     return_20_points = []
     return_10_points = []
     return_2_points = []
-    for prediction_comid_index, prediction_comid in enumerate(prediction_comids):
+    for prediction_comid_index, prediction_rivid in enumerate(prediction_rivids):
         #get interim comid index
-        return_period_comid_index = np.where(return_period_comids==prediction_comid)[0][0]
+        return_period_comid_index = np.where(return_period_rivids==prediction_rivid)[0][0]
         #perform analysis on datasets
         all_data_first = reach_prediciton_array_first_half[prediction_comid_index]
         all_data_second = reach_prediciton_array_second_half[prediction_comid_index]
@@ -162,6 +162,7 @@ def generate_warning_points(ecmwf_prediction_folder, return_period_file, out_dir
                                           "size": 1,
                                           "mean_peak": float("{0:.2f}".format(daily_mean_peak)),
                                           "peak_date": time_array[daily_time_index].strftime("%Y-%m-%d"),
+                                          "rivid": prediction_rivid,
                                           })
             elif daily_mean_peak > return_period_10:
                 return_10_points.append({ "lat" : return_period_lat_data[return_period_comid_index],
@@ -169,6 +170,7 @@ def generate_warning_points(ecmwf_prediction_folder, return_period_file, out_dir
                                           "size": 1,
                                           "mean_peak": float("{0:.2f}".format(daily_mean_peak)),
                                           "peak_date": time_array[daily_time_index].strftime("%Y-%m-%d"),
+                                          "rivid": prediction_rivid,
                                           })
             elif daily_mean_peak > return_period_2:
                 return_2_points.append({ "lat" : return_period_lat_data[return_period_comid_index],
@@ -176,6 +178,7 @@ def generate_warning_points(ecmwf_prediction_folder, return_period_file, out_dir
                                           "size": 1,
                                           "mean_peak": float("{0:.2f}".format(daily_mean_peak)),
                                           "peak_date": time_array[daily_time_index].strftime("%Y-%m-%d"),
+                                          "rivid": prediction_rivid,
                                           })
     
             daily_mean_plus_std_peak = min(calc_daily_peak(daily_time_index_array, idx, mean_plus_std_series, size_time),
@@ -187,6 +190,7 @@ def generate_warning_points(ecmwf_prediction_folder, return_period_file, out_dir
                                           "size": 0,
                                           "mean_plus_std_peak": float("{0:.2f}".format(daily_mean_plus_std_peak)),
                                           "peak_date": time_array[daily_time_index].strftime("%Y-%m-%d"),
+                                          "rivid": prediction_rivid,
                                           })
             elif daily_mean_plus_std_peak > return_period_10:
                 return_10_points.append({ "lat" : return_period_lat_data[return_period_comid_index],
@@ -194,6 +198,7 @@ def generate_warning_points(ecmwf_prediction_folder, return_period_file, out_dir
                                           "size": 0,
                                           "mean_plus_std_peak": float("{0:.2f}".format(daily_mean_plus_std_peak)),
                                           "peak_date": time_array[daily_time_index].strftime("%Y-%m-%d"),
+                                          "rivid": prediction_rivid,
                                           })
             elif daily_mean_plus_std_peak > return_period_2:
                 return_2_points.append({ "lat" : return_period_lat_data[return_period_comid_index],
@@ -201,6 +206,7 @@ def generate_warning_points(ecmwf_prediction_folder, return_period_file, out_dir
                                           "size": 0,
                                           "mean_plus_std_peak": float("{0:.2f}".format(daily_mean_plus_std_peak)),
                                           "peak_date": time_array[daily_time_index].strftime("%Y-%m-%d"),
+                                          "rivid": prediction_rivid,
                                           })
 
     print("Writing Output ...")
