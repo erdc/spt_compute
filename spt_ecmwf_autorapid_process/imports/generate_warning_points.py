@@ -162,7 +162,7 @@ def generate_warning_points(ecmwf_prediction_folder, return_period_file, out_dir
                                           "size": 1,
                                           "mean_peak": float("{0:.2f}".format(daily_mean_peak)),
                                           "peak_date": time_array[daily_time_index].strftime("%Y-%m-%d"),
-                                          "rivid": prediction_rivid,
+                                          "rivid": int(prediction_rivid),
                                           })
             elif daily_mean_peak > return_period_10:
                 return_10_points.append({ "lat" : return_period_lat_data[return_period_comid_index],
@@ -170,7 +170,7 @@ def generate_warning_points(ecmwf_prediction_folder, return_period_file, out_dir
                                           "size": 1,
                                           "mean_peak": float("{0:.2f}".format(daily_mean_peak)),
                                           "peak_date": time_array[daily_time_index].strftime("%Y-%m-%d"),
-                                          "rivid": prediction_rivid,
+                                          "rivid": int(prediction_rivid),
                                           })
             elif daily_mean_peak > return_period_2:
                 return_2_points.append({ "lat" : return_period_lat_data[return_period_comid_index],
@@ -178,7 +178,7 @@ def generate_warning_points(ecmwf_prediction_folder, return_period_file, out_dir
                                           "size": 1,
                                           "mean_peak": float("{0:.2f}".format(daily_mean_peak)),
                                           "peak_date": time_array[daily_time_index].strftime("%Y-%m-%d"),
-                                          "rivid": prediction_rivid,
+                                          "rivid": int(prediction_rivid),
                                           })
     
             daily_mean_plus_std_peak = min(calc_daily_peak(daily_time_index_array, idx, mean_plus_std_series, size_time),
@@ -190,7 +190,7 @@ def generate_warning_points(ecmwf_prediction_folder, return_period_file, out_dir
                                           "size": 0,
                                           "mean_plus_std_peak": float("{0:.2f}".format(daily_mean_plus_std_peak)),
                                           "peak_date": time_array[daily_time_index].strftime("%Y-%m-%d"),
-                                          "rivid": prediction_rivid,
+                                          "rivid": int(prediction_rivid),
                                           })
             elif daily_mean_plus_std_peak > return_period_10:
                 return_10_points.append({ "lat" : return_period_lat_data[return_period_comid_index],
@@ -198,7 +198,7 @@ def generate_warning_points(ecmwf_prediction_folder, return_period_file, out_dir
                                           "size": 0,
                                           "mean_plus_std_peak": float("{0:.2f}".format(daily_mean_plus_std_peak)),
                                           "peak_date": time_array[daily_time_index].strftime("%Y-%m-%d"),
-                                          "rivid": prediction_rivid,
+                                          "rivid": int(prediction_rivid),
                                           })
             elif daily_mean_plus_std_peak > return_period_2:
                 return_2_points.append({ "lat" : return_period_lat_data[return_period_comid_index],
@@ -206,7 +206,7 @@ def generate_warning_points(ecmwf_prediction_folder, return_period_file, out_dir
                                           "size": 0,
                                           "mean_plus_std_peak": float("{0:.2f}".format(daily_mean_plus_std_peak)),
                                           "peak_date": time_array[daily_time_index].strftime("%Y-%m-%d"),
-                                          "rivid": prediction_rivid,
+                                          "rivid": int(prediction_rivid),
                                           })
 
     print("Writing Output ...")
