@@ -345,7 +345,7 @@ To prevent this, add a cron job to release the lock on bootup.
 
 ###Create Script
 Create a script to reset the lock info file. Example path: /path/to/ecmwf_rapid_server_reset.py
-Then, change the path to the lock info file. To do this, add *ecmwf_rapid_run_lock_info.txt*
+Then, change the path to the lock info file. To do this, add *ecmwf_rapid_run_info_lock.txt*
 to your *main_log_directory* from the *run_ecmwf_rapid.py* script.
 
 ```python
@@ -354,7 +354,7 @@ to your *main_log_directory* from the *run_ecmwf_rapid.py* script.
 from spt_ecmwf_autorapid_process import reset_lock_info_file
 
 if __name__ == "__main__":
-    LOCK_INFO_FILE = '/logs/ecmwf_rapid_run_lock_info.txt'
+    LOCK_INFO_FILE = '/logs/ecmwf_rapid_run_info_lock.txt'
     reset_lock_info_file(LOCK_INFO_FILE)
 ```
 ###Create Cron Job
