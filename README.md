@@ -339,6 +339,34 @@ from spt_ecmwf_autorapid_process.setup import create_cron
 create_cron(execute_command='/usr/bin/env python /path/to/run_ecmwf_rapid.py')
 ```
 
+##Step 12: Create CRON job to release lock on script
+If the server is killed in the middle of a process, the lock with persist.
+To prevent this, add a cron job to release the lock on bootup.
+
+###Create Script
+Create a script to reset the lock info file. Example path: /path/to/ecmwf_rapid_server_reset.py
+Then, change the path to the lock info file. To do this, add *ecmwf_rapid_run_lock_info.txt*
+to your *main_log_directory* from the *run_ecmwf_rapid.py* script.
+
+```python
+#! /usr/bin/env python
+
+from spt_ecmwf_autorapid_process import reset_lock_info_file
+
+if __name__ == "__main__":
+    LOCK_INFO_FILE = '/logs/ecmwf_rapid_run_lock_info.txt'
+    reset_lock_info_file(LOCK_INFO_FILE)
+```
+###Create Cron Job
+
+```
+$ crontab -e
+```
+Then add:
+```
+@reboot /usr/bin/env python /path/to/ecmwf_rapid_server_reset.py # ECMWF RAPID PROCESS
+``` 
+
 #Troubleshooting
 If you see this error:
 ImportError: No module named packages.urllib3.poolmanager
