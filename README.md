@@ -364,7 +364,7 @@ $ crontab -e
 ```
 Then add:
 ```
-@reboot /usr/bin/env python /path/to/ecmwf_rapid_server_reset.py # ECMWF RAPID PROCESS
+@reboot /usr/bin/env python /path/to/ecmwf_rapid_server_reset.py # RESET ECMWF RAPID PROCESS LOCK
 ``` 
 
 #Troubleshooting
