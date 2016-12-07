@@ -1,3 +1,0 @@
-[submodule "spt_dataset_manager"]
-	path = spt_ecmwf_autorapid_process/spt_dataset_manager
-	url = https://github.com/erdc-cm/spt_dataset_manager.git
