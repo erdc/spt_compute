@@ -99,8 +99,6 @@ See: https://github.com/erdc-cm/spt_dataset_manager
 $ cd /path/to/your/scripts/
 $ git clone https://github.com/erdc-cm/spt_ecmwf_autorapid_process.git
 $ cd spt_ecmwf_autorapid_process
-$ git submodule init
-$ git submodule update
 $ python setup.py install
 ```
 

@@ -46,8 +46,8 @@ from .imports.streamflow_assimilation import (compute_initial_rapid_flows,
                                               compute_seasonal_initial_rapid_flows_multicore_worker,
                                               update_inital_flows_usgs,)
 #package imports
-from .spt_dataset_manager.dataset_manager import (ECMWFRAPIDDatasetManager,
-                                                  RAPIDInputDatasetManager)
+from spt_dataset_manager.dataset_manager import (ECMWFRAPIDDatasetManager,
+                                                 RAPIDInputDatasetManager)
 #----------------------------------------------------------------------------------------
 # HELPER FUNCTIONS
 #----------------------------------------------------------------------------------------
