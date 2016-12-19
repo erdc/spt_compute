@@ -132,6 +132,7 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
                             ftp_login="", #ECMWF ftp login name
                             ftp_passwd="", #ECMWF ftp password
                             ftp_directory="", #ECMWF ftp directory
+                            delete_past_ecmwf_forecasts=True, #Deletes all past forecasts before next run
                             upload_output_to_ckan=False, #upload data to CKAN and remove local copy
                             delete_output_when_done=False, #delete all output data from this code
                             initialize_flows=False, #use forecast to initialize next run
@@ -283,7 +284,8 @@ def run_ecmwf_rapid_process(rapid_executable_location, #path to RAPID executable
                     #download forecast
                     ecmwf_folder = download_and_extract_ftp(ecmwf_forecast_location, ecmwf_folder, 
                                                             ftp_host, ftp_login, 
-                                                            ftp_passwd, ftp_directory)
+                                                            ftp_passwd, ftp_directory,
+                                                            delete_past_ecmwf_forecasts)
 
                 #get list of forecast files
                 ecmwf_forecasts = glob(os.path.join(ecmwf_folder,'*.runoff.nc'))

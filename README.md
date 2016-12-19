@@ -161,6 +161,7 @@ if __name__ == "__main__":
 |*ftp_login*|String|(Optional) ECMWF ftp login name. |""|
 |*ftp_passwd*|String|(Optional) ECMWF ftp password. |""|
 |*ftp_directory*|String|(Optional) ECMWF ftp directory. |""|
+|*delete_past_ecmwf_forecasts*|Boolean|(Optional) If True, it deletes all past forecasts before the next download. |True|
 |*upload_output_to_ckan*|Boolean|(Optional) If true, this will upload the output to CKAN for the Streamflow Prediction Tool to download. |False|
 |*delete_output_when_done*|String|(Optional) If true, all output will be deleted when the process completes. It is used when using operationally with *upload_output_to_ckan* set to true. |False|
 |*initialize_flows*|String|(Optional) If true, this will initialize flows from all avaialble methods (e.g. Past forecasts, historical data, streamgage data). |False|
