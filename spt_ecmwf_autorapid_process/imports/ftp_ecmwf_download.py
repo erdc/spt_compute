@@ -165,7 +165,7 @@ def download_and_extract_ftp(download_dir, file_to_download,
     Downloads and extracts file from FTP server
     remove old downloads to preserve space
     """
-    if remove_past_downloads
+    if remove_past_downloads:
         remove_old_ftp_downloads(download_dir)
     
     ftp_client = PyFTPclient(host=ftp_host,
