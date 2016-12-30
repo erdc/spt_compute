@@ -1,0 +1,14 @@
+# -*- coding: utf-8 -*-
+from os import path
+from spt_ecmwf_autorapid_process import reset_lock_info_file
+import sys
+
+#------------------------------------------------------------------------------
+#main process
+#------------------------------------------------------------------------------
+WORK_DIR = '/p/work1/{username}'
+if __name__ == "__main__":
+    REGION = sys.argv[1]
+    lock_info_file = path.join(WORK_DIR, 'spt_logs', REGION,
+                               'ecmwf_rapid_run_info_lock.txt')
+    reset_lock_info_file(lock_info_file)

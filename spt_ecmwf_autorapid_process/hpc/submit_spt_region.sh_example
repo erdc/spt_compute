@@ -1,0 +1,14 @@
+#!/bin/bash
+#PBS -j oe
+#PBS -l select=2:ncpus=28:mpiprocs=28:ngpus=1
+#PBS -q standard
+#ulimit -s unlimited
+
+#RAPID VARS
+source $PBS_O_HOME/scripts/rapid_spt/rapid_specify_varpath.sh $PBS_O_HOME/installz_spt
+#PATH FOR ANACONDA LIBRARY
+export PATH=$PBS_O_HOME/miniconda2/bin:$PATH
+#ACTIVATE ENVIRONMENT
+source activate spt
+#RUN SCRIPT
+python $PBS_O_HOME/scripts/run_spt_region.py ${region_name}

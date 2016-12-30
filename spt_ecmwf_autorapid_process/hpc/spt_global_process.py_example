@@ -1,0 +1,56 @@
+import datetime
+import json
+import os
+import subprocess
+
+from spt_ecmwf_autorapid_process.hpc.spt_hpc_watershed_groups_process import spt_hpc_watershed_groups_process
+
+if __name__ == "__main__":
+    main_log_directory = "/p/work1/{username}/spt_logs"
+    ecmwf_forecast_location = "/p/work1/{username}/ecmwf"
+    region_qsub_path = "/p/home/{username}/scripts/submit_spt_region.sh"
+    region_reset_qsub_path = "/p/home/{username}/scripts/submit_reset_spt_region.sh"
+    ftp_host = ""
+    ftp_login = ""
+    ftp_passwd = ""
+    ftp_directory = ""
+    hpc_project_number = ""
+    region_data_list = (
+        {
+            'name': 'africa1',
+            'walltime': '2:20:00',
+        },
+        {
+            'name': 'africa2',
+            'walltime': '2:20:00',
+        },
+        {
+            'name': 'asia',
+            'walltime': '3:10:00',
+        },
+        {
+            'name': 'australasia',
+            'walltime': '1:10:00',
+        },
+        {
+            'name': 'europe',
+            'walltime': '2:10:00',
+        },
+        {
+            'name': 'south_central_america',
+            'walltime': '1:20:00',
+        },
+    )
+
+    spt_hpc_watershed_groups_process(main_log_directory,
+                                     ecmwf_forecast_location,
+                                     region_qsub_path,
+                                     region_reset_qsub_path,
+                                     ftp_host,
+                                     ftp_login,
+                                     ftp_passwd,
+                                     ftp_directory,
+                                     region_data_list,
+                                     hpc_project_number,
+                                     )
+

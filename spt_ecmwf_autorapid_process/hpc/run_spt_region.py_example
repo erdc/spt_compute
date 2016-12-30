@@ -1,0 +1,27 @@
+# -*- coding: utf-8 -*-
+from os import path
+from spt_ecmwf_autorapid_process import run_ecmwf_rapid_process
+import sys
+
+#------------------------------------------------------------------------------
+#main process
+#------------------------------------------------------------------------------
+HOME_DIR = '/p/home/{username}'
+WORK_DIR = '/p/work1/{username}'
+if __name__ == "__main__":
+    REGION = sys.argv[1]
+    run_ecmwf_rapid_process(
+        rapid_executable_location=path.join(HOME_DIR,'scripts','rapid_spt','src','rapid'),
+        rapid_io_files_location=path.join(WORK_DIR,'rapid-io',REGION),
+        ecmwf_forecast_location =path.join(WORK_DIR,'ecmwf'),
+        era_interim_data_location=path.join(WORK_DIR,'era_interim_watershed'),
+        subprocess_log_directory=path.join(WORK_DIR,'spt_subprocess_logs',REGION),
+        main_log_directory=path.join(WORK_DIR,'spt_logs',REGION),
+        download_ecmwf=False,
+        upload_output_to_ckan=False,
+        initialize_flows=True,
+        create_warning_points=True,
+        delete_output_when_done=False,
+        mp_mode='multiprocess',
+        mp_execute_directory=path.join(WORK_DIR,'spt_execute',REGION),
+    )
