@@ -3,7 +3,7 @@ import json
 import os
 import subprocess
 
-from spt_ecmwf_autorapid_process.hpc.spt_hpc_watershed_groups_process import spt_hpc_watershed_groups_process
+from spt_ecmwf_autorapid_process import spt_hpc_watershed_groups_process
 
 if __name__ == "__main__":
     main_log_directory = "/p/work1/{username}/spt_logs"
