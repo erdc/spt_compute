@@ -1,1 +1,2 @@
-from rapid_process import reset_lock_info_file, run_ecmwf_rapid_process
+from .rapid_process import reset_lock_info_file, run_ecmwf_rapid_process
+from .hpc.spt_hpc_watershed_groups_process import spt_hpc_watershed_groups_process
