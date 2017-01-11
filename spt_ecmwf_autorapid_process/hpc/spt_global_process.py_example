@@ -3,7 +3,7 @@ import json
 import os
 import subprocess
 
-from spt_ecmwf_autorapid_process import spt_hpc_watershed_groups_process
+from spt_ecmwf_autorapid_process import reset_lock_info_file, spt_hpc_watershed_groups_process
 
 if __name__ == "__main__":
     main_log_directory = "/p/work1/{username}/spt_logs"
@@ -41,16 +41,20 @@ if __name__ == "__main__":
             'walltime': '1:20:00',
         },
     )
+    try:
+        spt_hpc_watershed_groups_process(main_log_directory,
+                                         ecmwf_forecast_location,
+                                         region_qsub_path,
+                                         region_reset_qsub_path,
+                                         ftp_host,
+                                         ftp_login,
+                                         ftp_passwd,
+                                         ftp_directory,
+                                         region_data_list,
+                                         hpc_project_number,
+                                         )
 
-    spt_hpc_watershed_groups_process(main_log_directory,
-                                     ecmwf_forecast_location,
-                                     region_qsub_path,
-                                     region_reset_qsub_path,
-                                     ftp_host,
-                                     ftp_login,
-                                     ftp_passwd,
-                                     ftp_directory,
-                                     region_data_list,
-                                     hpc_project_number,
-                                     )
-
+    except Exception:
+        lock_info_file = path.join(main_log_directory, 'ecmwf_rapid_run_info_lock.txt')
+        reset_lock_info_file(lock_info_file)
+        raise
