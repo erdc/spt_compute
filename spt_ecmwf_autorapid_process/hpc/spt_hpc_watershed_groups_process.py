@@ -83,9 +83,6 @@ def spt_hpc_watershed_groups_process(main_log_directory,
             for ecmwf_folder in ecmwf_folders:
                 # tell program that you are running/update to last downloaded file
                 update_lock_info_file(LOCK_INFO_FILE, True, last_forecast_date.strftime('%Y%m%d%H'))
-                # get datetime from folder
-                last_forecast_date_timestep = get_date_timestep_from_forecast_folder(ecmwf_folder)
-                last_forecast_date = datetime.datetime.strptime(last_forecast_date_timestep[:11], '%Y%m%d.%H')
                 # download forecast
                 try:
                     download_and_extract_ftp(ecmwf_forecast_location, ecmwf_folder,
@@ -122,6 +119,11 @@ def spt_hpc_watershed_groups_process(main_log_directory,
                 except Exception:
                     break
                     pass
+
+                # get datetime from folder
+                last_forecast_date_timestep = get_date_timestep_from_forecast_folder(ecmwf_folder)
+                last_forecast_date = datetime.datetime.strptime(last_forecast_date_timestep[:11], '%Y%m%d.%H')
+
             # release lock file
             update_lock_info_file(LOCK_INFO_FILE, False, last_forecast_date.strftime('%Y%m%d%H'))
 
