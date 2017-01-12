@@ -4,7 +4,7 @@ import os
 import subprocess
 
 from ..imports.ftp_ecmwf_download import get_ftp_forecast_list,download_and_extract_ftp
-from ..imports.helper_functions import CaptureStdOutToLog, get_date_timestep_from_forecast_folder
+from ..imports.helper_functions import clean_main_logs, CaptureStdOutToLog, get_date_timestep_from_forecast_folder
 from ..rapid_process import update_lock_info_file
 
 
@@ -78,6 +78,9 @@ def spt_hpc_watershed_groups_process(main_log_directory,
         # GENERATE NEW/UPDATE LOCK INFO FILE
         update_lock_info_file(LOCK_INFO_FILE, True, last_forecast_date.strftime('%Y%m%d%H'))
 
+        # clean up old log files
+        clean_main_logs(main_log_directory, log_file_path=log_file_path)
+
         if ecmwf_folders:
             region_job_id_info = {}
             for ecmwf_folder in ecmwf_folders:
@@ -97,7 +100,7 @@ def spt_hpc_watershed_groups_process(main_log_directory,
                                                '-l', 'walltime={0}'.format(region_data['walltime']),
                                                '-A', hpc_project_number,
                                                region_qsub_path]
-
+                        print(main_submit_command)
                         # make job wait on previously submitted job if exists
                         previous_job_id = region_job_id_info.get(region_data['name'])
                         if previous_job_id is not None:
@@ -113,10 +116,12 @@ def spt_hpc_watershed_groups_process(main_log_directory,
                                                                   '-A', hpc_project_number,
                                                                   '-W', 'depend=afterany:{0}'.format(job_id),
                                                                   region_reset_qsub_path])
+                        print(job_reset_info)
                         # store for next iteration if needed
                         region_job_id_info[region_data['name']] = job_reset_info.split(".")[0]
 
-                except Exception:
+                except Exception as ex:
+                    print(ex)
                     break
                     pass
 

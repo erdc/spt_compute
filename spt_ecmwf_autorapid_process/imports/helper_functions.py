@@ -52,7 +52,7 @@ def case_insensitive_file_search(directory, pattern):
 
 def clean_logs(condor_log_directory, main_log_directory, prepend="rapid_", log_file_path=""):
     """
-    This removed logs older than one week old
+    This removes all logs older than one week old
     """
     date_today = datetime.datetime.utcnow()
     week_timedelta = datetime.timedelta(7)
@@ -67,15 +67,25 @@ def clean_logs(condor_log_directory, main_log_directory, prepend="rapid_", log_f
             print(ex)
             pass
 
+    clean_main_logs(main_log_directory, prepend, log_file_path)
+
+
+def clean_main_logs(main_log_directory, prepend="rapid_", log_file_path=""):
+    """
+    This removes main logs older than one week old
+    """
+    date_today = datetime.datetime.utcnow()
+    week_timedelta = datetime.timedelta(7)
+
     # clean up log files
     main_log_files = [f for f in os.listdir(main_log_directory) if
                       not os.path.isdir(os.path.join(main_log_directory, f))
-                      and (not log_file_path.endswith(f))
-                      and f != 'ecmwf_rapid_run_info_lock.txt']
+                      and not log_file_path.endswith(f)
+                      and (f.endswith('log') or f.endswith('err'))]
 
     for main_log_file in main_log_files:
         try:
-            log_datetime = datetime.datetime.strptime(main_log_file, "{0}%y%m%d%H%M%S.log".format(prepend))
+            log_datetime = datetime.datetime.strptime(main_log_file[:18], "{0}%y%m%d%H%M%S".format(prepend))
             if date_today-log_datetime > week_timedelta:
                 os.remove(os.path.join(main_log_directory, main_log_file))
         except Exception as ex:
