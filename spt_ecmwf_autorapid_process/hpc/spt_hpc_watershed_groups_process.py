@@ -2,6 +2,7 @@ import datetime
 import json
 import os
 import subprocess
+import traceback
 
 from ..imports.ftp_ecmwf_download import get_ftp_forecast_list,download_and_extract_ftp
 from ..imports.helper_functions import clean_main_logs, CaptureStdOutToLog, get_date_timestep_from_forecast_folder
@@ -122,6 +123,7 @@ def spt_hpc_watershed_groups_process(main_log_directory,
 
                 except Exception as ex:
                     print(ex)
+                    traceback.print_exc()
                     break
                     pass
 
