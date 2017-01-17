@@ -52,10 +52,10 @@ def case_insensitive_file_search(directory, pattern):
 
 def clean_logs(condor_log_directory, main_log_directory, prepend="rapid_", log_file_path=""):
     """
-    This removes all logs older than one week old
+    This removes all logs older than three days old
     """
     date_today = datetime.datetime.utcnow()
-    week_timedelta = datetime.timedelta(7)
+    week_timedelta = datetime.timedelta(3)
     # clean up condor logs
     condor_dirs = [d for d in os.listdir(condor_log_directory) if os.path.isdir(os.path.join(condor_log_directory, d))]
     for condor_dir in condor_dirs:
@@ -72,10 +72,10 @@ def clean_logs(condor_log_directory, main_log_directory, prepend="rapid_", log_f
 
 def clean_main_logs(main_log_directory, prepend="rapid_", log_file_path=""):
     """
-    This removes main logs older than one week old
+    This removes main logs older than three days old
     """
     date_today = datetime.datetime.utcnow()
-    week_timedelta = datetime.timedelta(7)
+    week_timedelta = datetime.timedelta(3)
 
     # clean up log files
     main_log_files = [f for f in os.listdir(main_log_directory) if
