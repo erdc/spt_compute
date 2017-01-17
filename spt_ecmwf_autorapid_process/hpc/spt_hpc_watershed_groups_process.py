@@ -97,26 +97,31 @@ def spt_hpc_watershed_groups_process(main_log_directory,
                     for region_data in region_data_list:
                         main_submit_command = ['qsub',
                                                '-v', 'region_name={0}'.format(region_data['name']),
-                                               '-o', 'spt_main_region_log_{0}.out'.format(region_data['name']),
+                                               # '-o', 'spt_main_region_log_{0}.out'.format(region_data['name']),
                                                '-l', 'walltime={0}'.format(region_data['walltime']),
                                                '-A', hpc_project_number,
-                                               region_qsub_path]
+                                               region_qsub_path,
+                                               ]
                         print(main_submit_command)
                         # make job wait on previously submitted job if exists
                         previous_job_id = region_job_id_info.get(region_data['name'])
                         if previous_job_id is not None:
-                            main_submit_command.insert(9, '-W')
-                            main_submit_command.insert(10, 'depend=afterany:{0}'.format(previous_job_id))
+                            main_submit_command.insert(1, '-W')
+                            main_submit_command.insert(2, 'depend=afterany:{0}'.format(previous_job_id))
 
                         job_info = subprocess.check_output(main_submit_command)
+                        print(job_info)
                         # submit job after finish to release lock file
                         job_id = job_info.split(".")[0]
-                        job_reset_info = subprocess.check_output(['qsub',
-                                                                  '-v', 'region_name={0}'.format(region_data['name']),
-                                                                  '-o', 'spt_reset_region_log_{0}.out'.format(region_data['name']),
-                                                                  '-A', hpc_project_number,
-                                                                  '-W', 'depend=afterany:{0}'.format(job_id),
-                                                                  region_reset_qsub_path])
+                        reset_submit_command = ['qsub',
+                                                '-v', 'region_name={0}'.format(region_data['name']),
+                                                # '-o', 'spt_reset_region_log_{0}.out'.format(region_data['name']),
+                                                '-A', hpc_project_number,
+                                                '-W', 'depend=afterany:{0}'.format(job_id),
+                                                region_reset_qsub_path,
+                                                ]
+                        print(reset_submit_command)
+                        job_reset_info = subprocess.check_output(reset_submit_command)
                         print(job_reset_info)
                         # store for next iteration if needed
                         region_job_id_info[region_data['name']] = job_reset_info.split(".")[0]
