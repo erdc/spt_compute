@@ -21,6 +21,7 @@ def spt_hpc_watershed_groups_process(main_log_directory,
                                      ftp_directory,
                                      region_data_list,
                                      hpc_project_number,
+                                     qsub_exe_path='qsub',
                                      ):
     '''
     Process to run SPT on HPC
@@ -95,7 +96,7 @@ def spt_hpc_watershed_groups_process(main_log_directory,
                                              False)
                     # SUBMIT JOBS IF DOWNLOAD
                     for region_data in region_data_list:
-                        main_submit_command = ['qsub',
+                        main_submit_command = [qsub_exe_path,
                                                '-v', 'region_name={0}'.format(region_data['name']),
                                                # '-o', 'spt_main_region_log_{0}.out'.format(region_data['name']),
                                                '-l', 'walltime={0}'.format(region_data['walltime']),
@@ -113,7 +114,7 @@ def spt_hpc_watershed_groups_process(main_log_directory,
                         print(job_info)
                         # submit job after finish to release lock file
                         job_id = job_info.split(".")[0]
-                        reset_submit_command = ['qsub',
+                        reset_submit_command = [qsub_exe_path,
                                                 '-v', 'region_name={0}'.format(region_data['name']),
                                                 # '-o', 'spt_reset_region_log_{0}.out'.format(region_data['name']),
                                                 '-A', hpc_project_number,
