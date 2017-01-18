@@ -5,7 +5,7 @@ import subprocess
 import traceback
 
 from ..imports.ftp_ecmwf_download import get_ftp_forecast_list,download_and_extract_ftp
-from ..imports.helper_functions import clean_main_logs, CaptureStdOutToLog, get_date_timestep_from_forecast_folder
+from ..imports.helper_functions import (clean_main_logs, CaptureStdOutToLog, get_datetime_from_forecast_folder)
 from ..rapid_process import update_lock_info_file
 
 
@@ -69,8 +69,7 @@ def spt_hpc_watershed_groups_process(main_log_directory,
                 run_ecmwf_folders = []
                 for ecmwf_folder in ecmwf_folders:
                     # get date
-                    forecast_date_timestep = get_date_timestep_from_forecast_folder(ecmwf_folder)
-                    forecast_date = datetime.datetime.strptime(forecast_date_timestep[:11], '%Y%m%d.%H')
+                    forecast_date = get_datetime_from_forecast_folder(ecmwf_folder)
                     # if more recent, add to list
                     if forecast_date > last_forecast_date:
                         run_ecmwf_folders.append(ecmwf_folder)
@@ -103,13 +102,13 @@ def spt_hpc_watershed_groups_process(main_log_directory,
                                                '-A', hpc_project_number,
                                                region_qsub_path,
                                                ]
-                        print(main_submit_command)
                         # make job wait on previously submitted job if exists
                         previous_job_id = region_job_id_info.get(region_data['name'])
                         if previous_job_id is not None:
                             main_submit_command.insert(1, '-W')
                             main_submit_command.insert(2, 'depend=afterany:{0}'.format(previous_job_id))
 
+                        print(main_submit_command)
                         job_info = subprocess.check_output(main_submit_command)
                         print(job_info)
                         # submit job after finish to release lock file
@@ -134,8 +133,7 @@ def spt_hpc_watershed_groups_process(main_log_directory,
                     pass
 
                 # get datetime from folder
-                last_forecast_date_timestep = get_date_timestep_from_forecast_folder(ecmwf_folder)
-                last_forecast_date = datetime.datetime.strptime(last_forecast_date_timestep[:11], '%Y%m%d.%H')
+                last_forecast_date = get_datetime_from_forecast_folder(ecmwf_folder)
 
             # release lock file
             update_lock_info_file(LOCK_INFO_FILE, False, last_forecast_date.strftime('%Y%m%d%H'))

@@ -137,6 +137,15 @@ def get_datetime_from_date_timestep(date_timestep):
     return datetime.datetime.strptime(date_timestep[:11], '%Y%m%d.%H')
 
 
+def get_datetime_from_forecast_folder(forecast_folder):
+    """
+    Gets the datetime of the forecast folder
+
+    :param forecast_folder:
+    :return:
+    """
+    return get_datetime_from_date_timestep(get_date_timestep_from_forecast_folder(forecast_folder))
+
 def get_ensemble_number_from_forecast(forecast_name):
     """
     Gets the datetimestep from forecast
