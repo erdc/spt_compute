@@ -5,7 +5,7 @@ Computational framework to ingest ECMWF ensemble runoff forcasts; generate input
 
 [![DOI](https://zenodo.org/badge/19918/erdc-cm/spt_ecmwf_autorapid_process.svg)](https://zenodo.org/badge/latestdoi/19918/erdc-cm/spt_ecmwf_autorapid_process)
 
-##How it works:
+## How it works:
 
 Snow, Alan D., Scott D. Christensen, Nathan R. Swain, E. James Nelson, Daniel P. Ames, Norman L. Jones,
 Deng Ding, Nawajish S. Noman, Cedric H. David, Florian Pappenberger, and Ervin Zsoter, 2016. A High-Resolution
@@ -14,21 +14,21 @@ American Water Resources Association (JAWRA)* 1-15, DOI: 10.1111/1752-1688.12434
 
 Snow, Alan Dee, "A New Global Forecasting Model to Produce High-Resolution Stream Forecasts" (2015). All Theses and Dissertations. Paper 5272. http://scholarsarchive.byu.edu/etd/5272
 
-#Installation
+# Installation
 
-##Step 1: Install RAPID and RAPIDpy
+## Step 1: Install RAPID and RAPIDpy
 See: https://github.com/erdc-cm/RAPIDpy
 
-##Step 2: Install HTCondor (if not using Amazon Web Services and StarCluster or not using Multiprocessing mode)
-###On Ubuntu
+## Step 2: Install HTCondor (if not using Amazon Web Services and StarCluster or not using Multiprocessing mode)
+### On Ubuntu
 ```
 apt-get install -y libvirt0 libdate-manip-perl vim
 wget http://ciwckan.chpc.utah.edu/dataset/be272798-f2a7-4b27-9dc8-4a131f0bb3f0/resource/86aa16c9-0575-44f7-a143-a050cd72f4c8/download/condor8.2.8312769ubuntu14.04amd64.deb
 dpkg -i condor8.2.8312769ubuntu14.04amd64.deb
 ```
-###On RedHat/CentOS 7
+### On RedHat/CentOS 7
 See: https://research.cs.wisc.edu/htcondor/yum/
-###After Installation:
+### After Installation:
 ```
 #if master node uncomment CONDOR_HOST and comment out CONDOR_HOST and DAEMON_LIST lines
 #echo CONDOR_HOST = \$\(IP_ADDRESS\) >> /etc/condor/condor_config.local
@@ -60,15 +60,15 @@ If RedHat:
 # systemctl start condor
 ```
 
-##Step 3: Install Prerequisite Packages
-###On Ubuntu:
+## Step 3: Install Prerequisite Packages
+### On Ubuntu:
 ```
 $ apt-get install libssl-dev libffi-dev
 $ sudo su
 $ pip install requests_toolbelt tethys_dataset_services condorpy
 $ exit
 ```
-###On RedHat/CentOS 7:
+### On RedHat/CentOS 7:
 ```
 $ yum install libffi-devel openssl-devel
 $ sudo su
@@ -86,15 +86,15 @@ $ sudo yum install epel-release
 ```
 Then install packages listed above.
 
-##Step 4: (Optional) Install AutoRoute and AutoRoutePy
+## Step 4: (Optional) Install AutoRoute and AutoRoutePy
 If you want to try out the forecasted AutoRoute flood inundation (BETA), you will need to complete this section.
- 
+
 Follow the instructions here: https://github.com/erdc-cm/AutoRoutePy
 
-##Step 5: Install Submodule Dependencies
+## Step 5: Install Submodule Dependencies
 See: https://github.com/erdc-cm/spt_dataset_manager
 
-##Step 6: Download and install the source code
+## Step 6: Download and install the source code
 ```
 $ cd /path/to/your/scripts/
 $ git clone https://github.com/erdc-cm/spt_ecmwf_autorapid_process.git
@@ -102,12 +102,12 @@ $ cd spt_ecmwf_autorapid_process
 $ python setup.py install
 ```
 
-##Step 7: Create folders for RAPID input and for downloading ECMWF
+## Step 7: Create folders for RAPID input and for downloading ECMWF
 ```
 $ cd /your/working/directory
-$ mkdir -p rapid-io/input rapid-io/output ecmwf logs subprocess_logs era_interim_watershed mp_execute 
+$ mkdir -p rapid-io/input rapid-io/output ecmwf logs subprocess_logs era_interim_watershed mp_execute
 ```
-##Step 8: Change the locations in the files
+## Step 8: Change the locations in the files
 Create a file *run_ecmwf_rapid.py* and change these variables for your instance. See below for different configurations.
 
 ```python
@@ -128,7 +128,7 @@ if __name__ == "__main__":
         data_store_api_key='your-ckan-api-key',
         data_store_owner_org="your-organization",
         app_instance_id='your-streamflow_prediction_tool-app-id',
-        #sync_rapid_input_with_ckan=False, 
+        #sync_rapid_input_with_ckan=False,
         download_ecmwf=True,
         ftp_host="ftp.ecmwf.int",
         ftp_login="",
@@ -142,7 +142,7 @@ if __name__ == "__main__":
         #mp_execute_directory='',
     )
 ```
-###run_ecmwf_rapid_process Function Variables
+### run_ecmwf_rapid_process Function Variables
 
 |Variable|Data Type|Description|Default|
 |---|:---:|---|:---:|
@@ -178,7 +178,7 @@ if __name__ == "__main__":
 ### Possible run configurations
 There are many different configurations. Here are some examples.
 
-####Mode 1: Run ECMWF-RAPID for Streamflow Prediction Tool using HTCondor to run and CKAN to upload
+#### Mode 1: Run ECMWF-RAPID for Streamflow Prediction Tool using HTCondor to run and CKAN to upload
 ```python
 run_ecmwf_rapid_process(
     rapid_executable_location='/home/alan/scripts/rapid/src/rapid',
@@ -203,7 +203,7 @@ run_ecmwf_rapid_process(
 )
 ```
 
-####Mode 2: Run ECMWF-RAPID for Streamflow Prediction Tool using HTCondor to run and CKAN to upload & to download model files 
+#### Mode 2: Run ECMWF-RAPID for Streamflow Prediction Tool using HTCondor to run and CKAN to upload & to download model files
 ```python
 run_ecmwf_rapid_process(
     rapid_executable_location='/home/alan/scripts/rapid/src/rapid',
@@ -228,14 +228,14 @@ run_ecmwf_rapid_process(
     delete_output_when_done=True,
 )
 ```
-####Mode 3: Run ECMWF-RAPID for Streamflow Prediction Tool using Multiprocessing to run and CKAN to upload
+#### Mode 3: Run ECMWF-RAPID for Streamflow Prediction Tool using Multiprocessing to run and CKAN to upload
 ```python
 run_ecmwf_rapid_process(
     rapid_executable_location='/home/alan/scripts/rapid/src/rapid',
     rapid_io_files_location='/home/alan/rapid-io',
     ecmwf_forecast_location ="/home/alan/ecmwf",
     era_interim_data_location="/home/alan/era_interim_watershed",
-    subprocess_log_directory='/home/alan/subprocess_logs', 
+    subprocess_log_directory='/home/alan/subprocess_logs',
     main_log_directory='/home/alan/logs',
     data_store_url='http://your-ckan/api/3/action',
     data_store_api_key='your-ckan-api-key',
@@ -254,7 +254,7 @@ run_ecmwf_rapid_process(
     mp_execute_directory='/home/alan/mp_execute',
 )
 ```
-####Mode 4: (BETA) Run ECMWF-RAPID for Streamflow Prediction Tool with AutoRoute using Multiprocessing to run
+#### Mode 4: (BETA) Run ECMWF-RAPID for Streamflow Prediction Tool with AutoRoute using Multiprocessing to run
 Note that in this example, CKAN was not used. However, you can still add CKAN back in to this example with the parameters shown in the previous examples.
 
 ```python
@@ -284,14 +284,14 @@ run_ecmwf_rapid_process(
 )
 ```
 
-##Step 9: Make sure permissions are correct for these files and any directories the script will use
+## Step 9: Make sure permissions are correct for these files and any directories the script will use
 
 Example:
 ```
 $ chmod u+x run_ecmwf_rapid.py
 ```
 
-##Step 10: Add RAPID files to the rapid-io/input directory
+## Step 10: Add RAPID files to the rapid-io/input directory
 To generate these files see: https://github.com/erdc-cm/RAPIDpy/wiki/GIS-Tools. If you are using the *sync_rapid_input_with_ckan* option, then you would upload these files through the Streamflow Prediction Tool web interface and this step is unnecessary.
 
 Make sure the directory is in the format [watershed_name]-[subbasin_name]
@@ -312,7 +312,7 @@ weight_ecmwf_tco639.csv
 x.csv
 ```
 
-##Step 11: Create CRON job to run the scripts hourly
+## Step 11: Create CRON job to run the scripts hourly
 To run this automatically, it is necessary to generate cron jobs to run the script. There are many ways to do this and two are presented here.
 
 ### Method 1: In terminal using crontab command
@@ -322,7 +322,7 @@ $ crontab -e
 Then add:
 ```
 @hourly /usr/bin/env python /path/to/run_ecmwf_rapid.py # ECMWF RAPID PROCESS
-``` 
+```
 
 ### Method 2: Use *create_cron.py* to create the CRON jobs:
 
@@ -330,7 +330,7 @@ Then add:
 ```
 $ pip install python-crontab
 ```
-2) Create and run a script to initialize cron job *create_cron.py*. 
+2) Create and run a script to initialize cron job *create_cron.py*.
 
 ```python
 from spt_ecmwf_autorapid_process.setup import create_cron
@@ -338,11 +338,11 @@ from spt_ecmwf_autorapid_process.setup import create_cron
 create_cron(execute_command='/usr/bin/env python /path/to/run_ecmwf_rapid.py')
 ```
 
-##Step 12: Create CRON job to release lock on script
+## Step 12: Create CRON job to release lock on script
 If the server is killed in the middle of a process, the lock with persist.
 To prevent this, add a cron job to release the lock on bootup.
 
-###Create Script
+### Create Script
 Create a script to reset the lock info file. Example path: /path/to/ecmwf_rapid_server_reset.py
 Then, change the path to the lock info file. To do this, add *ecmwf_rapid_run_info_lock.txt*
 to your *main_log_directory* from the *run_ecmwf_rapid.py* script.
@@ -356,7 +356,7 @@ if __name__ == "__main__":
     LOCK_INFO_FILE = '/logs/ecmwf_rapid_run_info_lock.txt'
     reset_lock_info_file(LOCK_INFO_FILE)
 ```
-###Create Cron Job
+### Create Cron Job
 
 ```
 $ crontab -e
@@ -364,9 +364,9 @@ $ crontab -e
 Then add:
 ```
 @reboot /usr/bin/env python /path/to/ecmwf_rapid_server_reset.py # RESET ECMWF RAPID PROCESS LOCK
-``` 
+```
 
-#Troubleshooting
+# Troubleshooting
 If you see this error:
 ImportError: No module named packages.urllib3.poolmanager
 ```
