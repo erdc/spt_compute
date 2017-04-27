@@ -16,10 +16,9 @@ Snow, Alan Dee, "A New Global Forecasting Model to Produce High-Resolution Strea
 
 # Installation
 
-## Step 1: Install RAPID and RAPIDpy
-See: https://github.com/erdc-cm/RAPIDpy
+## Step 1: (Optional) Install HTCondor 
+Only do this step if not using Amazon Web Services and StarCluster or using HTCondor mode.
 
-## Step 2: Install HTCondor (if not using Amazon Web Services and StarCluster or not using Multiprocessing mode)
 ### On Ubuntu
 ```
 apt-get install -y libvirt0 libdate-manip-perl vim
@@ -59,32 +58,18 @@ If RedHat:
 # systemctl stop condor
 # systemctl start condor
 ```
+## Step 2: Install Anaconda/Miniconda
+See: https://conda.io/miniconda.html
 
-## Step 3: Install Prerequisite Packages
-### On Ubuntu:
+## Step 3: Download and install the source code
 ```
-$ apt-get install libssl-dev libffi-dev
-$ sudo su
-$ pip install requests_toolbelt tethys_dataset_services condorpy
-$ exit
+$ cd /path/to/your/scripts/
+$ git clone https://github.com/erdc-cm/spt_ecmwf_autorapid_process.git
+$ cd spt_ecmwf_autorapid_process
+$ conda env create -f conda_env.yml
+$ source activate spt
+(spt)$ python setup.py install
 ```
-### On RedHat/CentOS 7:
-```
-$ yum install libffi-devel openssl-devel
-$ sudo su
-$ pip install requests_toolbelt tethys_dataset_services condorpy
-$ exit
-```
-If you are on RHEL 7 and having troubles, add the epel repo:
-```
-$ wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-$ sudo rpm -Uvh epel-release-7*.rpm
-```
-If you are on CentOS 7 and having troubles, add the epel repo:
-```
-$ sudo yum install epel-release
-```
-Then install packages listed above.
 
 ## Step 4: (Optional) Install AutoRoute and AutoRoutePy
 If you want to try out the forecasted AutoRoute flood inundation (BETA), you will need to complete this section.
@@ -94,20 +79,12 @@ Follow the instructions here: https://github.com/erdc-cm/AutoRoutePy
 ## Step 5: Install Submodule Dependencies
 See: https://github.com/erdc-cm/spt_dataset_manager
 
-## Step 6: Download and install the source code
-```
-$ cd /path/to/your/scripts/
-$ git clone https://github.com/erdc-cm/spt_ecmwf_autorapid_process.git
-$ cd spt_ecmwf_autorapid_process
-$ python setup.py install
-```
-
-## Step 7: Create folders for RAPID input and for downloading ECMWF
+## Step 6: Create folders for RAPID input and for downloading ECMWF
 ```
 $ cd /your/working/directory
 $ mkdir -p rapid-io/input rapid-io/output ecmwf logs subprocess_logs era_interim_watershed mp_execute
 ```
-## Step 8: Change the locations in the files
+## Step 7: Change the locations in the files
 Create a file *run_ecmwf_rapid.py* and change these variables for your instance. See below for different configurations.
 
 ```python
@@ -284,14 +261,14 @@ run_ecmwf_rapid_process(
 )
 ```
 
-## Step 9: Make sure permissions are correct for these files and any directories the script will use
+## Step 8: Make sure permissions are correct for these files and any directories the script will use
 
 Example:
 ```
 $ chmod u+x run_ecmwf_rapid.py
 ```
 
-## Step 10: Add RAPID files to the rapid-io/input directory
+## Step 9: Add RAPID files to the rapid-io/input directory
 To generate these files see: https://github.com/erdc-cm/RAPIDpy/wiki/GIS-Tools. If you are using the *sync_rapid_input_with_ckan* option, then you would upload these files through the Streamflow Prediction Tool web interface and this step is unnecessary.
 
 Make sure the directory is in the format [watershed_name]-[subbasin_name]
@@ -312,7 +289,7 @@ weight_ecmwf_tco639.csv
 x.csv
 ```
 
-## Step 11: Create CRON job to run the scripts hourly
+## Step 10: Create CRON job to run the scripts hourly
 To run this automatically, it is necessary to generate cron jobs to run the script. There are many ways to do this and two are presented here.
 
 ### Method 1: In terminal using crontab command
@@ -338,7 +315,7 @@ from spt_ecmwf_autorapid_process.setup import create_cron
 create_cron(execute_command='/usr/bin/env python /path/to/run_ecmwf_rapid.py')
 ```
 
-## Step 12: Create CRON job to release lock on script
+## Step 11: Create CRON job to release lock on script
 If the server is killed in the middle of a process, the lock with persist.
 To prevent this, add a cron job to release the lock on bootup.
 
@@ -357,22 +334,10 @@ if __name__ == "__main__":
     reset_lock_info_file(LOCK_INFO_FILE)
 ```
 ### Create Cron Job
-
 ```
 $ crontab -e
 ```
 Then add:
 ```
 @reboot /usr/bin/env python /path/to/ecmwf_rapid_server_reset.py # RESET ECMWF RAPID PROCESS LOCK
-```
-
-# Troubleshooting
-If you see this error:
-ImportError: No module named packages.urllib3.poolmanager
-```
-$ pip install pip --upgrade
-```
-Restart your terminal
-```
-$ pip install requests --upgrade
 ```
