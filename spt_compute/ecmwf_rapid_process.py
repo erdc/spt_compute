@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
-#  rapid_process.py
-#  spt_ecmwf_autorapid_process
+#  ecmwf_rapid_process.py
+#  spt_process
 #
 #  Created by Alan D. Snow.
 #  Copyright © 2015-2016 Alan D Snow. All rights reserved.
@@ -42,6 +42,7 @@ except ImportError:
     AUTOROUTE_ENABLED = False
     pass
 
+from .process_lock import update_lock_info_file
 from .imports.ftp_ecmwf_download import get_ftp_forecast_list, download_and_extract_ftp
 from .imports.generate_warning_points import generate_warning_points
 from .imports.helper_functions import (CaptureStdOutToLog,
@@ -98,35 +99,7 @@ def upload_single_forecast(job_info, data_manager):
     os.remove(output_tar_file)
 
 
-def update_lock_info_file(lock_info_file_path, currently_running, last_forecast_date):
-    """
-    This function updates the lock info file
-    """
-    with open(lock_info_file_path, "w") as fp_lock_info:
-        lock_info_data = {
-            'running': currently_running,
-            'last_forecast_date': last_forecast_date,
-        }
-        json.dump(lock_info_data, fp_lock_info)
-
-
-def reset_lock_info_file(lock_info_file_path):
-    """
-    This function removes lock in file if the file exists.
-    The purpose is for reboot of computer
-    """
-    if os.path.exists(lock_info_file_path):
-        # read in last forecast date
-        with open(lock_info_file_path) as fp_lock_info:
-            previous_lock_info = json.load(fp_lock_info)
-            last_forecast_date_str = previous_lock_info['last_forecast_date']
-
-        # update lock to false
-        update_lock_info_file(lock_info_file_path, False, last_forecast_date_str)
-
-        # ----------------------------------------------------------------------------------------
-
-
+# ----------------------------------------------------------------------------------------
 # MAIN PROCESS
 # ----------------------------------------------------------------------------------------
 def run_ecmwf_rapid_process(rapid_executable_location,  # path to RAPID executable
