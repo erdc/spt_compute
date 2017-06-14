@@ -1,9 +1,9 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='spt_ecmwf_autorapid_process',
+    name='spt_process',
     version='1.1.0',
-    description='Python interface for RAPID (rapid-hub.org)',
+    description='Computational framework for the Streamflow Prediciton Tool',
     long_description='Computational framework to ingest ECMWF ensemble runoff forcasts;'
                      ' generate input for and run the RAPID (rapid-hub.org) program'
                      ' using HTCondor or Python\'s Multiprocessing; and upload to '
