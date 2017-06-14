@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 ##
 ##  generate_warning_points.py
-##  spt_ecmwf_autorapid_process
+##  spt_compute
 ##
 ##  Created by Alan D. Snow and Scott D. Christensen.
 ##  Copyright © 2015-2016 Alan D Snow and Scott D. Christensen. All rights reserved.

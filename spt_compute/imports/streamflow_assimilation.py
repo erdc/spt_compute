@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
-##
-##  ftp_ecmwf_download.py
-##  spt_ecmwf_autorapid_process
-##
-##  Created by Alan D. Snow.
-##  Copyright © 2015-2016 Alan D Snow. All rights reserved.
-##  License: BSD-3 Clause
+#
+#  ftp_ecmwf_download.py
+#  spt_compute
+#
+#  Created by Alan D. Snow.
+#  License: BSD-3 Clause
 
 from calendar import isleap
 import datetime
@@ -22,20 +21,22 @@ from RAPIDpy.rapid import RAPID
 from RAPIDpy.dataset import RAPIDDataset
 from RAPIDpy.helper_functions import csv_to_list
 
-#-----------------------------------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------------------------------
 # StreamSegment Class
-#-----------------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------------
 class StreamSegment(object):
     def __init__(self, stream_id, down_id, up_id_array, init_flow=0, 
                  station=None, station_flow=None, station_distance=None, natural_flow=None):
         self.stream_id = stream_id
-        self.down_id = down_id #downstream segment id
-        self.up_id_array = up_id_array #array of atream ids for upstream segments
+        self.down_id = down_id  # downstream segment id
+        self.up_id_array = up_id_array  # array of atream ids for upstream segments
         self.init_flow = init_flow
         self.station = station
         self.station_flow = station_flow
-        self.station_distance = station_distance #number of tream segments to station
+        self.station_distance = station_distance  # number of tream segments to station
         self.natural_flow = natural_flow
+
 
 class StreamGage(object):
     """
@@ -49,7 +50,8 @@ class StreamGage(object):
         Get gage data based on stream gage type
         """
         return None
-    
+
+
 class USGSStreamGage(StreamGage):
     """
     USGS Gage object
@@ -106,10 +108,11 @@ class USGSStreamGage(StreamGage):
                     prev_time_step = time_step
 
         return None
-    
-#-----------------------------------------------------------------------------------------------------
+
+
+# -----------------------------------------------------------------------------------------------------
 # StreamNetworkInitializer Class
-#-----------------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------------
 class StreamNetworkInitializer(object):
     def __init__(self, connectivity_file, gage_ids_natur_flow_file=None):
         #files
