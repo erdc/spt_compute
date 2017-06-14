@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 #  ecmwf_rapid_process.py
-#  spt_process
+#  spt_compute
 #
 #  Created by Alan D. Snow.
 #  Copyright © 2015-2016 Alan D Snow. All rights reserved.
