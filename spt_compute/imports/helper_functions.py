@@ -47,7 +47,8 @@ def case_insensitive_file_search(directory, pattern):
 
 
 def clean_main_logs(main_log_directory, prepend="spt_compute_ecmwf_",
-                    lock_file_name="spt_compute_ecmwf_run_info_lock.txt"):
+                    lock_file_name="spt_compute_ecmwf_run_info_lock.txt",
+                    log_file_path=""):
     """
     Removes old log files older than one week old in main log directory
     """
@@ -87,7 +88,7 @@ def clean_logs(condor_log_directory, main_log_directory, prepend="spt_compute_ec
             print(ex)
             pass
 
-    clean_main_logs(main_log_directory, prepend)
+    clean_main_logs(main_log_directory, prepend, log_file_path)
 
 
 def find_current_rapid_output(forecast_directory, watershed, subbasin):
@@ -126,32 +127,6 @@ def get_date_timestep_from_forecast_folder(forecast_folder):
     forecast_date_timestep = ".".join(forecast_split[1:3])
     return re.sub("[^\d.]+", "", forecast_date_timestep)
 
-
-def get_date_range_from_qout_forecast(forecast_file):
-    """
-    Returns the string of time from the forecast file
-    From: http://forum.marine.copernicus.eu/discussion/274/how-to-convert-netcdf-time-to-python-datetime-resolved/p1
-    """
-    file_in = Dataset(forecast_file)
-
-    nctime = file_in.variables['time'][:]  # get values
-    t_unit = file_in.variables['time'].units  # get unit  "days since 1950-01-01T00:00:00Z"
-
-    try:
-        t_cal = file_in.variables['time'].calendar
-    except AttributeError:  # Attribute doesn't exist
-        t_cal = u"gregorian"  # or standard
-
-    file_in.close()
-
-    dates = num2date(nctime, units=t_unit, calendar=t_cal)
-    return "{start_datetime:%Y%m%d%H}to{end_datetime:%Y%m%d%H}".format(start_datetime=dates[0],
-                                                                       end_datetime=dates[-1])
-
-def get_date_range_from_lsm_files(path_to_lsm_files):
-    """
-    Retrieve date range from LSM files
-    """
 
 def get_ensemble_number_from_forecast(forecast_name):
     """
