@@ -107,6 +107,13 @@ def run_lsm_forecast_process(rapid_executable_location,
             )
 
             forecast_file = output_file_information[0][rapid_input_directory]['qout']
+            m3_riv_file = output_file_information[0][rapid_input_directory]['m3_riv']
+
+            try:
+                os.remove(m3_riv_file)
+            except OSError:
+                pass
+
             # PHASE 2.2: GENERATE WARNINGS
             forecast_directory = os.path.join(rapid_io_files_location,
                                               'output',
