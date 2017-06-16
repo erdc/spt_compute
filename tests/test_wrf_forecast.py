@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from glob import glob
 import os
 
-from numpy.testing import assert_almost_equal
+from numpy.testing import assert_almost_equal, assert_array_equal
 import pytest
 import xarray as xr
 
@@ -43,9 +43,8 @@ def test_wrf_forecast(wrf_setup):
     compare_qout_file = os.path.join(wrf_setup.watershed_compare_folder, out_forecast_folder, qout_name)
     with xr.open_dataset(qout_file) as xqf, \
             xr.open_dataset(compare_qout_file) as xqc:
-        print(xqf)
-        assert_almost_equal()
         assert_almost_equal(xqf.Qout.values, xqc.Qout.values)
+        assert_array_equal(xqf.rivid.values, xqc.rivid.values)
         assert_almost_equal(xqf.lat.values, xqc.lat.values)
         assert_almost_equal(xqf.lon.values, xqc.lon.values)
 

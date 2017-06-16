@@ -53,7 +53,7 @@ def run_lsm_forecast_process(rapid_executable_location,
         rapid_input_directories = get_valid_watershed_list(os.path.join(rapid_io_files_location, "input"))
 
         current_forecast_start_datetime = \
-            determine_start_end_timestep(glob(os.path.join(lsm_forecast_location, "*.nc")))[0]
+            determine_start_end_timestep(sorted(glob(os.path.join(lsm_forecast_location, "*.nc"))))[0]
 
         # look for past forecast
         forecast_date_string = (current_forecast_start_datetime - timedelta_between_forecasts).strftime("%Y%m%dt%H")
