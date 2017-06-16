@@ -55,6 +55,10 @@ class SetupForecast(object):
         copytree(os.path.join(tclean.input, "forecast_grids", forecast_folder),
                  self.lsm_folder)
 
+        self.watershed_compare_folder = os.path.join(tclean.compare,
+                                                     'rapid_output',
+                                                     watershed_folder)
+
 
 @pytest.fixture(scope="module")
 def tclean(request):
