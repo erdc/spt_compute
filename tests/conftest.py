@@ -63,4 +63,4 @@ def tclean(request):
 
     yield _td
 
-    #_td.clean()
+    _td.clean()
