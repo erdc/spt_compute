@@ -17,7 +17,7 @@ def create_cron(execute_command):
     Ex.
 
         ::
-        from spt_ecmwf_autorapid_process.setup import create_cron
+        from spt_compute.setup import create_cron
         
         create_cron(execute_command='/usr/bin/env python /path/to/run_ecmwf_rapid.py')
 

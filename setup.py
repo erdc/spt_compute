@@ -13,7 +13,7 @@ setup(
     keywords='ECMWF, WRF, RAPID, Flood Prediction, Streamflow Prediction Tool',
     author='Alan Dee Snow',
     author_email='alan.d.snow@usace.army.mil',
-    url='https://github.com/erdc-cm/spt_ecmwf_autorapid_process',
+    url='https://github.com/erdc-cm/spt_compute',
     license='BSD 3-Clause',
     packages=find_packages(),
     install_requires=['numpy', 'netCDF4', 'RAPIDpy', 'tethys_dataset_services'],

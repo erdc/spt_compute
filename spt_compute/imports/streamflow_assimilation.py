@@ -433,7 +433,13 @@ def compute_seasonal_initial_rapid_flows_multicore_worker(args):
         
     elif args[3] == "historical_streamflow_file":
         compute_seasonal_initial_rapid_flows(args[0], input_directory, init_file_location)
-    
+
+def compute_seasonal_average_initial_flows_multiprocess_worker(args):
+    """
+    Multiprocess function to only compute initial flows from seasonal file
+    """
+    generate_initial_rapid_flow_from_seasonal_average(*args)
+
 def update_inital_flows_usgs(input_directory, forecast_date_timestep):
     """
     Update initial flows with USGS data
