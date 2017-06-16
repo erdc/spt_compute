@@ -1,5 +1,7 @@
-# spt_ecmwf_autorapid_process
-Computational framework to ingest ECMWF ensemble runoff forcasts; generate input for and run the RAPID (rapid-hub.org) program using HTCondor or Python's Multiprocessing; and upload to CKAN in order to be used by the Streamflow Prediction Tool (SPT). There is also an experimental option to use the AutoRoute program for flood inundation mapping.
+# spt_compute
+Previously named: spt_ecmwf_autorapid_process
+
+Computational framework to ingest ECMWF ensemble runoff forcasts or other Land Surface Model input; generate input for and run the RAPID (rapid-hub.org) program using HTCondor or Python's Multiprocessing; and upload to CKAN in order to be used by the Streamflow Prediction Tool (SPT). There is also an experimental option to use the AutoRoute program for flood inundation mapping.
 
 [![License (3-Clause BSD)](https://img.shields.io/badge/license-BSD%203--Clause-yellow.svg)](https://github.com/erdc-cm/spt_ecmwf_autorapid_process/blob/master/LICENSE)
 
@@ -112,12 +114,12 @@ Create a file *run_ecmwf_rapid.py* and change these variables for your instance.
 
 ```python
 # -*- coding: utf-8 -*-
-from spt_ecmwf_autorapid_process import run_ecmwf_rapid_process
+from spt_compute import run_ecmwf_forecast_process
 #------------------------------------------------------------------------------
 #main process
 #------------------------------------------------------------------------------
 if __name__ == "__main__":
-    run_ecmwf_rapid_process(
+    run_ecmwf_forecast_process(
         rapid_executable_location='/home/alan/scripts/rapid/src/rapid',
         rapid_io_files_location='/home/alan/rapid-io',
         ecmwf_forecast_location ="/home/alan/ecmwf",
@@ -180,7 +182,7 @@ There are many different configurations. Here are some examples.
 
 #### Mode 1: Run ECMWF-RAPID for Streamflow Prediction Tool using HTCondor to run and CKAN to upload
 ```python
-run_ecmwf_rapid_process(
+run_ecmwf_forecast_process(
     rapid_executable_location='/home/alan/scripts/rapid/src/rapid',
     rapid_io_files_location='/home/alan/rapid-io',
     ecmwf_forecast_location ="/home/alan/ecmwf",
@@ -205,7 +207,7 @@ run_ecmwf_rapid_process(
 
 #### Mode 2: Run ECMWF-RAPID for Streamflow Prediction Tool using HTCondor to run and CKAN to upload & to download model files
 ```python
-run_ecmwf_rapid_process(
+run_ecmwf_forecast_process(
     rapid_executable_location='/home/alan/scripts/rapid/src/rapid',
     rapid_io_files_location='/home/alan/rapid-io',
     ecmwf_forecast_location ="/home/alan/ecmwf",
@@ -230,7 +232,7 @@ run_ecmwf_rapid_process(
 ```
 #### Mode 3: Run ECMWF-RAPID for Streamflow Prediction Tool using Multiprocessing to run and CKAN to upload
 ```python
-run_ecmwf_rapid_process(
+run_ecmwf_forecast_process(
     rapid_executable_location='/home/alan/scripts/rapid/src/rapid',
     rapid_io_files_location='/home/alan/rapid-io',
     ecmwf_forecast_location ="/home/alan/ecmwf",
@@ -258,7 +260,7 @@ run_ecmwf_rapid_process(
 Note that in this example, CKAN was not used. However, you can still add CKAN back in to this example with the parameters shown in the previous examples.
 
 ```python
-run_ecmwf_rapid_process(
+run_ecmwf_forecast_process(
     rapid_executable_location='/home/alan/rapid/src/rapid',
     rapid_io_files_location='/home/alan/rapid-io',
     ecmwf_forecast_location ="/home/alan/ecmwf",

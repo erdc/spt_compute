@@ -138,7 +138,7 @@ def run_autorapid_process(autoroute_executable_location, #location of AutoRoute 
                     #an exception even though it was successful.
                     """
                     ...
-                      File "/home/alan/work/scripts/spt_ecmwf_autorapid_process/spt_dataset_manager/dataset_manager.py", line 798, in upload_shapefile
+                      File "/home/alan/work/scripts/spt_compute/spt_dataset_manager/dataset_manager.py", line 798, in upload_shapefile
                         overwrite=True)
                       File "/usr/lib/tethys/local/lib/python2.7/site-packages/tethys_dataset_services/engines/geoserver_engine.py", line 1288, in create_shapefile_resource
                         new_resource = catalog.get_resource(name=name, workspace=workspace)

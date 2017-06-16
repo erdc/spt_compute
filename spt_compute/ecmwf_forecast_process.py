@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-#  ecmwf_rapid_process.py
+#  ecmwf_forecast_process.py
 #  spt_compute
 #
 #  Created by Alan D. Snow.
@@ -44,7 +44,7 @@ except ImportError:
 
 from .process_lock import update_lock_info_file
 from .imports.ftp_ecmwf_download import get_ftp_forecast_list, download_and_extract_ftp
-from .imports.generate_warning_points import generate_warning_points
+from .imports.generate_warning_points import generate_ecmwf_warning_points
 from .imports.helper_functions import (CaptureStdOutToLog,
                                        clean_logs,
                                        find_current_rapid_output,
@@ -102,38 +102,38 @@ def upload_single_forecast(job_info, data_manager):
 # ----------------------------------------------------------------------------------------
 # MAIN PROCESS
 # ----------------------------------------------------------------------------------------
-def run_ecmwf_rapid_process(rapid_executable_location,  # path to RAPID executable
-                            rapid_io_files_location,  # path ro RAPID input/output directory
-                            ecmwf_forecast_location,  # path to ECMWF forecasts
-                            subprocess_log_directory,  # path to store HTCondor/multiprocess logs
-                            main_log_directory,  # path to store main logs
-                            data_store_url="",  # CKAN API url
-                            data_store_api_key="",  # CKAN API Key,
-                            data_store_owner_org="",  # CKAN owner organization
-                            app_instance_id="",  # Streamflow Prediction tool instance ID
-                            sync_rapid_input_with_ckan=False,  # match Streamflow Prediciton tool RAPID input
-                            download_ecmwf=True,  # Download recent ECMWF forecast before running,
-                            date_string="",  # string of date of interest
-                            ftp_host="",  # ECMWF ftp site path
-                            ftp_login="",  # ECMWF ftp login name
-                            ftp_passwd="",  # ECMWF ftp password
-                            ftp_directory="",  # ECMWF ftp directory
-                            delete_past_ecmwf_forecasts=True,  # Deletes all past forecasts before next run
-                            upload_output_to_ckan=False,  # upload data to CKAN and remove local copy
-                            delete_output_when_done=False,  # delete all output data from this code
-                            initialize_flows=False,  # use forecast to initialize next run
-                            era_interim_data_location="",  # path to ERA Interim return period data
-                            create_warning_points=False,  # generate waring points for Streamflow Prediction Tool
-                            autoroute_executable_location="",  # location of AutoRoute executable
-                            autoroute_io_files_location="",  # path to AutoRoute input/outpuf directory
-                            geoserver_url="",  # url to API endpoint ending in geoserver/rest
-                            geoserver_username="",  # username for geoserver
-                            geoserver_password="",  # password for geoserver
-                            mp_mode='htcondor',  # valid options are htcondor and multiprocess,
-                            mp_execute_directory="",  # required if using multiprocess mode
-                            ):
+def run_ecmwf_forecast_process(rapid_executable_location,  # path to RAPID executable
+                               rapid_io_files_location,  # path ro RAPID input/output directory
+                               ecmwf_forecast_location,  # path to ECMWF forecasts
+                               subprocess_log_directory,  # path to store HTCondor/multiprocess logs
+                               main_log_directory,  # path to store main logs
+                               data_store_url="",  # CKAN API url
+                               data_store_api_key="",  # CKAN API Key,
+                               data_store_owner_org="",  # CKAN owner organization
+                               app_instance_id="",  # Streamflow Prediction tool instance ID
+                               sync_rapid_input_with_ckan=False,  # match Streamflow Prediciton tool RAPID input
+                               download_ecmwf=True,  # Download recent ECMWF forecast before running,
+                               date_string="",  # string of date of interest
+                               ftp_host="",  # ECMWF ftp site path
+                               ftp_login="",  # ECMWF ftp login name
+                               ftp_passwd="",  # ECMWF ftp password
+                               ftp_directory="",  # ECMWF ftp directory
+                               delete_past_ecmwf_forecasts=True,  # Deletes all past forecasts before next run
+                               upload_output_to_ckan=False,  # upload data to CKAN and remove local copy
+                               delete_output_when_done=False,  # delete all output data from this code
+                               initialize_flows=False,  # use forecast to initialize next run
+                               era_interim_data_location="",  # path to ERA Interim return period data
+                               create_warning_points=False,  # generate waring points for Streamflow Prediction Tool
+                               autoroute_executable_location="",  # location of AutoRoute executable
+                               autoroute_io_files_location="",  # path to AutoRoute input/outpuf directory
+                               geoserver_url="",  # url to API endpoint ending in geoserver/rest
+                               geoserver_username="",  # username for geoserver
+                               geoserver_password="",  # password for geoserver
+                               mp_mode='htcondor',  # valid options are htcondor and multiprocess,
+                               mp_execute_directory="",  # required if using multiprocess mode
+                              ):
     """
-    This it the main ECMWF RAPID process
+    This it the main ECMWF RAPID forecast process
     """
     time_begin_all = datetime.datetime.utcnow()
 
@@ -141,7 +141,7 @@ def run_ecmwf_rapid_process(rapid_executable_location,  # path to RAPID executab
     LOCK_INFO_FILE = os.path.join(main_log_directory, "ecmwf_rapid_run_info_lock.txt")
 
     log_file_path = os.path.join(main_log_directory,
-                                 "rapid_{0}.log".format(time_begin_all.strftime("%y%m%d%H%M%S")))
+                                 "spt_compute_ecmwf_{0}.log".format(time_begin_all.strftime("%y%m%d%H%M%S")))
 
     with CaptureStdOutToLog(log_file_path):
 
@@ -200,7 +200,7 @@ def run_ecmwf_rapid_process(rapid_executable_location,  # path to RAPID executab
                 previous_lock_info = json.load(fp_lock_info)
 
             if previous_lock_info['running']:
-                print("Another ECMWF-RAPID process is running.\n"
+                print("Another SPT ECMWF forecast process is running.\n"
                       "The lock file is located here: {0}\n"
                       "If this is an error, you have two options:\n"
                       "1) Delete the lock file.\n"
@@ -433,8 +433,8 @@ def run_ecmwf_rapid_process(rapid_executable_location,  # path to RAPID executab
                             era_interim_files = glob(os.path.join(era_interim_watershed_directory, "return_period*.nc"))
                             if era_interim_files:
                                 try:
-                                    generate_warning_points(forecast_directory, era_interim_files[0],
-                                                            forecast_directory, threshold=10)
+                                    generate_ecmwf_warning_points(forecast_directory, era_interim_files[0],
+                                                                  forecast_directory, threshold=10)
                                     if upload_output_to_ckan and data_store_url and data_store_api_key:
                                         data_manager.initialize_run_ecmwf(watershed, subbasin, forecast_date_timestep)
                                         data_manager.zip_upload_warning_points_in_directory(forecast_directory)
