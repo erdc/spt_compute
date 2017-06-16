@@ -1,16 +1,18 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from glob import glob
 from multiprocessing import Pool as mp_Pool
 import os
 
-from RAPIDpy.inflow import run_lsm_rapid_process, determine_start_end_timestep
+from RAPIDpy.inflow import run_lsm_rapid_process
+from RAPIDpy.inflow.lsm_rapid_process import determine_start_end_timestep
 
 from .imports.generate_warning_points import generate_lsm_warning_points
 from .imports.helper_functions import (CaptureStdOutToLog,
                                        clean_main_logs,
                                        get_valid_watershed_list,
                                        get_watershed_subbasin_from_folder, )
-from .imports.streamflow_assimilation import (compute_initial_rapid_flows,
+
+from .imports.streamflow_assimilation import (compute_initial_flows_lsm,
                                               compute_seasonal_average_initial_flows_multiprocess_worker)
 
 # ----------------------------------------------------------------------------------------
@@ -20,7 +22,7 @@ def run_lsm_forecast_process(rapid_executable_location,
                              rapid_io_files_location,
                              lsm_forecast_location,
                              main_log_directory,
-                             timedelta_between_forecasts=datetime.timedelta(seconds=12 * 3600),
+                             timedelta_between_forecasts=timedelta(seconds=12 * 3600),
                              historical_data_location=""):
     """
     Parameters
@@ -50,8 +52,9 @@ def run_lsm_forecast_process(rapid_executable_location,
         # get list of correclty formatted rapid input directories in rapid directory
         rapid_input_directories = get_valid_watershed_list(os.path.join(rapid_io_files_location, "input"))
 
-        current_forecast_start_datetime, actual_simulation_end_datetime, time_step, total_num_time_steps = \
-            determine_start_end_timestep(glob(os.path.join(lsm_forecast_location, "*.nc")))
+        current_forecast_start_datetime = \
+            determine_start_end_timestep(glob(os.path.join(lsm_forecast_location, "*.nc")))[0]
+
         # look for past forecast
         forecast_date_string = (current_forecast_start_datetime - timedelta_between_forecasts).strftime("%Y%m%dt%H")
         init_file_name = 'Qinit_{0}.csv'.format(forecast_date_string)
@@ -119,12 +122,17 @@ def run_lsm_forecast_process(rapid_executable_location,
                     try:
                         generate_lsm_warning_points(forecast_file, return_period_files[0],
                                                     forecast_directory, threshold=10)
+                    except Exception as ex:
+                        print(ex)
+                        pass
 
             # PHASE 2.3: GENERATE INITIALIZATION FOR NEXT RUN
             print("Initializing flows for {0}-{1} from {2}".format(watershed, subbasin,
                                                                    forecast_date_string))
             try:
-                compute_initial_rapid_flows([forecast_file], master_watershed_input_directory, forecast_date_string)
+                compute_initial_flows_lsm(forecast_file, master_watershed_input_directory,
+                                          current_forecast_start_datetime,
+                                          current_forecast_start_datetime + timedelta_between_forecasts)
             except Exception as ex:
                 print(ex)
                 pass
@@ -134,13 +142,3 @@ def run_lsm_forecast_process(rapid_executable_location,
         print("Time Begin: {0}".format(time_begin_all))
         print("Time Finish: {0}".format(time_end))
         print("TOTAL TIME: {0}".format(time_end - time_begin_all))
-
-
-
-if __name__ == "__main__":
-    run_lsm_forecast_process(rapid_executable_location="/Users/rdchlads/scripts/rapid/src/rapid",
-                             rapid_io_files_location="",
-                             lsm_forecast_location="",
-                             main_log_directory="",
-                             timedelta_between_forecasts=datetime.timedelta(seconds=0),
-                             historical_data_location="")
