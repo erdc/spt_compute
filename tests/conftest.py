@@ -23,6 +23,7 @@ class TestDirectories(object):
         """
         Clean out test directory
         """
+        original_dir = os.getcwd()
         os.chdir(self.output)
 
         # Clear out directory
@@ -35,26 +36,32 @@ class TestDirectories(object):
                     rmtree(path)
                 else:
                     os.remove(path)
+        os.chdir(original_dir)
 
 
 class SetupForecast(object):
     def __init__(self, tclean, watershed_folder, forecast_folder):
-        self.rapid_io_folder = os.path.join(tclean.output, "rapid-io")
-        # make input folder
-        rapid_input_folder = os.path.join(self.rapid_io_folder, "input")
-        os.makedirs(rapid_input_folder)
+        tclean.clean()
         # make log folder
         self.log_folder = os.path.join(tclean.output, "logs")
         os.makedirs(self.log_folder)
         # copy RAPID model files
+        self.rapid_io_folder = os.path.join(tclean.output, "rapid-io")
+        rapid_input_folder = os.path.join(self.rapid_io_folder, "input")
+        os.makedirs(rapid_input_folder)
         self.watershed_input_folder = os.path.join(rapid_input_folder, watershed_folder)
         copytree(os.path.join(tclean.input, "rapid_input", watershed_folder),
                  self.watershed_input_folder)
+        # copy historical simulation_files
+        self.historical_input_folder = os.path.join(tclean.output, "historical_input")
+        os.makedirs(self.historical_input_folder)
+        copytree(os.path.join(tclean.input, "historical_input", watershed_folder),
+                 os.path.join(self.historical_input_folder, watershed_folder))
         # copy forecast grid files
         self.lsm_folder = os.path.join(tclean.output, forecast_folder)
         copytree(os.path.join(tclean.input, "forecast_grids", forecast_folder),
                  self.lsm_folder)
-
+        # add path to comparison files
         self.watershed_compare_folder = os.path.join(tclean.compare,
                                                      'rapid_output',
                                                      watershed_folder)
