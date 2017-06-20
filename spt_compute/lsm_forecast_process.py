@@ -103,7 +103,7 @@ def run_lsm_forecast_process(rapid_executable_location,
                 lsm_data_location=lsm_forecast_location,
                 rapid_input_location=master_watershed_input_directory,
                 rapid_output_location=master_watershed_output_directory,
-                initial_flows_file=os.path.join(master_watershed_input_directory, init_file_name)
+                initial_flows_file=os.path.join(master_watershed_input_directory, init_file_name),
             )
 
             forecast_file = output_file_information[0][rapid_input_directory]['qout']
