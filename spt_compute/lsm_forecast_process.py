@@ -129,7 +129,7 @@ def run_lsm_forecast_process(rapid_executable_location,
                                                                                   forecast_date_string))
                     try:
                         generate_lsm_warning_points(forecast_file, return_period_files[0],
-                                                    forecast_directory, threshold=10)
+                                                    forecast_directory)
                     except Exception as ex:
                         print(ex)
                         pass

@@ -33,7 +33,7 @@ def calc_daily_peak(daily_time_index_array, idx, qout_arr, size_time):
     return 0
 
 
-def generate_lsm_warning_points(qout_file, return_period_file, out_directory, threshold):
+def generate_lsm_warning_points(qout_file, return_period_file, out_directory, threshold=None):
     """
     Create warning points from return periods and LSM prediction data
     """
@@ -64,10 +64,11 @@ def generate_lsm_warning_points(qout_file, return_period_file, out_directory, th
         return_period_10 = return_period_10_data[return_period_comid_index]
         return_period_2 = return_period_2_data[return_period_comid_index]
         # create graduated thresholds if needed
-        if return_period_20 < threshold:
-            return_period_20 = threshold * 10
-            return_period_10 = threshold * 5
-            return_period_2 = threshold
+        if threshold is not None:
+            if return_period_20 < threshold:
+                return_period_20 = threshold * 10
+                return_period_10 = threshold * 5
+                return_period_2 = threshold
         # get daily peaks
         with RAPIDDataset(qout_file) as qout_nc:
             qout_df = pd.DataFrame({'qout': qout_nc.get_qout_index(prediction_comid_index)},
@@ -85,7 +86,7 @@ def generate_lsm_warning_points(qout_file, return_period_file, out_directory, th
                                                      return_period_lat_data[return_period_comid_index]]},
                                                  "properties": {"mean_plus_std_peak": float(
                                                      "{0:.2f}".format(daily_row.qout)),
-                                                                "peak_date": daily_row.index.strftime(
+                                                                "peak_date": daily_row.Index.strftime(
                                                                     "%Y-%m-%d"),
                                                                 "rivid": int(prediction_rivid),
                                                                 }
@@ -97,7 +98,7 @@ def generate_lsm_warning_points(qout_file, return_period_file, out_directory, th
                                                      return_period_lat_data[return_period_comid_index]]},
                                                  "properties": {"mean_plus_std_peak": float(
                                                      "{0:.2f}".format(daily_row.qout)),
-                                                                "peak_date": daily_row.index.strftime(
+                                                                "peak_date": daily_row.Index.strftime(
                                                                     "%Y-%m-%d"),
                                                                 "rivid": int(prediction_rivid),
                                                                 }
@@ -108,7 +109,7 @@ def generate_lsm_warning_points(qout_file, return_period_file, out_directory, th
                                                     return_period_lon_data[return_period_comid_index],
                                                     return_period_lat_data[return_period_comid_index]]},
                                                 "properties": {"peak": float("{0:.2f}".format(daily_row.qout)),
-                                                               "peak_date": daily_row.index.strftime("%Y-%m-%d"),
+                                                               "peak_date": daily_row.Index.strftime("%Y-%m-%d"),
                                                                "rivid": int(prediction_rivid),
                                                                }
                                                 })

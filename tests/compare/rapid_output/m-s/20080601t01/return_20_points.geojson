@@ -1,0 +1,122 @@
+[
+ {
+  "properties": {
+   "mean_plus_std_peak": 0.0,
+   "rivid": 18445156,
+   "peak_date": "2008-06-01"
+  },
+  "geometry": {
+   "coordinates": [
+    -86.22298121505749,
+    38.6314555031341
+   ],
+   "type": "Point"
+  },
+  "type": "Feature"
+ },
+ {
+  "properties": {
+   "mean_plus_std_peak": 0.02,
+   "rivid": 18445548,
+   "peak_date": "2008-06-01"
+  },
+  "geometry": {
+   "coordinates": [
+    -86.23949953381434,
+    38.631645261648494
+   ],
+   "type": "Point"
+  },
+  "type": "Feature"
+ },
+ {
+  "properties": {
+   "mean_plus_std_peak": 0.01,
+   "rivid": 18445554,
+   "peak_date": "2008-06-01"
+  },
+  "geometry": {
+   "coordinates": [
+    -86.2495465646815,
+    38.60965413546897
+   ],
+   "type": "Point"
+  },
+  "type": "Feature"
+ },
+ {
+  "properties": {
+   "mean_plus_std_peak": 0.04,
+   "rivid": 18445168,
+   "peak_date": "2008-06-01"
+  },
+  "geometry": {
+   "coordinates": [
+    -86.26523046123323,
+    38.6264846589461
+   ],
+   "type": "Point"
+  },
+  "type": "Feature"
+ },
+ {
+  "properties": {
+   "mean_plus_std_peak": 0.02,
+   "rivid": 18445198,
+   "peak_date": "2008-06-01"
+  },
+  "geometry": {
+   "coordinates": [
+    -86.27111950355311,
+    38.61599656291627
+   ],
+   "type": "Point"
+  },
+  "type": "Feature"
+ },
+ {
+  "properties": {
+   "mean_plus_std_peak": 0.03,
+   "rivid": 18445550,
+   "peak_date": "2008-06-01"
+  },
+  "geometry": {
+   "coordinates": [
+    -86.24862407496275,
+    38.62140171663975
+   ],
+   "type": "Point"
+  },
+  "type": "Feature"
+ },
+ {
+  "properties": {
+   "mean_plus_std_peak": 0.07,
+   "rivid": 18445184,
+   "peak_date": "2008-06-01"
+  },
+  "geometry": {
+   "coordinates": [
+    -86.27753353213048,
+    38.61901807619826
+   ],
+   "type": "Point"
+  },
+  "type": "Feature"
+ },
+ {
+  "properties": {
+   "mean_plus_std_peak": 0.13,
+   "rivid": 18445186,
+   "peak_date": "2008-06-01"
+  },
+  "geometry": {
+   "coordinates": [
+    -86.30411332474645,
+    38.621052578327394
+   ],
+   "type": "Point"
+  },
+  "type": "Feature"
+ }
+]

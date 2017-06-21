@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from glob import glob
+import json
 import os
 
 from numpy.testing import assert_almost_equal, assert_array_equal
@@ -15,6 +16,15 @@ from .conftest import RAPID_EXE_PATH, SetupForecast
 @pytest.fixture(scope="function")
 def wrf_setup(request, tclean):
     return SetupForecast(tclean, "m-s", "wrf")
+
+
+def compare_warnings(return_file, compare_return_file):
+    """compares warning json files"""
+    with open(return_file) as returnfp, \
+            open(compare_return_file) as creturnfp:
+        returndata = json.load(returnfp)
+        creturndata = json.load(creturnfp)
+        assert returndata == creturndata
 
 
 def test_wrf_forecast(wrf_setup):
@@ -99,5 +109,18 @@ def test_wrf_forecast_historical(wrf_setup):
     return_10_warnings = os.path.join(output_folder, "return_10_points.geojson")
     return_20_warnings = os.path.join(output_folder, "return_20_points.geojson")
     assert os.path.exists(return_2_warnings)
+    compare_return2_file = os.path.join(wrf_setup.watershed_compare_folder,
+                                        out_forecast_folder,
+                                        'return_2_points.geojson')
+
+    compare_warnings(return_2_warnings, compare_return2_file)
     assert os.path.exists(return_10_warnings)
+    compare_return10_file = os.path.join(wrf_setup.watershed_compare_folder,
+                                        out_forecast_folder,
+                                        'return_10_points.geojson')
+    compare_warnings(return_10_warnings, compare_return10_file)
     assert os.path.exists(return_20_warnings)
+    compare_return20_file = os.path.join(wrf_setup.watershed_compare_folder,
+                                        out_forecast_folder,
+                                        'return_20_points.geojson')
+    compare_warnings(return_20_warnings, compare_return20_file)
