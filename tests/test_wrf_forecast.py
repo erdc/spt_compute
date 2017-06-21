@@ -69,7 +69,7 @@ def test_wrf_forecast_historical(wrf_setup):
                              rapid_io_files_location=wrf_setup.rapid_io_folder,
                              lsm_forecast_location=wrf_setup.lsm_folder,
                              main_log_directory=wrf_setup.log_folder,
-                             timedelta_between_forecasts=timedelta(seconds=0),
+                             timedelta_between_forecasts=timedelta(seconds=12*60*60),
                              historical_data_location=wrf_setup.historical_input_folder)
 
     output_folder = os.path.join(wrf_setup.rapid_io_folder, 'output', watershed, out_forecast_folder)
@@ -93,7 +93,7 @@ def test_wrf_forecast_historical(wrf_setup):
     m3_files = glob(os.path.join(output_folder, "m3_riv*.nc"))
     assert len(m3_files) == 0
     # check Qinit file
-    assert os.path.exists(os.path.join(wrf_setup.watershed_input_folder, 'Qinit_20080601t01.csv'))
+    assert os.path.exists(os.path.join(wrf_setup.watershed_input_folder, 'Qinit_20080601t13.csv'))
     # check warning points
     return_2_warnings = os.path.join(output_folder, "return_2_points.geojson")
     return_10_warnings = os.path.join(output_folder, "return_10_points.geojson")

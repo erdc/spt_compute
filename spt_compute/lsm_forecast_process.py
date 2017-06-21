@@ -55,9 +55,10 @@ def run_lsm_forecast_process(rapid_executable_location,
         current_forecast_start_datetime = \
             determine_start_end_timestep(sorted(glob(os.path.join(lsm_forecast_location, "*.nc"))))[0]
 
-        # look for past forecast
-        forecast_date_string = (current_forecast_start_datetime - timedelta_between_forecasts).strftime("%Y%m%dt%H")
-        init_file_name = 'Qinit_{0}.csv'.format(forecast_date_string)
+        forecast_date_string = current_forecast_start_datetime.strftime("%Y%m%dt%H")
+        # look for past forecast qinit
+        past_forecast_date_string = (current_forecast_start_datetime - timedelta_between_forecasts).strftime("%Y%m%dt%H")
+        init_file_name = 'Qinit_{0}.csv'.format(past_forecast_date_string)
 
         # PHASE 1: SEASONAL INITIALIZATION ON FIRST RUN
         if historical_data_location and os.path.exists(historical_data_location):
@@ -138,7 +139,6 @@ def run_lsm_forecast_process(rapid_executable_location,
                                                                    forecast_date_string))
             try:
                 compute_initial_flows_lsm(forecast_file, master_watershed_input_directory,
-                                          current_forecast_start_datetime,
                                           current_forecast_start_datetime + timedelta_between_forecasts)
             except Exception as ex:
                 print(ex)

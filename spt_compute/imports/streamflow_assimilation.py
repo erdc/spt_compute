@@ -17,6 +17,7 @@ import os
 from pytz import utc
 import requests
 from time import gmtime
+import xarray
 
 from RAPIDpy.rapid import RAPID
 from RAPIDpy.dataset import RAPIDDataset
@@ -398,28 +399,28 @@ def compute_initial_rapid_flows(prediction_files, input_directory, forecast_date
     else:
         print("No current forecasts found. Skipping ...")
 
-def compute_initial_flows_lsm(qout_forecast, input_directory, current_forecast_datetime, next_forecast_datetime):
+def compute_initial_flows_lsm(qout_forecast, input_directory, next_forecast_datetime):
     """
     Compute initial flows from past Qout file.
 
     :param qout_forecast:
     :param input_directory:
-    :param current_forecast_datetime:
+    :param next_forecast_datetime:
     :return:
     """
     # remove old init files for this basin
     _cleanup_past_qinit(input_directory)
     # determine next forecast start time
-    current_forecast_date_string = current_forecast_datetime.strftime("%Y%m%dt%H")
-    init_file_location = os.path.join(input_directory,'Qinit_%s.csv' % current_forecast_date_string)
+    next_forecast_date_string = next_forecast_datetime.strftime("%Y%m%dt%H")
+    init_file_location = os.path.join(input_directory,'Qinit_%s.csv' % next_forecast_date_string)
 
     rapid_manager = RAPID(
         Qout_file=qout_forecast,
         rapid_connect_file=os.path.join(input_directory,'rapid_connect.csv')
     )
 
-    # TODO: Determine time index of next forecast datetime
-    rapid_manager.generate_qinit_from_past_qout(qinit_file=init_file_location)
+    rapid_manager.generate_qinit_from_past_qout(qinit_file=init_file_location,
+                                                out_datetime=next_forecast_datetime)
 
 def compute_seasonal_initial_rapid_flows(historical_qout_file, input_directory, init_file_location):
     """
