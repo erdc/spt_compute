@@ -10,6 +10,7 @@ from calendar import isleap
 import datetime
 from dateutil.parser import parse
 from glob import glob
+from io import open
 from netCDF4 import Dataset
 import numpy as np
 import os
@@ -352,7 +353,7 @@ class StreamNetworkInitializer(object):
         Write initial flow file
         """
         print("Writing to initial flow file: {0}".format(out_file))
-        with open(out_file, 'wb') as init_flow_file:
+        with open(out_file, 'w') as init_flow_file:
             for stream_index, stream_segment in enumerate(self.stream_segments):
                 if stream_segment.station_flow != None:
                     init_flow_file.write("{}\n".format(stream_segment.station_flow))
