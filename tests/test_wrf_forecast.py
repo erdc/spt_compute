@@ -76,13 +76,12 @@ def test_wrf_forecast_historical(wrf_setup):
     # check log file exists
     log_files = glob(os.path.join(wrf_setup.log_folder,
                                   "spt_compute_lsm_{0:%y%m%d%H%M}*.log".format(start_datetime)))
-    # TODO: Fix this
-    # assert len(log_files) == 1
+    assert len(log_files) == 1
     # check Qout file
     qout_file = os.path.join(output_folder, qout_name)
     assert os.path.exists(qout_file)
 
-    compare_qout_file = os.path.join(wrf_setup.watershed_compare_folder, out_forecast_folder, qout_name)
+    compare_qout_file = os.path.join(wrf_setup.watershed_compare_folder, out_forecast_folder, 'Qout_wrf_wrf_1hr_20080601to20080601_init.nc')
     with xr.open_dataset(qout_file) as xqf, \
             xr.open_dataset(compare_qout_file) as xqc:
         assert_almost_equal(xqf.Qout.values, xqc.Qout.values)
