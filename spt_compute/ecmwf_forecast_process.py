@@ -139,7 +139,7 @@ def run_ecmwf_forecast_process(rapid_executable_location,  # path to RAPID execu
     time_begin_all = datetime.datetime.utcnow()
 
     LOCAL_SCRIPTS_DIRECTORY = os.path.dirname(os.path.realpath(__file__))
-    LOCK_INFO_FILE = os.path.join(main_log_directory, "ecmwf_rapid_run_info_lock.txt")
+    LOCK_INFO_FILE = os.path.join(main_log_directory, "spt_compute_ecmwf_run_info_lock.txt")
 
     log_file_path = os.path.join(main_log_directory,
                                  "spt_compute_ecmwf_{0}.log".format(time_begin_all.strftime("%y%m%d%H%M%S")))
@@ -394,7 +394,7 @@ def run_ecmwf_forecast_process(rapid_executable_location,  # path to RAPID execu
                         else:
                             raise Exception("ERROR: Invalid mp_mode. Valid types are htcondor and multiprocess ...")
 
-                for rapid_input_directory, watershed_job_info in rapid_watershed_jobs.iteritems():
+                for rapid_input_directory, watershed_job_info in rapid_watershed_jobs.items():
                     # add sub job list to master job list
                     master_job_info_list = master_job_info_list + watershed_job_info['jobs_info']
                     if mp_mode == "htcondor":
