@@ -12,6 +12,7 @@ import os
 from RAPIDpy import RAPID
 from RAPIDpy.postprocess import ConvertRAPIDOutputToCF
 from shutil import move, rmtree
+import traceback
 
 #local imports
 from .CreateInflowFileFromECMWFRunoff import CreateInflowFileFromECMWFRunoff
@@ -188,7 +189,6 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
             remove_file(inflow_file_name_1hr)
             remove_file(inflow_file_name_3hr)
             remove_file(inflow_file_name_6hr)
-            import traceback
             traceback.print_exc()
             raise
             
@@ -266,6 +266,7 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
             remove_file(qinit_6hr_file)
             remove_file(inflow_file_name_3hr)
             remove_file(inflow_file_name_6hr)
+            traceback.print_exc()
             raise
             
         remove_file(qinit_6hr_file)
@@ -306,6 +307,7 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
 
         except Exception:
             remove_file(inflow_file_name)
+            traceback.print_exc()
             raise
             
         #clean up
@@ -355,9 +357,10 @@ def run_ecmwf_rapid_multiprocess_worker(args):
                                                    os.path.basename(master_rapid_outflow_file))
                                                    
             move(node_rapid_outflow_file, master_rapid_outflow_file)
-            rmtree(execute_directory)                                   
+            rmtree(execute_directory)
         except Exception:
             rmtree(execute_directory)
-            raise                                   
+            traceback.print_exc()
+            raise
     return watershed_job_index
     
