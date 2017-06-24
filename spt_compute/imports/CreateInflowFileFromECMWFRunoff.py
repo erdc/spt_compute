@@ -20,6 +20,7 @@
 import netCDF4 as NET
 import numpy as NUM
 import csv
+from io import open
 
 class CreateInflowFileFromECMWFRunoff(object):
     def __init__(self):
@@ -51,11 +52,11 @@ class CreateInflowFileFromECMWFRunoff(object):
 
         data_nc = NET.Dataset(in_nc)
         
-        dims = data_nc.dimensions.keys()
+        dims = list(data_nc.dimensions)
         if dims not in self.dims_oi:
             raise Exception(self.errorMessages[1])
 
-        vars = data_nc.variables.keys()
+        vars = list(data_nc.variables)
         if vars == self.vars_oi[0]:
             vars_oi_index = 0
         elif vars == self.vars_oi[1]:
@@ -122,7 +123,7 @@ class CreateInflowFileFromECMWFRunoff(object):
         dict_list = {self.header_wt[0]:[], self.header_wt[1]:[], self.header_wt[2]:[],
                      self.header_wt[3]:[], self.header_wt[4]:[]}
 
-        with open(in_weight_table, "rb") as csvfile:
+        with open(in_weight_table, "r") as csvfile:
             reader = csv.reader(csvfile)
             count = 0
             for row in reader:
@@ -135,7 +136,7 @@ class CreateInflowFileFromECMWFRunoff(object):
                         raise Exception(self.errorMessages[5])
                     count += 1
                 else:
-                    for i in xrange(len(self.header_wt)):
+                    for i in range(len(self.header_wt)):
                        dict_list[self.header_wt[i]].append(row[i])
                     count += 1
 
@@ -177,8 +178,8 @@ class CreateInflowFileFromECMWFRunoff(object):
                                                 
         data_temp = NUM.empty(shape = [size_time, size_streamID])
 
-        lon_ind_all = [long(i) for i in dict_list[self.header_wt[2]]]
-        lat_ind_all = [long(j) for j in dict_list[self.header_wt[3]]]
+        lon_ind_all = [int(i) for i in dict_list[self.header_wt[2]]]
+        lat_ind_all = [int(j) for j in dict_list[self.header_wt[3]]]
 
         # Obtain a subset of  runoff data based on the indices in the weight table
         min_lon_ind_all = min(lon_ind_all)
@@ -289,6 +290,3 @@ class CreateInflowFileFromECMWFRunoff(object):
         # close the input and output netcdf datasets
         data_in_nc.close()
         data_out_nc.close()
-
-
-        return

@@ -7,6 +7,7 @@
 #  Copyright © 2015-2016 Alan D Snow. All rights reserved.
 #  License: BSD-3 Clause
 import json
+import os
 
 
 def update_lock_info_file(lock_info_file_path, currently_running, last_forecast_date):
