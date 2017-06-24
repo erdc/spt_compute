@@ -107,6 +107,7 @@ def run_ecmwf_forecast_process(rapid_executable_location,  # path to RAPID execu
                                ecmwf_forecast_location,  # path to ECMWF forecasts
                                subprocess_log_directory,  # path to store HTCondor/multiprocess logs
                                main_log_directory,  # path to store main logs
+                               region="",#1 of the 12 partitioned ECMWF files. Leave empty if using global
                                data_store_url="",  # CKAN API url
                                data_store_api_key="",  # CKAN API Key,
                                data_store_owner_org="",  # CKAN owner organization
@@ -183,7 +184,7 @@ def run_ecmwf_forecast_process(rapid_executable_location,  # path to RAPID execu
 
         if download_ecmwf and ftp_host:
             # get list of folders to download
-            ecmwf_folders = sorted(get_ftp_forecast_list('Runoff.%s*.netcdf.tar*' % date_string,
+            ecmwf_folders = sorted(get_ftp_forecast_list('Runoff.%s*%s*.netcdf.tar*' % (date_string, region),
                                                          ftp_host,
                                                          ftp_login,
                                                          ftp_passwd,
@@ -280,7 +281,7 @@ def run_ecmwf_forecast_process(rapid_executable_location,  # path to RAPID execu
                                                             delete_past_ecmwf_forecasts)
 
                 # get list of forecast files
-                ecmwf_forecasts = glob(os.path.join(ecmwf_folder, '*.runoff.nc'))
+                ecmwf_forecasts = glob(os.path.join(ecmwf_folder, '*.runoff.%s*nc' % region))
 
                 # look for old version of forecasts
                 if not ecmwf_forecasts:
