@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 ##
 ##  ecmwf_rapid_multiprocess_worker.py
-##  spt_ecmwf_autorapid_process
+##  spt_compute
 ##
 ##  Created by Alan D. Snow.
 ##  Copyright © 2015-2016 Alan D Snow. All rights reserved.
@@ -12,6 +12,7 @@ import os
 from RAPIDpy import RAPID
 from RAPIDpy.postprocess import ConvertRAPIDOutputToCF
 from shutil import move, rmtree
+import traceback
 
 #local imports
 from .CreateInflowFileFromECMWFRunoff import CreateInflowFileFromECMWFRunoff
@@ -81,9 +82,9 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
         qinit_file = os.path.join(rapid_input_directory, 'Qinit_%s.csv' % past_date)
         BS_opt_Qinit = qinit_file and os.path.exists(qinit_file)
         if not BS_opt_Qinit:
-            qinit_file = ""
             print("Error: {0} not found. Not initializing ...".format(qinit_file))
-            
+            qinit_file = ""
+
             
     try:
         comid_lat_lon_z_file = case_insensitive_file_search(rapid_input_directory,
@@ -94,7 +95,6 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
 
     RAPIDinflowECMWF_tool = CreateInflowFileFromECMWFRunoff()
     forecast_resolution = RAPIDinflowECMWF_tool.dataIdentify(ecmwf_forecast)
-
     #determine weight table from resolution
     if forecast_resolution == "HighRes":
         #HIGH RES
@@ -189,6 +189,7 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
             remove_file(inflow_file_name_1hr)
             remove_file(inflow_file_name_3hr)
             remove_file(inflow_file_name_6hr)
+            traceback.print_exc()
             raise
             
         remove_file(qinit_3hr_file)
@@ -265,6 +266,7 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
             remove_file(qinit_6hr_file)
             remove_file(inflow_file_name_3hr)
             remove_file(inflow_file_name_6hr)
+            traceback.print_exc()
             raise
             
         remove_file(qinit_6hr_file)
@@ -305,6 +307,7 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
 
         except Exception:
             remove_file(inflow_file_name)
+            traceback.print_exc()
             raise
             
         #clean up
@@ -354,9 +357,10 @@ def run_ecmwf_rapid_multiprocess_worker(args):
                                                    os.path.basename(master_rapid_outflow_file))
                                                    
             move(node_rapid_outflow_file, master_rapid_outflow_file)
-            rmtree(execute_directory)                                   
+            rmtree(execute_directory)
         except Exception:
             rmtree(execute_directory)
-            raise                                   
+            traceback.print_exc()
+            raise
     return watershed_job_index
     

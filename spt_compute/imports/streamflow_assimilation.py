@@ -1,41 +1,45 @@
 # -*- coding: utf-8 -*-
-##
-##  ftp_ecmwf_download.py
-##  spt_ecmwf_autorapid_process
-##
-##  Created by Alan D. Snow.
-##  Copyright © 2015-2016 Alan D Snow. All rights reserved.
-##  License: BSD-3 Clause
+#
+#  ftp_ecmwf_download.py
+#  spt_compute
+#
+#  Created by Alan D. Snow.
+#  License: BSD-3 Clause
+from __future__ import unicode_literals
 
 from calendar import isleap
 import datetime
 from dateutil.parser import parse
 from glob import glob
+from io import open
 from netCDF4 import Dataset
 import numpy as np
 import os
 from pytz import utc
 import requests
 from time import gmtime
+import xarray
 
 from RAPIDpy.rapid import RAPID
 from RAPIDpy.dataset import RAPIDDataset
 from RAPIDpy.helper_functions import csv_to_list
 
-#-----------------------------------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------------------------------
 # StreamSegment Class
-#-----------------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------------
 class StreamSegment(object):
     def __init__(self, stream_id, down_id, up_id_array, init_flow=0, 
                  station=None, station_flow=None, station_distance=None, natural_flow=None):
         self.stream_id = stream_id
-        self.down_id = down_id #downstream segment id
-        self.up_id_array = up_id_array #array of atream ids for upstream segments
+        self.down_id = down_id  # downstream segment id
+        self.up_id_array = up_id_array  # array of atream ids for upstream segments
         self.init_flow = init_flow
         self.station = station
         self.station_flow = station_flow
-        self.station_distance = station_distance #number of tream segments to station
+        self.station_distance = station_distance  # number of tream segments to station
         self.natural_flow = natural_flow
+
 
 class StreamGage(object):
     """
@@ -49,7 +53,8 @@ class StreamGage(object):
         Get gage data based on stream gage type
         """
         return None
-    
+
+
 class USGSStreamGage(StreamGage):
     """
     USGS Gage object
@@ -106,10 +111,11 @@ class USGSStreamGage(StreamGage):
                     prev_time_step = time_step
 
         return None
-    
-#-----------------------------------------------------------------------------------------------------
+
+
+# -----------------------------------------------------------------------------------------------------
 # StreamNetworkInitializer Class
-#-----------------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------------
 class StreamNetworkInitializer(object):
     def __init__(self, connectivity_file, gage_ids_natur_flow_file=None):
         #files
@@ -275,7 +281,6 @@ class StreamNetworkInitializer(object):
             
             print("Initialization Complete!")
         
-        
     def generate_qinit_from_seasonal_average(self, seasonal_average_file):
         """
         Generate initial flows from seasonal average file
@@ -350,7 +355,7 @@ class StreamNetworkInitializer(object):
         Write initial flow file
         """
         print("Writing to initial flow file: {0}".format(out_file))
-        with open(out_file, 'wb') as init_flow_file:
+        with open(out_file, 'w') as init_flow_file:
             for stream_index, stream_segment in enumerate(self.stream_segments):
                 if stream_segment.station_flow != None:
                     init_flow_file.write("{}\n".format(stream_segment.station_flow))
@@ -361,6 +366,20 @@ class StreamNetworkInitializer(object):
 #-----------------------------------------------------------------------------------------------------
 # Streamflow Init Functions
 #-----------------------------------------------------------------------------------------------------
+def _cleanup_past_qinit(input_directory):
+    """
+    Removes past qinit files.
+
+    :param input_directory:
+    :return:
+    """
+    past_init_flow_files = glob(os.path.join(input_directory, 'Qinit_*.csv'))
+    for past_init_flow_file in past_init_flow_files:
+        try:
+            os.remove(past_init_flow_file)
+        except:
+            pass
+
 def compute_initial_rapid_flows(prediction_files, input_directory, forecast_date_timestep):
     """
     Gets mean of all 52 ensembles 12-hrs in future and prints to csv as initial flow
@@ -369,12 +388,7 @@ def compute_initial_rapid_flows(prediction_files, input_directory, forecast_date
     if subset of list, add zero where there is no flow
     """
     #remove old init files for this basin
-    past_init_flow_files = glob(os.path.join(input_directory, 'Qinit_*.csv'))
-    for past_init_flow_file in past_init_flow_files:
-        try:
-            os.remove(past_init_flow_file)
-        except:
-            pass
+    _cleanup_past_qinit(input_directory)
     current_forecast_date = datetime.datetime.strptime(forecast_date_timestep[:11],"%Y%m%d.%H")
     current_forecast_date_string = current_forecast_date.strftime("%Y%m%dt%H")
     init_file_location = os.path.join(input_directory,'Qinit_%s.csv' % current_forecast_date_string)
@@ -385,6 +399,29 @@ def compute_initial_rapid_flows(prediction_files, input_directory, forecast_date
         sni.write_init_flow_file(init_file_location)        
     else:
         print("No current forecasts found. Skipping ...")
+
+def compute_initial_flows_lsm(qout_forecast, input_directory, next_forecast_datetime):
+    """
+    Compute initial flows from past Qout file.
+
+    :param qout_forecast:
+    :param input_directory:
+    :param next_forecast_datetime:
+    :return:
+    """
+    # remove old init files for this basin
+    _cleanup_past_qinit(input_directory)
+    # determine next forecast start time
+    next_forecast_date_string = next_forecast_datetime.strftime("%Y%m%dt%H")
+    init_file_location = os.path.join(input_directory,'Qinit_%s.csv' % next_forecast_date_string)
+
+    rapid_manager = RAPID(
+        Qout_file=qout_forecast,
+        rapid_connect_file=os.path.join(input_directory,'rapid_connect.csv')
+    )
+
+    rapid_manager.generate_qinit_from_past_qout(qinit_file=init_file_location,
+                                                out_datetime=next_forecast_datetime)
 
 def compute_seasonal_initial_rapid_flows(historical_qout_file, input_directory, init_file_location):
     """
@@ -430,7 +467,13 @@ def compute_seasonal_initial_rapid_flows_multicore_worker(args):
         
     elif args[3] == "historical_streamflow_file":
         compute_seasonal_initial_rapid_flows(args[0], input_directory, init_file_location)
-    
+
+def compute_seasonal_average_initial_flows_multiprocess_worker(args):
+    """
+    Multiprocess function to only compute initial flows from seasonal file
+    """
+    generate_initial_rapid_flow_from_seasonal_average(*args)
+
 def update_inital_flows_usgs(input_directory, forecast_date_timestep):
     """
     Update initial flows with USGS data

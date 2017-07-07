@@ -1,0 +1,70 @@
+#-------------------------------------------------------------------------------
+# .travis.yml
+# Author: Alan D. Snow, 2017
+#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+#System specifications for Travis CI
+#-------------------------------------------------------------------------------
+language: c
+os:
+  - linux
+env:
+  - TRAVIS_PYTHON_VERSION="2.7"
+  - TRAVIS_PYTHON_VERSION="3.5"
+  - TRAVIS_PYTHON_VERSION="3.6"
+notifications:
+  email: false
+
+before_install:
+#-----------------------------------------------------------------------------
+# Install gcc, g++, gfortran
+#-----------------------------------------------------------------------------
+- sudo apt-get update -qq
+- sudo apt-get install -y g++ gfortran
+#-----------------------------------------------------------------------------
+# Install minconda
+#-----------------------------------------------------------------------------
+- wget -O miniconda.sh http://repo.continuum.io/miniconda/Miniconda${TRAVIS_PYTHON_VERSION:0:1}-latest-Linux-x86_64.sh
+- bash miniconda.sh -b -p $HOME/miniconda
+- export PATH=$HOME/miniconda/bin:$PATH
+- conda config --set always_yes yes
+- conda config --add channels conda-forge
+- conda update conda python
+#-----------------------------------------------------------------------------
+# Create conda environment for spt_compute
+#-----------------------------------------------------------------------------
+- conda create -n spt_compute python=$TRAVIS_PYTHON_VERSION
+- source activate spt_compute
+- conda env update -n spt_compute -f conda_env.yml
+- source deactivate
+- source activate spt_compute
+#-------------------------------------------------------------------------------
+#Creating directory for installation of libraries used by RAPID & RAPIDpy
+#-------------------------------------------------------------------------------
+- export INSTALLZ_DIR=$TRAVIS_BUILD_DIR/installz
+- mkdir $INSTALLZ_DIR
+#-------------------------------------------------------------------------------
+#Installing RAPID
+#-------------------------------------------------------------------------------
+- cd $TRAVIS_BUILD_DIR/..
+- git clone https://github.com/c-h-david/rapid.git --branch 20161221
+- cd rapid
+- bash rapid_install_prereqs.sh -i=$INSTALLZ_DIR
+- source rapid_specify_varpath.sh $INSTALLZ_DIR
+- cd src
+- make rapid
+#-------------------------------------------------------------------------------
+# Install spt_compute
+#-------------------------------------------------------------------------------
+install:
+- cd $TRAVIS_BUILD_DIR
+- pip install -e .[tests]
+script:
+- py.test --cov-report term-missing --cov=spt_compute
+#- flake8  --ignore=F401 spt_compute setup.py tests
+#- pylint spt_compute
+#-------------------------------------------------------------------------------
+# Coveralls stats for code coverage
+#-------------------------------------------------------------------------------
+after_success:
+  - coveralls

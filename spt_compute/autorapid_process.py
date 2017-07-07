@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 ##
 ##  autorapid_process.py
-##  spt_ecmwf_autorapid_process
+##  spt_compute
 ##
 ##  Created by Alan D. Snow.
 ##  Copyright © 2015-2016 Alan D Snow. All rights reserved.
@@ -12,8 +12,8 @@ import os
 from geoserver.catalog import FailedRequestError as geo_cat_FailedRequestError
 
 #local imports
-from imports.helper_functions import (get_valid_watershed_list, 
-                                      get_watershed_subbasin_from_folder)
+from .imports.helper_functions import (get_valid_watershed_list,
+                                       get_watershed_subbasin_from_folder)
 
 #package imports
 from AutoRoutePy.run import run_autoroute_multiprocess
@@ -47,7 +47,7 @@ def run_autorapid_process(autoroute_executable_location, #location of AutoRoute 
     autoroute_watershed_jobs = {}
     
     #get most recent forecast date/timestep
-    print "Running AutoRoute process for forecast:", forecast_date_timestep
+    print("Running AutoRoute process for forecast: {0}".format(forecast_date_timestep))
     
     #loop through input watershed folders
     autoroute_input_folder = os.path.join(autoroute_io_files_location, "input")
@@ -62,10 +62,10 @@ def run_autorapid_process(autoroute_executable_location, #location of AutoRoute 
                                                                autoroute_input_directory, forecast_date_timestep)
                                                                
         if not os.path.exists(master_watershed_rapid_input_directory):
-            print "AutoRoute watershed", autoroute_input_directory, "not in RAPID IO folder. Skipping ..."
+            print("AutoRoute watershed {0} not in RAPID IO folder. Skipping ...".format(autoroute_input_directory))
             continue
         if not os.path.exists(master_watershed_rapid_output_directory):
-            print "AutoRoute watershed", autoroute_input_directory, "missing RAPID forecast folder. Skipping ..."
+            print("AutoRoute watershed {0} missing RAPID forecast folder. Skipping ...".format(autoroute_input_directory))
             continue
         
         #setup the output location
@@ -95,8 +95,8 @@ def run_autorapid_process(autoroute_executable_location, #location of AutoRoute 
                                                         geoserver_password, 
                                                         app_instance_id)
         except Exception as ex:
-            print ex
-            print "Skipping geoserver upload ..."
+            print(ex)
+            print("Skipping geoserver upload ...")
             geoserver_manager = None
             pass 
     #wait for jobs to finish by watershed
@@ -126,7 +126,7 @@ def run_autorapid_process(autoroute_executable_location, #location of AutoRoute 
             if geoserver_manager:
                 if os.path.exists(upload_shapefile):
                     upload_shapefile_list.append(upload_shapefile)
-                    print "Uploading", upload_shapefile, "to GeoServer as", geoserver_resource_name
+                    # print "Uploading", upload_shapefile, "to GeoServer as", geoserver_resource_name
                     shapefile_basename = os.path.splitext(upload_shapefile)[0]
                     #remove past layer if exists
                     #geoserver_manager.purge_remove_geoserver_layer(geoserver_manager.get_layer_name(geoserver_resource_name))
@@ -138,7 +138,7 @@ def run_autorapid_process(autoroute_executable_location, #location of AutoRoute 
                     #an exception even though it was successful.
                     """
                     ...
-                      File "/home/alan/work/scripts/spt_ecmwf_autorapid_process/spt_dataset_manager/dataset_manager.py", line 798, in upload_shapefile
+                      File "/home/alan/work/scripts/spt_compute/spt_dataset_manager/dataset_manager.py", line 798, in upload_shapefile
                         overwrite=True)
                       File "/usr/lib/tethys/local/lib/python2.7/site-packages/tethys_dataset_services/engines/geoserver_engine.py", line 1288, in create_shapefile_resource
                         new_resource = catalog.get_resource(name=name, workspace=workspace)
@@ -158,17 +158,17 @@ def run_autorapid_process(autoroute_executable_location, #location of AutoRoute 
                         geoserver_manager.upload_shapefile(geoserver_resource_name, 
                                                            shapefile_list)
                     except geo_cat_FailedRequestError as ex:
-                        print ex
-                        print "Most likely OK, but always wise to check ..."
+                        print(ex)
+                        print("Most likely OK, but always wise to check ...")
                         pass
                                                        
                     geoserver_resource_list.append(geoserver_manager.get_layer_name(geoserver_resource_name))
                     #TODO: Upload to CKAN for history of predicted floodmaps?
                 else:
-                    print upload_shapefile, "not found. Skipping upload to GeoServer ..."
+                    print("{0} not found. Skipping upload to GeoServer ...".format(upload_shapefile))
         
         if geoserver_manager and geoserver_resource_list:
-            print "Creating Layer Group:", geoserver_layer_group_name
+            print("Creating Layer Group: {0}".format(geoserver_layer_group_name))
             style_list = ['green' for i in range(len(geoserver_resource_list))]
             bounds = get_shapefile_layergroup_bounds(upload_shapefile_list)
             geoserver_manager.dataset_engine.create_layer_group(layer_group_id=geoserver_manager.get_layer_name(geoserver_layer_group_name), 

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 ##
 ##  htcondor_ecmwf_rapid.py
-##  spt_ecmwf_autorapid_process
+##  spt_compute
 ##
 ##  Created by Alan D. Snow.
 ##  Copyright © 2015-2016 Alan D Snow. All rights reserved.
