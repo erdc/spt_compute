@@ -17,24 +17,24 @@ notifications:
 
 before_install:
 #-----------------------------------------------------------------------------
+# Install gcc, g++, gfortran
+#-----------------------------------------------------------------------------
+- sudo apt-get update -qq
+- sudo apt-get install -y g++ gfortran
+#-----------------------------------------------------------------------------
 # Install minconda
 #-----------------------------------------------------------------------------
-- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-    wget -O miniconda.sh http://repo.continuum.io/miniconda/Miniconda${TRAVIS_PYTHON_VERSION:0:1}-latest-Linux-x86_64.sh;
-  fi
-- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-    curl -o miniconda.sh https://repo.continuum.io/miniconda/Miniconda${TRAVIS_PYTHON_VERSION:0:1}-latest-MacOSX-x86_64.sh;
-  fi
+- wget -O miniconda.sh http://repo.continuum.io/miniconda/Miniconda${TRAVIS_PYTHON_VERSION:0:1}-latest-Linux-x86_64.sh
 - bash miniconda.sh -b -p $HOME/miniconda
 - export PATH=$HOME/miniconda/bin:$PATH
 - conda config --set always_yes yes
+- conda config --add channels conda-forge
 - conda update conda python
 #-----------------------------------------------------------------------------
 # Create conda environment for spt_compute
 #-----------------------------------------------------------------------------
 - conda create -n spt_compute python=$TRAVIS_PYTHON_VERSION
 - source activate spt_compute
-- conda config --add channels conda-forge
 - conda env update -n spt_compute -f conda_env.yml
 - source deactivate
 - source activate spt_compute
