@@ -1,9 +1,10 @@
 # spt_compute
-Previously named: spt_ecmwf_autorapid_process
 
 Computational framework to ingest ECMWF ensemble runoff forcasts or other Land Surface Model input; generate input for and run the RAPID (rapid-hub.org) program using HTCondor or Python's Multiprocessing; and upload to CKAN in order to be used by the Streamflow Prediction Tool (SPT). There is also an experimental option to use the AutoRoute program for flood inundation mapping.
 
 [![License (3-Clause BSD)](https://img.shields.io/badge/license-BSD%203--Clause-yellow.svg)](https://github.com/erdc-cm/spt_ecmwf_autorapid_process/blob/master/LICENSE)
+
+[![Build Status](https://travis-ci.org/erdc-cm/spt_ecmwf_autorapid_process.svg?branch=master)](https://travis-ci.org/erdc-cm/spt_ecmwf_autorapid_process)
 
 [![DOI](https://zenodo.org/badge/19918/erdc-cm/spt_ecmwf_autorapid_process.svg)](https://zenodo.org/badge/latestdoi/19918/erdc-cm/spt_ecmwf_autorapid_process)
 
