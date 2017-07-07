@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
-#  rapid_process.py
-#  spt_ecmwf_autorapid_process
+#  ecmwf_forecast_process.py
+#  spt_compute
 #
 #  Created by Alan D. Snow.
 #  Copyright © 2015-2016 Alan D Snow. All rights reserved.
@@ -42,8 +42,9 @@ except ImportError:
     AUTOROUTE_ENABLED = False
     pass
 
+from .process_lock import update_lock_info_file
 from .imports.ftp_ecmwf_download import get_ftp_forecast_list, download_and_extract_ftp
-from .imports.generate_warning_points import generate_warning_points
+from .imports.generate_warning_points import generate_ecmwf_warning_points
 from .imports.helper_functions import (CaptureStdOutToLog,
                                        clean_logs,
                                        find_current_rapid_output,
@@ -98,77 +99,50 @@ def upload_single_forecast(job_info, data_manager):
     os.remove(output_tar_file)
 
 
-def update_lock_info_file(lock_info_file_path, currently_running, last_forecast_date):
-    """
-    This function updates the lock info file
-    """
-    with open(lock_info_file_path, "w") as fp_lock_info:
-        lock_info_data = {
-            'running': currently_running,
-            'last_forecast_date': last_forecast_date,
-        }
-        json.dump(lock_info_data, fp_lock_info)
-
-
-def reset_lock_info_file(lock_info_file_path):
-    """
-    This function removes lock in file if the file exists.
-    The purpose is for reboot of computer
-    """
-    if os.path.exists(lock_info_file_path):
-        # read in last forecast date
-        with open(lock_info_file_path) as fp_lock_info:
-            previous_lock_info = json.load(fp_lock_info)
-            last_forecast_date_str = previous_lock_info['last_forecast_date']
-
-        # update lock to false
-        update_lock_info_file(lock_info_file_path, False, last_forecast_date_str)
-
-        # ----------------------------------------------------------------------------------------
-
-
+# ----------------------------------------------------------------------------------------
 # MAIN PROCESS
 # ----------------------------------------------------------------------------------------
-def run_ecmwf_rapid_process(rapid_executable_location,  # path to RAPID executable
-                            rapid_io_files_location,  # path ro RAPID input/output directory
-                            ecmwf_forecast_location,  # path to ECMWF forecasts
-                            subprocess_log_directory,  # path to store HTCondor/multiprocess logs
-                            main_log_directory,  # path to store main logs
-                            data_store_url="",  # CKAN API url
-                            data_store_api_key="",  # CKAN API Key,
-                            data_store_owner_org="",  # CKAN owner organization
-                            app_instance_id="",  # Streamflow Prediction tool instance ID
-                            sync_rapid_input_with_ckan=False,  # match Streamflow Prediciton tool RAPID input
-                            download_ecmwf=True,  # Download recent ECMWF forecast before running,
-                            date_string="",  # string of date of interest
-                            ftp_host="",  # ECMWF ftp site path
-                            ftp_login="",  # ECMWF ftp login name
-                            ftp_passwd="",  # ECMWF ftp password
-                            ftp_directory="",  # ECMWF ftp directory
-                            delete_past_ecmwf_forecasts=True,  # Deletes all past forecasts before next run
-                            upload_output_to_ckan=False,  # upload data to CKAN and remove local copy
-                            delete_output_when_done=False,  # delete all output data from this code
-                            initialize_flows=False,  # use forecast to initialize next run
-                            era_interim_data_location="",  # path to ERA Interim return period data
-                            create_warning_points=False,  # generate waring points for Streamflow Prediction Tool
-                            autoroute_executable_location="",  # location of AutoRoute executable
-                            autoroute_io_files_location="",  # path to AutoRoute input/outpuf directory
-                            geoserver_url="",  # url to API endpoint ending in geoserver/rest
-                            geoserver_username="",  # username for geoserver
-                            geoserver_password="",  # password for geoserver
-                            mp_mode='htcondor',  # valid options are htcondor and multiprocess,
-                            mp_execute_directory="",  # required if using multiprocess mode
-                            ):
+def run_ecmwf_forecast_process(rapid_executable_location,  # path to RAPID executable
+                               rapid_io_files_location,  # path ro RAPID input/output directory
+                               ecmwf_forecast_location,  # path to ECMWF forecasts
+                               subprocess_log_directory,  # path to store HTCondor/multiprocess logs
+                               main_log_directory,  # path to store main logs
+                               region="",#1 of the 12 partitioned ECMWF files. Leave empty if using global
+                               data_store_url="",  # CKAN API url
+                               data_store_api_key="",  # CKAN API Key,
+                               data_store_owner_org="",  # CKAN owner organization
+                               app_instance_id="",  # Streamflow Prediction tool instance ID
+                               sync_rapid_input_with_ckan=False,  # match Streamflow Prediciton tool RAPID input
+                               download_ecmwf=True,  # Download recent ECMWF forecast before running,
+                               date_string="",  # string of date of interest
+                               ftp_host="",  # ECMWF ftp site path
+                               ftp_login="",  # ECMWF ftp login name
+                               ftp_passwd="",  # ECMWF ftp password
+                               ftp_directory="",  # ECMWF ftp directory
+                               delete_past_ecmwf_forecasts=True,  # Deletes all past forecasts before next run
+                               upload_output_to_ckan=False,  # upload data to CKAN and remove local copy
+                               delete_output_when_done=False,  # delete all output data from this code
+                               initialize_flows=False,  # use forecast to initialize next run
+                               era_interim_data_location="",  # path to ERA Interim return period data
+                               create_warning_points=False,  # generate waring points for Streamflow Prediction Tool
+                               autoroute_executable_location="",  # location of AutoRoute executable
+                               autoroute_io_files_location="",  # path to AutoRoute input/outpuf directory
+                               geoserver_url="",  # url to API endpoint ending in geoserver/rest
+                               geoserver_username="",  # username for geoserver
+                               geoserver_password="",  # password for geoserver
+                               mp_mode='htcondor',  # valid options are htcondor and multiprocess,
+                               mp_execute_directory="",  # required if using multiprocess mode
+                              ):
     """
-    This it the main ECMWF RAPID process
+    This it the main ECMWF RAPID forecast process
     """
     time_begin_all = datetime.datetime.utcnow()
 
     LOCAL_SCRIPTS_DIRECTORY = os.path.dirname(os.path.realpath(__file__))
-    LOCK_INFO_FILE = os.path.join(main_log_directory, "ecmwf_rapid_run_info_lock.txt")
+    LOCK_INFO_FILE = os.path.join(main_log_directory, "spt_compute_ecmwf_run_info_lock.txt")
 
     log_file_path = os.path.join(main_log_directory,
-                                 "rapid_{0}.log".format(time_begin_all.strftime("%y%m%d%H%M%S")))
+                                 "spt_compute_ecmwf_{0}.log".format(time_begin_all.strftime("%y%m%d%H%M%S")))
 
     with CaptureStdOutToLog(log_file_path):
 
@@ -210,7 +184,7 @@ def run_ecmwf_rapid_process(rapid_executable_location,  # path to RAPID executab
 
         if download_ecmwf and ftp_host:
             # get list of folders to download
-            ecmwf_folders = sorted(get_ftp_forecast_list('Runoff.%s*.netcdf.tar*' % date_string,
+            ecmwf_folders = sorted(get_ftp_forecast_list('Runoff.%s*%s*.netcdf.tar*' % (date_string, region),
                                                          ftp_host,
                                                          ftp_login,
                                                          ftp_passwd,
@@ -227,7 +201,7 @@ def run_ecmwf_rapid_process(rapid_executable_location,  # path to RAPID executab
                 previous_lock_info = json.load(fp_lock_info)
 
             if previous_lock_info['running']:
-                print("Another ECMWF-RAPID process is running.\n"
+                print("Another SPT ECMWF forecast process is running.\n"
                       "The lock file is located here: {0}\n"
                       "If this is an error, you have two options:\n"
                       "1) Delete the lock file.\n"
@@ -307,7 +281,7 @@ def run_ecmwf_rapid_process(rapid_executable_location,  # path to RAPID executab
                                                             delete_past_ecmwf_forecasts)
 
                 # get list of forecast files
-                ecmwf_forecasts = glob(os.path.join(ecmwf_folder, '*.runoff.nc'))
+                ecmwf_forecasts = glob(os.path.join(ecmwf_folder, '*.runoff.%s*nc' % region))
 
                 # look for old version of forecasts
                 if not ecmwf_forecasts:
@@ -420,7 +394,7 @@ def run_ecmwf_rapid_process(rapid_executable_location,  # path to RAPID executab
                         else:
                             raise Exception("ERROR: Invalid mp_mode. Valid types are htcondor and multiprocess ...")
 
-                for rapid_input_directory, watershed_job_info in rapid_watershed_jobs.iteritems():
+                for rapid_input_directory, watershed_job_info in rapid_watershed_jobs.items():
                     # add sub job list to master job list
                     master_job_info_list = master_job_info_list + watershed_job_info['jobs_info']
                     if mp_mode == "htcondor":
@@ -460,8 +434,8 @@ def run_ecmwf_rapid_process(rapid_executable_location,  # path to RAPID executab
                             era_interim_files = glob(os.path.join(era_interim_watershed_directory, "return_period*.nc"))
                             if era_interim_files:
                                 try:
-                                    generate_warning_points(forecast_directory, era_interim_files[0],
-                                                            forecast_directory, threshold=10)
+                                    generate_ecmwf_warning_points(forecast_directory, era_interim_files[0],
+                                                                  forecast_directory, threshold=10)
                                     if upload_output_to_ckan and data_store_url and data_store_api_key:
                                         data_manager.initialize_run_ecmwf(watershed, subbasin, forecast_date_timestep)
                                         data_manager.zip_upload_warning_points_in_directory(forecast_directory)

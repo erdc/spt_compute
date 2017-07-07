@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
-##
-##  create_cron.py
-##  spt_ecmwf_autorapid_process
-##
-##  Created by Alan D. Snow.
-##  Copyright © 2015-2016 Alan D Snow. All rights reserved.
-##  License: BSD-3 Clause
+#
+#  create_cron.py
+#  spt_compute
+#
+#  Created by Alan D. Snow.
+#  Copyright © 2015-2016 Alan D Snow. All rights reserved.
+#  License: BSD-3 Clause
 
 from crontab import CronTab
+
 
 def create_cron(execute_command):
     """
@@ -16,7 +17,7 @@ def create_cron(execute_command):
     Ex.
 
         ::
-        from spt_ecmwf_autorapid_process.setup import create_cron
+        from spt_compute.setup import create_cron
         
         create_cron(execute_command='/usr/bin/env python /path/to/run_ecmwf_rapid.py')
 
@@ -27,5 +28,5 @@ def create_cron(execute_command):
     cron_job_morning = cron_manager.new(command=execute_command, 
                                         comment=cron_comment)
     cron_job_morning.every().hour()
-    #writes content to crontab
+    # writes content to crontab
     cron_manager.write()
