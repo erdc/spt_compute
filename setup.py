@@ -16,7 +16,9 @@ setup(
     url='https://github.com/erdc-cm/spt_compute',
     license='BSD 3-Clause',
     packages=find_packages(),
-    install_requires=['numpy', 'netCDF4', 'RAPIDpy', 'tethys_dataset_services'],
+    install_requires=['numpy', 'netCDF4', 'RAPIDpy',
+                      # 'tethys_dataset_services'
+                      ],
     classifiers=[
                 'Intended Audience :: Developers',
                 'Intended Audience :: Science/Research',
