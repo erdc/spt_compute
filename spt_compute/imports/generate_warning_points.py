@@ -5,7 +5,9 @@
 #
 #  Created by Alan D. Snow and Scott D. Christensen.
 #  License: BSD-3 Clause
+from __future__ import unicode_literals
 
+from builtins import str as text
 from datetime import datetime
 from io import open
 from json import dumps
@@ -115,11 +117,11 @@ def generate_lsm_warning_points(qout_file, return_period_file, out_directory, th
                                                 })
     print("Writing Output ...")
     with open(os.path.join(out_directory, "return_20_points.geojson"), 'w') as outfile:
-        outfile.write(dumps(return_20_points_geojson, indent=1, separators=(',', ': ')))
+        outfile.write(text(dumps(return_20_points_geojson, indent=1, separators=(',', ': '))))
     with open(os.path.join(out_directory, "return_10_points.geojson"), 'w') as outfile:
-        outfile.write(dumps(return_10_points_geojson, indent=1, separators=(',', ': ')))
+        outfile.write(text(dumps(return_10_points_geojson, indent=1, separators=(',', ': '))))
     with open(os.path.join(out_directory, "return_2_points.geojson"), 'w') as outfile:
-        outfile.write(dumps(return_2_points_geojson, indent=1, separators=(',', ': ')))
+        outfile.write(text(dumps(return_2_points_geojson, indent=1, separators=(',', ': '))))
 
 
 def generate_ecmwf_warning_points(ecmwf_prediction_folder, return_period_file, out_directory, threshold):
@@ -352,14 +354,14 @@ def generate_ecmwf_warning_points(ecmwf_prediction_folder, return_period_file, o
                                                 })
     print("Writing Output ...")
     with open(os.path.join(out_directory, "return_20_points.txt"), 'w') as outfile:
-        outfile.write(dumps(return_20_points))
+        outfile.write(text(dumps(return_20_points)))
     with open(os.path.join(out_directory, "return_10_points.txt"), 'w') as outfile:
-        outfile.write(dumps(return_10_points))
+        outfile.write(text(dumps(return_10_points)))
     with open(os.path.join(out_directory, "return_2_points.txt"), 'w') as outfile:
-        outfile.write(dumps(return_2_points))
+        outfile.write(text(dumps(return_2_points)))
     with open(os.path.join(out_directory, "return_20_points.geojson"), 'w') as outfile:
-        outfile.write(dumps(return_20_points_geojson, indent=1, separators=(',', ': ')))
+        outfile.write(text(dumps(return_20_points_geojson, indent=1, separators=(',', ': '))))
     with open(os.path.join(out_directory, "return_10_points.geojson"), 'w') as outfile:
-        outfile.write(dumps(return_10_points_geojson, indent=1, separators=(',', ': ')))
+        outfile.write(text(dumps(return_10_points_geojson, indent=1, separators=(',', ': '))))
     with open(os.path.join(out_directory, "return_2_points.geojson"), 'w') as outfile:
-        outfile.write(dumps(return_2_points_geojson, indent=1, separators=(',', ': ')))
+        outfile.write(text(dumps(return_2_points_geojson, indent=1, separators=(',', ': '))))
