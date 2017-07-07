@@ -4,7 +4,8 @@ setup(
     name='spt_compute',
     version='2.0.0',
     description='Computational framework for the Streamflow Prediciton Tool',
-    long_description='Computational framework to ingest ECMWF ensemble runoff forcasts or WRF forecasts;'
+    long_description='Computational framework to ingest ECMWF ensemble runoff forcasts '
+                     ' or otherLand Surface Model forecasts;'
                      ' generate input for and run the RAPID (rapid-hub.org) program'
                      ' using HTCondor or Python\'s Multiprocessing; and upload to '
                      ' CKAN in order to be used by the Streamflow Prediction Tool (SPT).'
@@ -16,15 +17,21 @@ setup(
     url='https://github.com/erdc-cm/spt_compute',
     license='BSD 3-Clause',
     packages=find_packages(),
-    install_requires=['numpy', 'netCDF4', 'RAPIDpy',
-                      # 'tethys_dataset_services'
-                      ],
+    install_requires=['numpy', 'netCDF4', 'RAPIDpy', 'tethys_dataset_services'],
     classifiers=[
-                'Intended Audience :: Developers',
-                'Intended Audience :: Science/Research',
-                'Operating System :: OS Independent',
-                'Programming Language :: Python',
-                'Programming Language :: Python :: 2',
-                'Programming Language :: Python :: 2.7',
-                ],
+        'Intended Audience :: Developers',
+        'Intended Audience :: Science/Research',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+    ],
+    extras_require={
+        'tests': [
+            'coveralls',
+            'pytest',
+            'pytest-cov',
+        ],
+    },
 )
