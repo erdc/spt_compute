@@ -5,6 +5,7 @@
 #
 #  Created by Alan D. Snow.
 #  License: BSD-3 Clause
+from __future__ import unicode_literals
 
 from calendar import isleap
 import datetime
