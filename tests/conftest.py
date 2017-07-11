@@ -10,6 +10,8 @@ import os
 from shutil import copytree, rmtree
 import pytest
 
+from spt_compute.imports.extractnested import ExtractNested
+
 SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
 RAPID_EXE_PATH = os.path.join(SCRIPT_DIR, "..", "..", "rapid", "src", "rapid")
 
@@ -65,6 +67,20 @@ class SetupForecast(object):
         self.watershed_compare_folder = os.path.join(tclean.compare,
                                                      'rapid_output',
                                                      watershed_folder)
+
+
+class SetupECMWFForecast(SetupForecast):
+    def __init__(self, tclean, watershed_folder, forecast_folder):
+        super(SetupECMWFForecast, self).__init__(tclean, watershed_folder, forecast_folder)
+        # make subprocess log folder
+        self.subprocess_log_folder = os.path.join(tclean.output, "subprocess_logs")
+        os.makedirs(self.subprocess_log_folder)
+        # make multiprocess execute folder
+        self.multiprocess_execute_folder = os.path.join(tclean.output, "mp_execute")
+        os.makedirs(self.multiprocess_execute_folder)
+        # extract the forecasts
+        forecast_targz = os.path.join(self.lsm_folder, "Runoff.20170708.00.C.america.exp1.Fgrid.netcdf.tar.gz")
+        ExtractNested(forecast_targz, True)
 
 
 @pytest.fixture(scope="module")
