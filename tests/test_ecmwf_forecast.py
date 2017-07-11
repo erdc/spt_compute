@@ -57,7 +57,7 @@ def test_ecmwf_forecast(ecmwf_setup):
         compare_qout_file = os.path.join(ecmwf_setup.watershed_compare_folder, out_forecast_folder, qout_name)
         with xr.open_dataset(qout_file) as xqf, \
                 xr.open_dataset(compare_qout_file) as xqc:
-            assert_almost_equal(xqf.Qout.values, xqc.Qout.values, decimal=5)
+            assert_almost_equal(xqf.Qout.values, xqc.Qout.values)
             assert_array_equal(xqf.rivid.values, xqc.rivid.values)
             assert_almost_equal(xqf.lat.values, xqc.lat.values)
             assert_almost_equal(xqf.lon.values, xqc.lon.values)
