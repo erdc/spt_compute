@@ -356,7 +356,7 @@ to your *main_log_directory* from the *run_ecmwf_rapid.py* script.
 from spt_compute import reset_lock_info_file
 
 if __name__ == "__main__":
-    LOCK_INFO_FILE = '/logs/spt_compute_ecmwf_run_info_lock.txt.txt'
+    LOCK_INFO_FILE = '/logs/spt_compute_ecmwf_run_info_lock.txt'
     reset_lock_info_file(LOCK_INFO_FILE)
 ```
 ### Create Cron Job
