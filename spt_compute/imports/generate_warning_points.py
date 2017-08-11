@@ -18,6 +18,25 @@ import pandas as pd
 
 from RAPIDpy.dataset import RAPIDDataset
 
+
+def geojson_features_to_collection(geojson_features):
+    """
+    Adds the feature collection wrapper for geojson
+    :param geojson_features:
+    :return: geojson_collection
+    """
+    return {
+        'type': 'FeatureCollection',
+        'crs': {
+          'type': 'name',
+          'properties': {
+            'name': 'EPSG:4326'
+          }
+        },
+        'features': geojson_features
+    }
+
+
 def calc_daily_peak(daily_time_index_array, idx, qout_arr, size_time):
     """
     retrieves daily qout
@@ -55,9 +74,9 @@ def generate_lsm_warning_points(qout_file, return_period_file, out_directory, th
     return_period_nc.close()
 
     print("Analyzing Forecast Data with Return Periods ...")
-    return_20_points_geojson = []
-    return_10_points_geojson = []
-    return_2_points_geojson = []
+    return_20_points_features = []
+    return_10_points_features = []
+    return_2_points_features = []
     for prediction_comid_index, prediction_rivid in enumerate(prediction_rivids):
         # get interim comid index
         return_period_comid_index = np.where(return_period_rivids == prediction_rivid)[0][0]
@@ -82,7 +101,7 @@ def generate_lsm_warning_points(qout_file, return_period_file, out_directory, th
         # generate warnings
         for daily_row in daily_df.itertuples():
             if daily_row.qout > return_period_20:
-                return_20_points_geojson.append({"type": "Feature",
+                return_20_points_features.append({"type": "Feature",
                                                  "geometry": {"type": "Point", "coordinates": [
                                                      return_period_lon_data[return_period_comid_index],
                                                      return_period_lat_data[return_period_comid_index]]},
@@ -94,7 +113,7 @@ def generate_lsm_warning_points(qout_file, return_period_file, out_directory, th
                                                                 }
                                                  })
             elif daily_row.qout > return_period_10:
-                return_10_points_geojson.append({"type": "Feature",
+                return_10_points_features.append({"type": "Feature",
                                                  "geometry": {"type": "Point", "coordinates": [
                                                      return_period_lon_data[return_period_comid_index],
                                                      return_period_lat_data[return_period_comid_index]]},
@@ -106,7 +125,7 @@ def generate_lsm_warning_points(qout_file, return_period_file, out_directory, th
                                                                 }
                                                  })
             elif daily_row.qout > return_period_2:
-                return_2_points_geojson.append({"type": "Feature",
+                return_2_points_features.append({"type": "Feature",
                                                 "geometry": {"type": "Point", "coordinates": [
                                                     return_period_lon_data[return_period_comid_index],
                                                     return_period_lat_data[return_period_comid_index]]},
@@ -117,11 +136,14 @@ def generate_lsm_warning_points(qout_file, return_period_file, out_directory, th
                                                 })
     print("Writing Output ...")
     with open(os.path.join(out_directory, "return_20_points.geojson"), 'w') as outfile:
-        outfile.write(text(dumps(return_20_points_geojson, indent=1, separators=(',', ': '))))
+        outfile.write(text(dumps(geojson_features_to_collection(return_20_points_features),
+                                 indent=1, separators=(',', ': '))))
     with open(os.path.join(out_directory, "return_10_points.geojson"), 'w') as outfile:
-        outfile.write(text(dumps(return_10_points_geojson, indent=1, separators=(',', ': '))))
+        outfile.write(text(dumps(geojson_features_to_collection(return_10_points_features),
+                           indent=1, separators=(',', ': '))))
     with open(os.path.join(out_directory, "return_2_points.geojson"), 'w') as outfile:
-        outfile.write(text(dumps(return_2_points_geojson, indent=1, separators=(',', ': '))))
+        outfile.write(text(dumps(geojson_features_to_collection(return_2_points_features),
+                                 indent=1, separators=(',', ': '))))
 
 
 def generate_ecmwf_warning_points(ecmwf_prediction_folder, return_period_file, out_directory, threshold):
@@ -213,12 +235,9 @@ def generate_ecmwf_warning_points(ecmwf_prediction_folder, return_period_file, o
     return_period_nc.close()
 
     print("Analyzing Forecast Data with Return Periods ...")
-    return_20_points = []
-    return_10_points = []
-    return_2_points = []
-    return_20_points_geojson = []
-    return_10_points_geojson = []
-    return_2_points_geojson = []
+    return_20_points_features = []
+    return_10_points_features = []
+    return_2_points_features = []
     for prediction_comid_index, prediction_rivid in enumerate(prediction_rivids):
         #get interim comid index
         return_period_comid_index = np.where(return_period_rivids==prediction_rivid)[0][0]
@@ -253,14 +272,7 @@ def generate_ecmwf_warning_points(ecmwf_prediction_folder, return_period_file, o
         for idx, daily_time_index in enumerate(daily_time_index_array):
             daily_mean_peak = calc_daily_peak(daily_time_index_array, idx, mean_series, size_time)
             if daily_mean_peak > return_period_20:
-                return_20_points.append({ "lat" : return_period_lat_data[return_period_comid_index],
-                                          "lon" : return_period_lon_data[return_period_comid_index],
-                                          "size": 1,
-                                          "mean_peak": float("{0:.2f}".format(daily_mean_peak)),
-                                          "peak_date": time_array[daily_time_index].strftime("%Y-%m-%d"),
-                                          "rivid": int(prediction_rivid),
-                                          })
-                return_20_points_geojson.append({ "type": "Feature",
+                return_20_points_features.append({ "type": "Feature",
                                                   "geometry": { "type": "Point", "coordinates": [return_period_lon_data[return_period_comid_index], return_period_lat_data[return_period_comid_index]]},
                                                   "properties": { "mean_peak": float("{0:.2f}".format(daily_mean_peak)),
                                                                   "peak_date": time_array[daily_time_index].strftime("%Y-%m-%d"),
@@ -269,14 +281,7 @@ def generate_ecmwf_warning_points(ecmwf_prediction_folder, return_period_file, o
                                                                   }
                                                 })
             elif daily_mean_peak > return_period_10:
-                return_10_points.append({ "lat" : return_period_lat_data[return_period_comid_index],
-                                          "lon" : return_period_lon_data[return_period_comid_index],
-                                          "size": 1,
-                                          "mean_peak": float("{0:.2f}".format(daily_mean_peak)),
-                                          "peak_date": time_array[daily_time_index].strftime("%Y-%m-%d"),
-                                          "rivid": int(prediction_rivid),
-                                          })
-                return_10_points_geojson.append({ "type": "Feature",
+                return_10_points_features.append({ "type": "Feature",
                                                   "geometry": { "type": "Point", "coordinates": [return_period_lon_data[return_period_comid_index], return_period_lat_data[return_period_comid_index]]},
                                                   "properties": { "mean_peak": float("{0:.2f}".format(daily_mean_peak)),
                                                                   "peak_date": time_array[daily_time_index].strftime("%Y-%m-%d"),
@@ -285,14 +290,7 @@ def generate_ecmwf_warning_points(ecmwf_prediction_folder, return_period_file, o
                                                                   }
                                                 })
             elif daily_mean_peak > return_period_2:
-                return_2_points.append({ "lat" : return_period_lat_data[return_period_comid_index],
-                                          "lon" : return_period_lon_data[return_period_comid_index],
-                                          "size": 1,
-                                          "mean_peak": float("{0:.2f}".format(daily_mean_peak)),
-                                          "peak_date": time_array[daily_time_index].strftime("%Y-%m-%d"),
-                                          "rivid": int(prediction_rivid),
-                                          })
-                return_2_points_geojson.append({ "type": "Feature",
+                return_2_points_features.append({ "type": "Feature",
                                                   "geometry": { "type": "Point", "coordinates": [return_period_lon_data[return_period_comid_index], return_period_lat_data[return_period_comid_index]]},
                                                   "properties": { "mean_peak": float("{0:.2f}".format(daily_mean_peak)),
                                                                   "peak_date": time_array[daily_time_index].strftime("%Y-%m-%d"),
@@ -305,14 +303,7 @@ def generate_ecmwf_warning_points(ecmwf_prediction_folder, return_period_file, o
                                            calc_daily_peak(daily_time_index_array, idx, max_series, size_time))
 
             if daily_mean_plus_std_peak > return_period_20:
-                return_20_points.append({ "lat" : return_period_lat_data[return_period_comid_index],
-                                          "lon" : return_period_lon_data[return_period_comid_index],
-                                          "size": 0,
-                                          "mean_plus_std_peak": float("{0:.2f}".format(daily_mean_plus_std_peak)),
-                                          "peak_date": time_array[daily_time_index].strftime("%Y-%m-%d"),
-                                          "rivid": int(prediction_rivid),
-                                          })
-                return_20_points_geojson.append({ "type": "Feature",
+                return_20_points_features.append({ "type": "Feature",
                                                   "geometry": { "type": "Point", "coordinates": [return_period_lon_data[return_period_comid_index], return_period_lat_data[return_period_comid_index]]},
                                                   "properties": { "mean_plus_std_peak": float("{0:.2f}".format(daily_mean_plus_std_peak)),
                                                                   "peak_date": time_array[daily_time_index].strftime("%Y-%m-%d"),
@@ -321,14 +312,7 @@ def generate_ecmwf_warning_points(ecmwf_prediction_folder, return_period_file, o
                                                                   }
                                                 })
             elif daily_mean_plus_std_peak > return_period_10:
-                return_10_points.append({ "lat" : return_period_lat_data[return_period_comid_index],
-                                          "lon" : return_period_lon_data[return_period_comid_index],
-                                          "size": 0,
-                                          "mean_plus_std_peak": float("{0:.2f}".format(daily_mean_plus_std_peak)),
-                                          "peak_date": time_array[daily_time_index].strftime("%Y-%m-%d"),
-                                          "rivid": int(prediction_rivid),
-                                          })
-                return_10_points_geojson.append({ "type": "Feature",
+                return_10_points_features.append({ "type": "Feature",
                                                   "geometry": { "type": "Point", "coordinates": [return_period_lon_data[return_period_comid_index], return_period_lat_data[return_period_comid_index]]},
                                                   "properties": { "mean_plus_std_peak": float("{0:.2f}".format(daily_mean_plus_std_peak)),
                                                                   "peak_date": time_array[daily_time_index].strftime("%Y-%m-%d"),
@@ -337,14 +321,7 @@ def generate_ecmwf_warning_points(ecmwf_prediction_folder, return_period_file, o
                                                                   }
                                                 })
             elif daily_mean_plus_std_peak > return_period_2:
-                return_2_points.append({ "lat" : return_period_lat_data[return_period_comid_index],
-                                          "lon" : return_period_lon_data[return_period_comid_index],
-                                          "size": 0,
-                                          "mean_plus_std_peak": float("{0:.2f}".format(daily_mean_plus_std_peak)),
-                                          "peak_date": time_array[daily_time_index].strftime("%Y-%m-%d"),
-                                          "rivid": int(prediction_rivid),
-                                          })
-                return_2_points_geojson.append({ "type": "Feature",
+                return_2_points_features.append({ "type": "Feature",
                                                   "geometry": { "type": "Point", "coordinates": [return_period_lon_data[return_period_comid_index], return_period_lat_data[return_period_comid_index]]},
                                                   "properties": { "mean_plus_std_peak": float("{0:.2f}".format(daily_mean_plus_std_peak)),
                                                                   "peak_date": time_array[daily_time_index].strftime("%Y-%m-%d"),
@@ -353,15 +330,12 @@ def generate_ecmwf_warning_points(ecmwf_prediction_folder, return_period_file, o
                                                                   }
                                                 })
     print("Writing Output ...")
-    with open(os.path.join(out_directory, "return_20_points.txt"), 'w') as outfile:
-        outfile.write(text(dumps(return_20_points)))
-    with open(os.path.join(out_directory, "return_10_points.txt"), 'w') as outfile:
-        outfile.write(text(dumps(return_10_points)))
-    with open(os.path.join(out_directory, "return_2_points.txt"), 'w') as outfile:
-        outfile.write(text(dumps(return_2_points)))
     with open(os.path.join(out_directory, "return_20_points.geojson"), 'w') as outfile:
-        outfile.write(text(dumps(return_20_points_geojson, indent=1, separators=(',', ': '))))
+        outfile.write(text(dumps(geojson_features_to_collection(return_20_points_features),
+                                 indent=1, separators=(',', ': '))))
     with open(os.path.join(out_directory, "return_10_points.geojson"), 'w') as outfile:
-        outfile.write(text(dumps(return_10_points_geojson, indent=1, separators=(',', ': '))))
+        outfile.write(text(dumps(geojson_features_to_collection(return_10_points_features),
+                                 indent=1, separators=(',', ': '))))
     with open(os.path.join(out_directory, "return_2_points.geojson"), 'w') as outfile:
-        outfile.write(text(dumps(return_2_points_geojson, indent=1, separators=(',', ': '))))
+        outfile.write(text(dumps(geojson_features_to_collection(return_2_points_features),
+                                 indent=1, separators=(',', ': '))))
