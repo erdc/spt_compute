@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta
 from glob import glob
-import json
 import os
 
 from numpy.testing import assert_almost_equal, assert_array_equal
@@ -10,21 +9,12 @@ import xarray as xr
 
 from spt_compute import run_lsm_forecast_process
 
-from .conftest import RAPID_EXE_PATH, SetupForecast
+from .conftest import compare_warnings, RAPID_EXE_PATH, SetupForecast
 
 
 @pytest.fixture(scope="function")
 def wrf_setup(request, tclean):
     return SetupForecast(tclean, "m-s", "wrf")
-
-
-def compare_warnings(return_file, compare_return_file):
-    """compares warning json files"""
-    with open(return_file) as returnfp, \
-            open(compare_return_file) as creturnfp:
-        returndata = json.load(returnfp)
-        creturndata = json.load(creturnfp)
-        assert returndata == creturndata
 
 
 def test_wrf_forecast(wrf_setup):
