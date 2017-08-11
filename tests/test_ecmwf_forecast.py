@@ -9,7 +9,7 @@ import xarray as xr
 
 from spt_compute import run_ecmwf_forecast_process
 
-from .conftest import RAPID_EXE_PATH, SetupECMWFForecast
+from .conftest import compare_warnings, RAPID_EXE_PATH, SetupECMWFForecast
 
 
 @pytest.fixture(scope="function")
@@ -41,6 +41,7 @@ def test_ecmwf_forecast(ecmwf_setup):
                                mp_execute_directory=ecmwf_setup.multiprocess_execute_folder,
                                region=region,
                                initialize_flows=True,
+                               create_warning_points=True,
                                download_ecmwf=False,
                                mp_mode='multiprocess')
 
@@ -64,3 +65,24 @@ def test_ecmwf_forecast(ecmwf_setup):
 
     # check Qinit file
     assert os.path.exists(os.path.join(ecmwf_setup.watershed_input_folder, 'Qinit_20170708t00.csv'))
+    # check warning points
+    return_2_warnings = os.path.join(output_folder, "return_2_points.geojson")
+    return_10_warnings = os.path.join(output_folder, "return_10_points.geojson")
+    return_20_warnings = os.path.join(output_folder, "return_20_points.geojson")
+    assert os.path.exists(return_2_warnings)
+    compare_return2_file = os.path.join(ecmwf_setup.watershed_compare_folder,
+                                        out_forecast_folder,
+                                        'return_2_points.geojson')
+
+    compare_warnings(return_2_warnings, compare_return2_file)
+    assert os.path.exists(return_10_warnings)
+    compare_return10_file = os.path.join(ecmwf_setup.watershed_compare_folder,
+                                        out_forecast_folder,
+                                        'return_10_points.geojson')
+    compare_warnings(return_10_warnings, compare_return10_file)
+    assert os.path.exists(return_20_warnings)
+    compare_return20_file = os.path.join(ecmwf_setup.watershed_compare_folder,
+                                        out_forecast_folder,
+                                        'return_20_points.geojson')
+    compare_warnings(return_20_warnings, compare_return20_file)
+
