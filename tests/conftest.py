@@ -5,9 +5,10 @@
 #
 #  Author : Alan D Snow, 2017.
 #  License: BSD 3-Clause
-
+import json
 import os
 from shutil import copytree, rmtree
+
 import pytest
 
 from spt_compute.imports.extractnested import ExtractNested
@@ -15,6 +16,13 @@ from spt_compute.imports.extractnested import ExtractNested
 SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
 RAPID_EXE_PATH = os.path.join(SCRIPT_DIR, "..", "..", "rapid", "src", "rapid")
 
+def compare_warnings(return_file, compare_return_file):
+    """compares warning json files"""
+    with open(return_file) as returnfp, \
+            open(compare_return_file) as creturnfp:
+        returndata = json.load(returnfp)
+        creturndata = json.load(creturnfp)
+        assert returndata == creturndata
 
 class TestDirectories(object):
     input = os.path.join(SCRIPT_DIR, 'input')
