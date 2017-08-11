@@ -50,7 +50,7 @@
    "type": "Feature",
    "properties": {
     "peak_date": "2017-07-09",
-    "mean_peak": 10.91,
+    "mean_peak": 10.92,
     "size": 1,
     "rivid": 21890
    }
@@ -67,7 +67,7 @@
    "properties": {
     "peak_date": "2017-07-09",
     "size": 0,
-    "mean_plus_std_peak": 23.54,
+    "mean_plus_std_peak": 23.56,
     "rivid": 21890
    }
   },
@@ -163,7 +163,7 @@
    "properties": {
     "peak_date": "2017-07-09",
     "size": 0,
-    "mean_plus_std_peak": 16.83,
+    "mean_plus_std_peak": 17.2,
     "rivid": 22074
    }
   },
@@ -178,7 +178,7 @@
    "type": "Feature",
    "properties": {
     "peak_date": "2017-07-10",
-    "mean_peak": 12.17,
+    "mean_peak": 12.21,
     "size": 1,
     "rivid": 22074
    }
@@ -195,7 +195,7 @@
    "properties": {
     "peak_date": "2017-07-10",
     "size": 0,
-    "mean_plus_std_peak": 19.96,
+    "mean_plus_std_peak": 19.99,
     "rivid": 22074
    }
   },
