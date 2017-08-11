@@ -81,7 +81,9 @@ def test_wrf_forecast_historical(wrf_setup):
     qout_file = os.path.join(output_folder, qout_name)
     assert os.path.exists(qout_file)
 
-    compare_qout_file = os.path.join(wrf_setup.watershed_compare_folder, out_forecast_folder, 'Qout_wrf_wrf_1hr_20080601to20080601_init.nc')
+    compare_qout_file = os.path.join(wrf_setup.watershed_compare_folder,
+                                     out_forecast_folder,
+                                     'Qout_wrf_wrf_1hr_20080601to20080601_init.nc')
     with xr.open_dataset(qout_file) as xqf, \
             xr.open_dataset(compare_qout_file) as xqc:
         assert_almost_equal(xqf.Qout.values, xqc.Qout.values)
