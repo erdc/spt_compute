@@ -41,7 +41,7 @@ def run_lsm_forecast_process(rapid_executable_location,
     historical_data_location: str, optional
         Path to return period and seasonal data.
     warning_flow_threshold: float, optional
-        inimum value for return period in m3/s to generate warning.
+        Minimum value for return period in m3/s to generate warning.
         Default is None.
     """
     time_begin_all = datetime.utcnow()
