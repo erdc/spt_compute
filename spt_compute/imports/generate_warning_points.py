@@ -10,6 +10,7 @@
     Created by Alan D. Snow and Scott D. Christensen, 2015-2017.
     License: BSD-3 Clause
 """
+# pylint: disable=superfluous-parens, too-many-locals, too-many-statements
 from __future__ import unicode_literals
 
 from builtins import str as text
