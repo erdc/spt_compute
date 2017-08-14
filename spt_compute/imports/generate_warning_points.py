@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
-#
-#  generate_warning_points.py
-#  spt_compute
-#
-#  Created by Alan D. Snow and Scott D. Christensen.
-#  License: BSD-3 Clause
+"""generate_warning_points.py
+
+    This file containse functions to
+    generate GeoJSON warning point
+    files based on historical return period data
+    and the most recent forecast.
+
+
+    Created by Alan D. Snow and Scott D. Christensen, 2015-2017.
+    License: BSD-3 Clause
+"""
 from __future__ import unicode_literals
 
 from builtins import str as text
@@ -15,7 +20,6 @@ import os
 from netCDF4 import Dataset as NETDataset
 import numpy as np
 import pandas as pd
-from RAPIDpy.dataset import RAPIDDataset
 import xarray
 
 
@@ -35,32 +39,14 @@ def geojson_features_to_collection(geojson_features):
     }
 
 
-def calc_daily_peak(daily_time_index_array, idx, qout_arr, size_time):
-    """
-    retrieves daily qout
-    """
-    len_daily_time_array = len(daily_time_index_array)
-    time_index_start = daily_time_index_array[idx]
-    if idx+1 < len_daily_time_array:
-        next_time_index = daily_time_index_array[idx+1]
-        return np.max(qout_arr[time_index_start:next_time_index])
-    elif idx+1 == len_daily_time_array:
-        if time_index_start < size_time - 1:
-            return np.max(qout_arr[time_index_start:-1])
-        else:
-            return qout_arr[time_index_start]
-    return 0
-
-
 def generate_lsm_warning_points(qout_file, return_period_file, out_directory,
                                 threshold=None):
     """
     Create warning points from return periods and LSM prediction data
     """
     # get the comids in qout file
-    with RAPIDDataset(qout_file) as qout_nc:
-        prediction_rivids = qout_nc.get_river_id_array()
-        time_array = qout_nc.get_time_array(return_datetime=True)
+    with xarray.open_dataset(qout_file) as qout_nc:
+        prediction_rivids = qout_nc.rivid.values
 
     print("Extracting Return Period Data ...")
     return_period_nc = NETDataset(return_period_file, mode="r")
@@ -76,7 +62,7 @@ def generate_lsm_warning_points(qout_file, return_period_file, out_directory,
     return_20_points_features = []
     return_10_points_features = []
     return_2_points_features = []
-    for prediction_comid_index, prediction_rivid in\
+    for prediciton_rivid_index, prediction_rivid in\
             enumerate(prediction_rivids):
         # get interim comid index
         return_period_comid_index = \
@@ -97,15 +83,14 @@ def generate_lsm_warning_points(qout_file, return_period_file, out_directory,
                 return_period_2 = threshold
 
         # get daily peaks
-        with RAPIDDataset(qout_file) as qout_nc:
-            qout_df = pd.DataFrame(
-                {'qout': qout_nc.get_qout_index(prediction_comid_index)},
-                index=time_array)
-
-            daily_df = qout_df.resample('D').max()
+        with xarray.open_dataset(qout_file) as qout_nc:
+            daily_df = \
+                qout_nc.isel(rivid=prediciton_rivid_index).Qout\
+                       .resample('D', dim='time', how='max', skipna=True)\
+                       .to_dataframe().Qout
 
         # generate warnings
-        for daily_row in daily_df.itertuples():
+        for peak_time, peak_qout in daily_df.iteritems():
             feature_geojson = {
                 "type": "Feature",
                 "geometry": {
@@ -113,17 +98,17 @@ def generate_lsm_warning_points(qout_file, return_period_file, out_directory,
                     "coordinates": [lon_coord, lat_coord]
                 },
                 "properties": {
-                    "peak": float("{0:.2f}".format(daily_row.qout)),
-                    "peak_date": daily_row.Index.strftime("%Y-%m-%d"),
+                    "peak": float("{0:.2f}".format(peak_qout)),
+                    "peak_date": peak_time.strftime("%Y-%m-%d"),
                     "rivid": int(prediction_rivid),
                 }
             }
 
-            if daily_row.qout > return_period_20:
+            if peak_qout > return_period_20:
                 return_20_points_features.append(feature_geojson)
-            elif daily_row.qout > return_period_10:
+            elif peak_qout > return_period_10:
                 return_10_points_features.append(feature_geojson)
-            elif daily_row.qout > return_period_2:
+            elif peak_qout > return_period_2:
                 return_2_points_features.append(feature_geojson)
 
     print("Writing Output ...")
@@ -186,12 +171,13 @@ def generate_ecmwf_warning_points(ecmwf_prediction_folder, return_period_file,
     return_20_points_features = []
     return_10_points_features = []
     return_2_points_features = []
-    for rivid_index, rivid in enumerate(return_period_rivids):
-        return_period_20 = return_period_20_data[rivid_index]
-        return_period_10 = return_period_10_data[rivid_index]
-        return_period_2 = return_period_2_data[rivid_index]
-        lat_coord = return_period_lat_data[rivid_index]
-        lon_coord = return_period_lon_data[rivid_index]
+    for rivid_index, rivid in enumerate(merged_ds.rivid.values):
+        return_rivid_index = np.where(return_period_rivids == rivid)[0][0]
+        return_period_20 = return_period_20_data[return_rivid_index]
+        return_period_10 = return_period_10_data[return_rivid_index]
+        return_period_2 = return_period_2_data[return_rivid_index]
+        lat_coord = return_period_lat_data[return_rivid_index]
+        lon_coord = return_period_lon_data[return_rivid_index]
 
         # create graduated thresholds if needed
         if return_period_20 < threshold:
@@ -200,11 +186,11 @@ def generate_ecmwf_warning_points(ecmwf_prediction_folder, return_period_file,
             return_period_2 = threshold
 
         # get mean
-        mean_ar = mean_ds.sel(rivid=rivid)
+        mean_ar = mean_ds.isel(rivid=rivid_index)
         # mean plus std
-        std_ar = std_ds.sel(rivid=rivid)
+        std_ar = std_ds.isel(rivid=rivid_index)
         std_upper_ar = (mean_ar + std_ar)
-        max_ar = max_ds.sel(rivid=rivid)
+        max_ar = max_ds.isel(rivid=rivid_index)
         std_upper_ar[std_upper_ar > max_ar] = max_ar
 
         combinded_stats = pd.DataFrame({
