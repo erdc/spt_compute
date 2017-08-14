@@ -107,7 +107,7 @@ def run_ecmwf_forecast_process(rapid_executable_location,  # path to RAPID execu
                                ecmwf_forecast_location,  # path to ECMWF forecasts
                                subprocess_log_directory,  # path to store HTCondor/multiprocess logs
                                main_log_directory,  # path to store main logs
-                               region="",#1 of the 12 partitioned ECMWF files. Leave empty if using global
+                               region="",#1 of the 12 partitioned ECMWF files. Leave empty if using global,
                                data_store_url="",  # CKAN API url
                                data_store_api_key="",  # CKAN API Key,
                                data_store_owner_org="",  # CKAN owner organization
@@ -123,6 +123,7 @@ def run_ecmwf_forecast_process(rapid_executable_location,  # path to RAPID execu
                                upload_output_to_ckan=False,  # upload data to CKAN and remove local copy
                                delete_output_when_done=False,  # delete all output data from this code
                                initialize_flows=False,  # use forecast to initialize next run
+                               warning_flow_threshold=10,  # flows below this threshold will be ignored
                                era_interim_data_location="",  # path to ERA Interim return period data
                                create_warning_points=False,  # generate waring points for Streamflow Prediction Tool
                                autoroute_executable_location="",  # location of AutoRoute executable
@@ -435,7 +436,7 @@ def run_ecmwf_forecast_process(rapid_executable_location,  # path to RAPID execu
                             if era_interim_files:
                                 try:
                                     generate_ecmwf_warning_points(forecast_directory, era_interim_files[0],
-                                                                  forecast_directory, threshold=10)
+                                                                  forecast_directory, threshold=warning_flow_threshold)
                                     if upload_output_to_ckan and data_store_url and data_store_api_key:
                                         data_manager.initialize_run_ecmwf(watershed, subbasin, forecast_date_timestep)
                                         data_manager.zip_upload_warning_points_in_directory(forecast_directory)

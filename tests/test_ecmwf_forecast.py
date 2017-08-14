@@ -89,6 +89,7 @@ def test_ecmwf_forecast_historical(ecmwf_setup):
                                subprocess_log_directory=ecmwf_setup.subprocess_log_folder,
                                mp_execute_directory=ecmwf_setup.multiprocess_execute_folder,
                                region=region,
+                               warning_flow_threshold=0.1,
                                initialize_flows=True,
                                create_warning_points=True,
                                download_ecmwf=False,
