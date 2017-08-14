@@ -169,6 +169,7 @@ if __name__ == "__main__":
 |*upload_output_to_ckan*|Boolean|(Optional) If true, this will upload the output to CKAN for the Streamflow Prediction Tool to download. |False|
 |*delete_output_when_done*|String|(Optional) If true, all output will be deleted when the process completes. It is used when using operationally with *upload_output_to_ckan* set to true. |False|
 |*initialize_flows*|String|(Optional) If true, this will initialize flows from all avaialble methods (e.g. Past forecasts, historical data, streamgage data). |False|
+|*warning_flows_threshold*|Float|(Optional) Minimum value for return period in m3/s to generate warning. |10|
 |*era_interim_data_location*|String|(Optional) Path to ERA Interim based historical streamflow, return period data, and seasonal average data. |""|
 |*create_warning_points*|Boolean|(Optional) Generate waring points for Streamflow Prediction Tool. This requires return period data to be located in the *era_interim_data_location*. |False|
 |*autoroute_executable_location*|String|(Optional/Beta) Path to AutoRoute executable. |""|
