@@ -137,13 +137,13 @@ def generate_lsm_warning_points(qout_file, return_period_file, out_directory, th
     print("Writing Output ...")
     with open(os.path.join(out_directory, "return_20_points.geojson"), 'w') as outfile:
         outfile.write(text(dumps(geojson_features_to_collection(return_20_points_features),
-                                 indent=1, separators=(',', ': '))))
+                                 separators=(',', ': '))))
     with open(os.path.join(out_directory, "return_10_points.geojson"), 'w') as outfile:
         outfile.write(text(dumps(geojson_features_to_collection(return_10_points_features),
-                           indent=1, separators=(',', ': '))))
+                           separators=(',', ': '))))
     with open(os.path.join(out_directory, "return_2_points.geojson"), 'w') as outfile:
         outfile.write(text(dumps(geojson_features_to_collection(return_2_points_features),
-                                 indent=1, separators=(',', ': '))))
+                                 separators=(',', ': '))))
 
 
 def generate_ecmwf_warning_points(ecmwf_prediction_folder, return_period_file, out_directory, threshold):
@@ -332,10 +332,10 @@ def generate_ecmwf_warning_points(ecmwf_prediction_folder, return_period_file, o
     print("Writing Output ...")
     with open(os.path.join(out_directory, "return_20_points.geojson"), 'w') as outfile:
         outfile.write(text(dumps(geojson_features_to_collection(return_20_points_features),
-                                 indent=1, separators=(',', ': '))))
+                                 separators=(',', ': '))))
     with open(os.path.join(out_directory, "return_10_points.geojson"), 'w') as outfile:
         outfile.write(text(dumps(geojson_features_to_collection(return_10_points_features),
-                                 indent=1, separators=(',', ': '))))
+                                 separators=(',', ': '))))
     with open(os.path.join(out_directory, "return_2_points.geojson"), 'w') as outfile:
         outfile.write(text(dumps(geojson_features_to_collection(return_2_points_features),
-                                 indent=1, separators=(',', ': '))))
+                                 separators=(',', ': '))))
