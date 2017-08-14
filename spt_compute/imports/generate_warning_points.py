@@ -41,7 +41,7 @@ def geojson_features_to_collection(geojson_features):
 
 
 def generate_lsm_warning_points(qout_file, return_period_file, out_directory,
-                                threshold=None):
+                                threshold):
     """
     Create warning points from return periods and LSM prediction data
     """

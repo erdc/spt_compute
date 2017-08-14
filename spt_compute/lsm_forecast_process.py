@@ -23,7 +23,8 @@ def run_lsm_forecast_process(rapid_executable_location,
                              lsm_forecast_location,
                              main_log_directory,
                              timedelta_between_forecasts=timedelta(seconds=12 * 3600),
-                             historical_data_location=""):
+                             historical_data_location="",
+                             warning_flow_threshold=None):
     """
     Parameters
     ----------
@@ -37,8 +38,11 @@ def run_lsm_forecast_process(rapid_executable_location,
         Path to directory to store main logs.
     timedelta_between_forecasts: :obj:`datetime.timedelta`
         Time difference between forecasts.
-    historical_data_location: str
+    historical_data_location: str, optional
         Path to return period and seasonal data.
+    warning_flow_threshold: float, optional
+        inimum value for return period in m3/s to generate warning.
+        Default is None.
     """
     time_begin_all = datetime.utcnow()
 
@@ -125,21 +129,25 @@ def run_lsm_forecast_process(rapid_executable_location,
             if os.path.exists(historical_watershed_directory):
                 return_period_files = glob(os.path.join(historical_watershed_directory, "return_period*.nc"))
                 if return_period_files:
-                    print("Generating warning points for {0}-{1} from {2}".format(watershed, subbasin,
-                                                                                  forecast_date_string))
+                    print("Generating warning points for {0}-{1} from {2}"
+                          .format(watershed, subbasin, forecast_date_string))
                     try:
-                        generate_lsm_warning_points(forecast_file, return_period_files[0],
-                                                    forecast_directory)
+                        generate_lsm_warning_points(forecast_file,
+                                                    return_period_files[0],
+                                                    forecast_directory,
+                                                    warning_flow_threshold)
                     except Exception as ex:
                         print(ex)
                         pass
 
             # PHASE 2.3: GENERATE INITIALIZATION FOR NEXT RUN
-            print("Initializing flows for {0}-{1} from {2}".format(watershed, subbasin,
-                                                                   forecast_date_string))
+            print("Initializing flows for {0}-{1} from {2}"
+                  .format(watershed, subbasin, forecast_date_string))
             try:
-                compute_initial_flows_lsm(forecast_file, master_watershed_input_directory,
-                                          current_forecast_start_datetime + timedelta_between_forecasts)
+                compute_initial_flows_lsm(forecast_file,
+                                          master_watershed_input_directory,
+                                          current_forecast_start_datetime +
+                                          timedelta_between_forecasts)
             except Exception as ex:
                 print(ex)
                 pass
