@@ -1,1 +1,1 @@
-{"crs": {"type": "name","properties": {"name": "EPSG:4326"}},"type": "FeatureCollection","features": []}
+{"crs": {"type": "name", "properties": {"name": "EPSG:4326"}}, "type": "FeatureCollection", "features": [{"geometry": {"type": "Point", "coordinates": [-86.24862407496275, 38.62140171663975]}, "type": "Feature", "properties": {"peak_date": "2008-06-01", "peak": 0.03, "rivid": 18445550}}, {"geometry": {"type": "Point", "coordinates": [-86.27753353213048, 38.61901807619826]}, "type": "Feature", "properties": {"peak_date": "2008-06-01", "peak": 0.07, "rivid": 18445184}}]}
