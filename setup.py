@@ -23,6 +23,7 @@ setup(
         'pandas',
         'RAPIDpy',
         'tethys_dataset_services',
+        'xarray',
     ],
     classifiers=[
         'Intended Audience :: Developers',
