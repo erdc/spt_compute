@@ -144,6 +144,7 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
                                             ZS_dtR=15*60, #internal routing time step
                                             ZS_TauM=duration_1hr, #total simulation time
                                             ZS_dtM=interval_1hr, #RAPID internal loop time interval
+                                            ZS_dtF=interval_1hr, # forcing time interval
                                             Vlat_file=inflow_file_name_1hr,
                                             Qout_file=outflow_file_name,
                                             Qinit_file=qinit_file,
@@ -166,6 +167,7 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
                                             ZS_dtR=15*60, #internal routing time step
                                             ZS_TauM=duration_3hr, #total simulation time 
                                             ZS_dtM=interval_3hr, #RAPID internal loop time interval
+                                            ZS_dtF=interval_3hr,  # forcing time interval
                                             Vlat_file=inflow_file_name_3hr,
                                             Qout_file=qout_3hr)
             rapid_manager.run()
@@ -185,6 +187,7 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
                                             ZS_dtR=15*60, #internal routing time step
                                             ZS_TauM=duration_6hr, #total simulation time 
                                             ZS_dtM=interval_6hr, #RAPID internal loop time interval
+                                            ZS_dtF=interval_6hr,  # forcing time interval
                                             Vlat_file=inflow_file_name_6hr,
                                             Qout_file=qout_6hr)
             rapid_manager.run()
@@ -243,6 +246,7 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
                                             ZS_dtR=15*60, #internal routing time step
                                             ZS_TauM=duration_3hr, #total simulation time 
                                             ZS_dtM=interval_3hr, #RAPID internal loop time interval
+                                            ZS_dtF=interval_3hr,  # forcing time interval
                                             Vlat_file=inflow_file_name_3hr,
                                             Qout_file=outflow_file_name,
                                             Qinit_file=qinit_file,
@@ -264,6 +268,7 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
                                             ZS_dtR=15*60, #internal routing time step
                                             ZS_TauM=duration_6hr, #total simulation time 
                                             ZS_dtM=interval_6hr, #RAPID internal loop time interval
+                                            ZS_dtF=interval_6hr,  # forcing time interval
                                             Vlat_file=inflow_file_name_6hr,
                                             Qout_file=qout_6hr)
             rapid_manager.run()
