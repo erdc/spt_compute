@@ -11,7 +11,7 @@
 import os
 import sys
 
-from spt_ecmwf_autorapid_process.imports.ecmwf_rapid_multiprocess_worker \
+from spt_compute.imports.ecmwf_rapid_multiprocess_worker \
      import ecmwf_rapid_multiprocess_worker
     
 def htcondor_process_ECMWF_RAPID(ecmwf_forecast, forecast_date_timestep, 
