@@ -4,7 +4,7 @@
 ##  spt_compute
 ##
 ##  Created by Alan D. Snow.
-##  Copyright © 2015-2016 Alan D Snow. All rights reserved.
+##  Copyright © 2015-2017 Alan D Snow. All rights reserved.
 ##  License: BSD 3-Clause
 
 import datetime
@@ -46,29 +46,48 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
             pass
 
     #prepare ECMWF file for RAPID
-    print("Running all ECMWF downscaling for watershed: {0}-{1} {2} {3}".format(watershed, 
-                                                                                subbasin,
-                                                                                forecast_date_timestep,
-                                                                                ensemble_number))
+    print("INFO: Running all ECMWF downscaling for watershed: {0}-{1} {2} {3}"
+          .format(watershed,
+                  subbasin,
+                  forecast_date_timestep,
+                  ensemble_number))
 
     #set up RAPID manager
     rapid_connect_file=case_insensitive_file_search(rapid_input_directory,
                                                     r'rapid_connect\.csv')
 
-    rapid_manager = RAPID(rapid_executable_location=rapid_executable_location,
-                          rapid_connect_file=rapid_connect_file,
-                          riv_bas_id_file=case_insensitive_file_search(rapid_input_directory,
-                                                                       r'riv_bas_id.*?\.csv'),
-                          k_file=case_insensitive_file_search(rapid_input_directory,
-                                                              r'k\.csv'),
-                          x_file=case_insensitive_file_search(rapid_input_directory,
-                                                              r'x\.csv'),
-                          ZS_dtM=3*60*60, #RAPID internal loop time interval
-                         )
-    
+    rapid_manager = RAPID(
+        rapid_executable_location=rapid_executable_location,
+        rapid_connect_file=rapid_connect_file,
+        riv_bas_id_file=case_insensitive_file_search(rapid_input_directory,
+                                                     r'riv_bas_id.*?\.csv'),
+        k_file=case_insensitive_file_search(rapid_input_directory,
+                                            r'k\.csv'),
+        x_file=case_insensitive_file_search(rapid_input_directory,
+                                            r'x\.csv'),
+        ZS_dtM=3*60*60, #RAPID internal loop time interval
+    )
+
+    # check for forcing flows
+    try:
+        rapid_manager.update_parameters(
+            Qfor_file=case_insensitive_file_search(rapid_input_directory,
+                                                   r'qfor\.csv'),
+            for_tot_id_file=case_insensitive_file_search(rapid_input_directory,
+                                                         r'for_tot_id\.csv'),
+            for_use_id_file=case_insensitive_file_search(rapid_input_directory,
+                                                         r'for_use_id\.csv'),
+            ZS_dtF=3*60*60, # forcing time interval
+            BS_opt_for=True
+        )
+    except Exception:
+        print('WARNING: Forcing files not found. Skipping forcing ...')
+        pass
+
+
     rapid_manager.update_reach_number_data()
-    
-    outflow_file_name = os.path.join(node_path, 
+
+    outflow_file_name = os.path.join(node_path,
                                      'Qout_%s_%s_%s.nc' % (watershed.lower(), 
                                                            subbasin.lower(), 
                                                            ensemble_number))
@@ -91,7 +110,7 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
                                                             r'comid_lat_lon_z.*?\.csv')
     except Exception:
         comid_lat_lon_z_file = ""
-        print("comid_lat_lon_z_file not found. Not adding lat/lon/z to output file ...")
+        print("WARNING: comid_lat_lon_z_file not found. Not adding lat/lon/z to output file ...")
 
     RAPIDinflowECMWF_tool = CreateInflowFileFromECMWFRunoff()
     forecast_resolution = RAPIDinflowECMWF_tool.dataIdentify(ecmwf_forecast)
@@ -284,7 +303,7 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
 
         try:
 
-            print("Converting ECMWF inflow ...")
+            print("INFO: Converting ECMWF inflow ...")
             RAPIDinflowECMWF_tool.execute(ecmwf_forecast, 
                                           weight_table_file, 
                                           inflow_file_name,
@@ -317,7 +336,7 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
         raise Exception("ERROR: invalid forecast resolution ...")
         
     time_stop_all = datetime.datetime.utcnow()
-    print("Total time to compute: {0}".format(time_stop_all-time_start_all))
+    print("INFO: Total time to compute: {0}".format(time_stop_all-time_start_all))
 
 def run_ecmwf_rapid_multiprocess_worker(args):
     """
