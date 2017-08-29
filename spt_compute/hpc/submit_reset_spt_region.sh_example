@@ -1,0 +1,13 @@
+#!/bin/bash
+#PBS -j oe
+#PBS -l select=1:ncpus=28:mpiprocs=1:ngpus=1
+#PBS -l walltime=00:00:30
+#PBS -q standard
+#ulimit -s unlimited
+
+#PATH FOR ANACONDA LIBRARY
+export PATH=$PBS_O_HOME/miniconda2/bin:$PATH
+#ACTIVATE ENVIRONMENT
+source activate spt
+#RUN SCRIPT
+python $PBS_O_HOME/scripts/reset_spt_region.py ${region_name}

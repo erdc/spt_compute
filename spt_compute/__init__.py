@@ -1,3 +1,4 @@
 from .ecmwf_forecast_process import run_ecmwf_forecast_process
+from .hpc.spt_hpc_watershed_groups_process import spt_hpc_watershed_groups_process
 from .lsm_forecast_process import run_lsm_forecast_process
 from .process_lock import reset_lock_info_file
