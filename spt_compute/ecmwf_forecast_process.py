@@ -49,6 +49,7 @@ from .imports.helper_functions import (CaptureStdOutToLog,
                                        clean_logs,
                                        find_current_rapid_output,
                                        get_valid_watershed_list,
+                                       get_datetime_from_date_timestep,
                                        get_datetime_from_forecast_folder,
                                        get_date_timestep_from_forecast_folder,
                                        get_ensemble_number_from_forecast,
@@ -486,9 +487,9 @@ def run_ecmwf_forecast_process(rapid_executable_location,  # path to RAPID execu
                                           geoserver_password,
                                           app_instance_id)
 
-                last_forecast_date = datetime.datetime.strptime(forecast_date_timestep[:11], '%Y%m%d.%H')
+                last_forecast_date = get_datetime_from_date_timestep(forecast_date_timestep)
 
-                # update lock info file with next forecast
+                                # update lock info file with next forecast
                 update_lock_info_file(LOCK_INFO_FILE, True, last_forecast_date.strftime('%Y%m%d%H'))
 
                 # ----------------------------------------------------------------------
