@@ -49,6 +49,7 @@ from .imports.helper_functions import (CaptureStdOutToLog,
                                        clean_logs,
                                        find_current_rapid_output,
                                        get_valid_watershed_list,
+                                       get_datetime_from_forecast_folder,
                                        get_date_timestep_from_forecast_folder,
                                        get_ensemble_number_from_forecast,
                                        get_watershed_subbasin_from_folder, )
@@ -214,8 +215,7 @@ def run_ecmwf_forecast_process(rapid_executable_location,  # path to RAPID execu
                 run_ecmwf_folders = []
                 for ecmwf_folder in ecmwf_folders:
                     # get date
-                    forecast_date_timestep = get_date_timestep_from_forecast_folder(ecmwf_folder)
-                    forecast_date = datetime.datetime.strptime(forecast_date_timestep[:11], '%Y%m%d.%H')
+                    forecast_date = get_datetime_from_forecast_folder(ecmwf_folder)
                     # if more recent, add to list
                     if forecast_date > last_forecast_date:
                         run_ecmwf_folders.append(ecmwf_folder)
