@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='spt_compute',
-    version='2.0.0',
+    version='2.0.1',
     description='Computational framework for the Streamflow Prediciton Tool',
     long_description='Computational framework to ingest ECMWF ensemble runoff forcasts '
                      ' or otherLand Surface Model forecasts;'
