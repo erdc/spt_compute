@@ -192,7 +192,12 @@ def generate_ecmwf_warning_points(ecmwf_prediction_folder, return_period_file,
         std_ar = std_ds.isel(rivid=rivid_index)
         std_upper_ar = (mean_ar + std_ar)
         max_ar = max_ds.isel(rivid=rivid_index)
-        std_upper_ar[std_upper_ar > max_ar] = max_ar
+        
+	for i, val in enumerate(std_upper_ar > max_ar):
+            if val:
+                std_upper_ar[i] = max_ar[i]
+
+        #std_upper_ar[std_upper_ar > max_ar] = max_ar
 
         combinded_stats = pd.DataFrame({
             'mean': mean_ar.to_dataframe().Qout,
