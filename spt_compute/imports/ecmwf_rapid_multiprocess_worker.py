@@ -26,7 +26,7 @@ from .helper_functions import (case_insensitive_file_search,
 def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
                                     ecmwf_forecast, forecast_date_timestep, 
                                     watershed, subbasin, rapid_executable_location, 
-                                    init_flow):
+                                    init_flow, i_number_of_processors):
     """
     Multiprocess worker function
     """
@@ -66,6 +66,7 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
         x_file=case_insensitive_file_search(rapid_input_directory,
                                             r'x\.csv'),
         ZS_dtM=3*60*60, #RAPID internal loop time interval
+        num_procssors=i_number_of_processors
     )
 
     # check for forcing flows
@@ -360,7 +361,7 @@ def run_ecmwf_rapid_multiprocess_worker(args):
     mp_execute_directory = args[9]
     subprocess_forecast_log_dir = args[10]
     watershed_job_index = args[11]
-    
+    i_number_of_processors = args[12]
     
     with CaptureStdOutToLog(os.path.join(subprocess_forecast_log_dir, "{0}.log".format(job_name))):
         #create folder to run job
@@ -374,7 +375,7 @@ def run_ecmwf_rapid_multiprocess_worker(args):
             ecmwf_rapid_multiprocess_worker(execute_directory, rapid_input_directory,
                                             ecmwf_forecast, forecast_date_timestep, 
                                             watershed, subbasin, rapid_executable_location, 
-                                            initialize_flows)
+                                            initialize_flows, i_number_of_processors)
              
             #move output file from compute node to master location
             node_rapid_outflow_file = os.path.join(execute_directory, 
