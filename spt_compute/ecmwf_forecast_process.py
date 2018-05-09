@@ -431,6 +431,10 @@ def run_ecmwf_forecast_process(rapid_executable_location,  # path to RAPID execu
                         # Calculate the number of slots available given the number of processors specified
                         i_number_of_slots = int(math.floor(i_number_of_total_processors / mp_processors))
 
+                        # Check that there are models to fill all the slots
+                        if len(rapid_watershed_jobs[rapid_input_directory]['jobs']) < i_number_of_slots:
+                            i_number_of_slots = len(rapid_watershed_jobs[rapid_input_directory]['jobs'])
+
                         # Open the processing pool with the number of slots
                         pool_main = mp.Pool(processes=i_number_of_slots)
 
