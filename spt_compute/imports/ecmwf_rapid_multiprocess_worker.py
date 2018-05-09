@@ -8,7 +8,7 @@
 ##  License: BSD 3-Clause
 
 import datetime
-import os
+import os, time
 from RAPIDpy import RAPID
 from RAPIDpy.postprocess import ConvertRAPIDOutputToCF
 from shutil import move, rmtree
@@ -193,6 +193,7 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
                                             Qout_file=qout_6hr)
             rapid_manager.run()
 
+
             #Merge all files together at the end
             cv = ConvertRAPIDOutputToCF(rapid_output_file=[outflow_file_name, qout_3hr, qout_6hr], 
                                         start_datetime=datetime.datetime.strptime(forecast_date_timestep[:11], "%Y%m%d.%H"), 
@@ -372,11 +373,25 @@ def run_ecmwf_rapid_multiprocess_worker(args):
             pass
         
         try:
+
+            # todo: Disable code here after benchmarking
+            s_start_time = time.time()
+
+            # Main run code
             ecmwf_rapid_multiprocess_worker(execute_directory, rapid_input_directory,
                                             ecmwf_forecast, forecast_date_timestep, 
                                             watershed, subbasin, rapid_executable_location, 
                                             initialize_flows, i_number_of_processors)
-             
+
+            # todo: Disable code here after benchmarking
+            s_stop_time = time.time()
+
+            s_file = os.path.join(rapid_input_directory, 'output', 'benchmark_' + watershed + '_' + subbasin + '.txt')
+            o_file = open(s_file, 'a+')
+            o_file.write(str(i_number_of_processors) + '\t' + str(s_stop_time-s_start_time))
+            o_file.flush()
+            o_file.close()
+
             #move output file from compute node to master location
             node_rapid_outflow_file = os.path.join(execute_directory, 
                                                    os.path.basename(master_rapid_outflow_file))

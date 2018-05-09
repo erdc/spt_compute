@@ -553,5 +553,3 @@ def run_ecmwf_forecast_process(rapid_executable_location,  # path to RAPID execu
         print("Time Finish: {0}".format(time_end))
         print("TOTAL TIME: {0}".format(time_end - time_begin_all))
 
-        # Return the compute time to the calling function
-        return time_end - time_begin_all
