@@ -133,7 +133,7 @@ def run_ecmwf_forecast_process(rapid_executable_location,  # path to RAPID execu
                                geoserver_url="",  # url to API endpoint ending in geoserver/rest
                                geoserver_username="",  # username for geoserver
                                geoserver_password="",  # password for geoserver
-                               mp_mode='htcondor',  # valid options are htcondor and multiprocess,
+                               mp_mode='multiprocess',  # valid options are htcondor and multiprocess,
                                mp_processors=1, # number of processors to use for each model. A list of values for each
                                                 # input is also permitted if using htcondor
                                mp_execute_directory="",  # required if using multiprocess mode
@@ -552,3 +552,6 @@ def run_ecmwf_forecast_process(rapid_executable_location,  # path to RAPID execu
         print("Time Begin: {0}".format(time_begin_all))
         print("Time Finish: {0}".format(time_end))
         print("TOTAL TIME: {0}".format(time_end - time_begin_all))
+
+        # Return the compute time to the calling function
+        return time_end - time_begin_all
