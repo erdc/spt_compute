@@ -66,7 +66,7 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
         x_file=case_insensitive_file_search(rapid_input_directory,
                                             r'x\.csv'),
         ZS_dtM=3*60*60, #RAPID internal loop time interval
-        num_procssors=i_number_of_processors
+        num_processors=i_number_of_processors
     )
 
     # check for forcing flows
@@ -367,6 +367,7 @@ def run_ecmwf_rapid_multiprocess_worker(args):
     with CaptureStdOutToLog(os.path.join(subprocess_forecast_log_dir, "{0}.log".format(job_name))):
         #create folder to run job
         execute_directory = os.path.join(mp_execute_directory, job_name)
+
         try:
             os.mkdir(execute_directory)
         except OSError:
@@ -386,9 +387,9 @@ def run_ecmwf_rapid_multiprocess_worker(args):
             # todo: Disable code here after benchmarking
             s_stop_time = time.time()
 
-            s_file = os.path.join(rapid_input_directory, 'output', 'benchmark_' + watershed + '_' + subbasin + '.txt')
+            s_file = os.path.join('/data/spt/gis/benchmark/',  watershed + '_' + subbasin + '.txt')
             o_file = open(s_file, 'a+')
-            o_file.write(str(i_number_of_processors) + '\t' + str(s_stop_time-s_start_time))
+            o_file.write(str(i_number_of_processors) + '\t' + str(s_stop_time-s_start_time) + '\n')
             o_file.flush()
             o_file.close()
 

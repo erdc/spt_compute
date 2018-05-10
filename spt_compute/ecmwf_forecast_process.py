@@ -429,7 +429,23 @@ def run_ecmwf_forecast_process(rapid_executable_location,  # path to RAPID execu
                         i_number_of_total_processors = mp.cpu_count()
 
                         # Calculate the number of slots available given the number of processors specified
-                        i_number_of_slots = int(math.floor(i_number_of_total_processors / mp_processors))
+                        i_number_of_slots = int(math.floor((i_number_of_total_processors - 1) / (mp_processors + 1)))
+                        print(i_number_of_total_processors - 1)
+                        print(mp_processors + 1)
+                        print(math.floor((i_number_of_total_processors - 1) / (mp_processors + 1))) 
+
+                        # Handle zero slot conditions
+                        if i_number_of_slots == 0: 
+                            if i_number_of_total_processors > 3:
+                                # Reduce to the full processors available on the machine minus two for the ongoing processors.
+                                i_number_of_slots = 1
+                                mp_processors = i_number_of_total_processors - 2
+
+                            else:
+                                # Too few processors are available on the machine for multiprocessing mode
+                                raise AttributeError('Too few processing cores are available on the machine for a ' +
+                                                     'multiprocessing environment. Please change to a different compute' +
+                                                     'configuration or a different machine.')
 
                         # Check that there are models to fill all the slots
                         if len(rapid_watershed_jobs[rapid_input_directory]['jobs']) < i_number_of_slots:
