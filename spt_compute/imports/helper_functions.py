@@ -52,10 +52,10 @@ def case_insensitive_file_search(directory, pattern):
 
 def clean_main_logs(main_log_directory, prepend="rapid_", log_file_path=""):
     """
-    This removes main logs older than three days old
+    This removes main logs older than seven days old
     """
     date_today = datetime.datetime.utcnow()
-    week_timedelta = datetime.timedelta(3)
+    week_timedelta = datetime.timedelta(7)
 
     # clean up log files
     main_log_files = [f for f in os.listdir(main_log_directory) if
@@ -65,7 +65,7 @@ def clean_main_logs(main_log_directory, prepend="rapid_", log_file_path=""):
 
     for main_log_file in main_log_files:
         try:
-            log_datetime = datetime.datetime.strptime(main_log_file[:18],
+            log_datetime = datetime.datetime.strptime(main_log_file[:len(prepend)+12],
                                                       "{0}%y%m%d%H%M%S".format(
                                                           prepend))
             if date_today - log_datetime > week_timedelta:

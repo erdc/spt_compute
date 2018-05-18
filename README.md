@@ -116,12 +116,12 @@ Create a file *run_ecmwf_rapid.py* and change these variables for your instance.
 
 ```python
 # -*- coding: utf-8 -*-
-from spt_compute import run_ecmwf_forecast_process
+from spt_compute import ECMWFForecastProcessor
 #------------------------------------------------------------------------------
 #main process
 #------------------------------------------------------------------------------
 if __name__ == "__main__":
-    run_ecmwf_forecast_process(
+    ECMWFForecastProcessor(
         rapid_executable_location='/home/alan/scripts/rapid/src/rapid',
         rapid_io_files_location='/home/alan/rapid-io',
         ecmwf_forecast_location ="/home/alan/ecmwf",
@@ -146,7 +146,7 @@ if __name__ == "__main__":
         #mp_execute_directory='',
     )
 ```
-### run_ecmwf_rapid_process Function Variables
+### ECMWFForecastProcessor Class Variables
 
 |Variable|Data Type|Description|Default|
 |---|:---:|---|:---:|
@@ -160,7 +160,7 @@ if __name__ == "__main__":
 |*app_instance_id*|String|(Optional) Streamflow Prediction tool instance ID. |""|
 |*sync_rapid_input_with_ckan*|Boolean|(Optional) If set to true, this will download ECMWF-RAPID input cooresponding to your instance of the Streamflow Prediction Tool. |False|
 |*download_ecmwf*|Boolean|(Optional) If set to true, this will download the most recent ECMWF forecasts for today before runnning the process. |True|
-|*date_string*|String|(Optional) This string will be used to modify the date of the forecasts downloaded and/or the forecasts ran. It is in the format yyyymmdd (e.g. 20160808). |None|
+|*date_string*|String|(Optional) This string will be used to modify the date of the forecasts downloaded and/or the forecasts run. It is in the format yyyymmdd (e.g. 20160808). Or it can also be used to specify to only run AM forecasts ('*.00') or only PM forecasts ('*.12'). |None|
 |*ftp_host*|String|(Optional) ECMWF ftp site path (e.g. ftp.ecmwf.int). |""|
 |*ftp_login*|String|(Optional) ECMWF ftp login name. |""|
 |*ftp_passwd*|String|(Optional) ECMWF ftp password. |""|
@@ -185,7 +185,7 @@ There are many different configurations. Here are some examples.
 
 #### Mode 1: Run ECMWF-RAPID for Streamflow Prediction Tool using HTCondor to run and CKAN to upload
 ```python
-run_ecmwf_forecast_process(
+ECMWFForecastProcessor(
     rapid_executable_location='/home/alan/scripts/rapid/src/rapid',
     rapid_io_files_location='/home/alan/rapid-io',
     ecmwf_forecast_location ="/home/alan/ecmwf",
@@ -210,7 +210,7 @@ run_ecmwf_forecast_process(
 
 #### Mode 2: Run ECMWF-RAPID for Streamflow Prediction Tool using HTCondor to run and CKAN to upload & to download model files
 ```python
-run_ecmwf_forecast_process(
+ECMWFForecastProcessor(
     rapid_executable_location='/home/alan/scripts/rapid/src/rapid',
     rapid_io_files_location='/home/alan/rapid-io',
     ecmwf_forecast_location ="/home/alan/ecmwf",
@@ -235,7 +235,7 @@ run_ecmwf_forecast_process(
 ```
 #### Mode 3: Run ECMWF-RAPID for Streamflow Prediction Tool using Multiprocessing to run and CKAN to upload
 ```python
-run_ecmwf_forecast_process(
+ECMWFForecastProcessor(
     rapid_executable_location='/home/alan/scripts/rapid/src/rapid',
     rapid_io_files_location='/home/alan/rapid-io',
     ecmwf_forecast_location ="/home/alan/ecmwf",
@@ -263,7 +263,7 @@ run_ecmwf_forecast_process(
 Note that in this example, CKAN was not used. However, you can still add CKAN back in to this example with the parameters shown in the previous examples.
 
 ```python
-run_ecmwf_forecast_process(
+ECMWFForecastProcessor(
     rapid_executable_location='/home/alan/rapid/src/rapid',
     rapid_io_files_location='/home/alan/rapid-io',
     ecmwf_forecast_location ="/home/alan/ecmwf",
