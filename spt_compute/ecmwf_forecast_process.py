@@ -112,11 +112,15 @@ def analyize_subprocess_logs(subprocess_log_directory, forecast_date_timestep, w
 
     times = list()
     for log_file in log_files:
-        with open(log_file, 'r') as log:
-            lines = log.readlines()
-            time_components = lines[-1].split()[-1].split(':')
-            time = float(time_components[0]) * 3600 + float(time_components[1]) * 60 + float(time_components[2])
-            times.append(time)
+        try:
+            with open(log_file, 'r') as log:
+                lines = log.readlines()
+                time_components = lines[-1].split()[-1].split(':')
+                seconds = float(time_components[0]) * 3600 + float(time_components[1]) * 60 + float(time_components[2])
+                times.append(seconds)
+        except Exception as e:
+            print('The following error occurred while trying to parse the log file "{}":\n{}: {}\n'
+                  .format(log_file, e.__class__.__name__, e))
 
     if times:
 
@@ -476,7 +480,8 @@ class ECMWFForecastProcessor(object):
                 # ----------------------------------------------------------------------
         except Exception as ex:
             print_exc()
-            self.log.ERROR(ex)
+            self.log.ERROR('The following error occured while running the ECMWF Forecast Process:\n{}: {}'
+                           .format(ex.__class__.__name__, ex))
 
         self.log_heading_manager.level -= 1
         # Release & update lock info file with all completed forecasts
