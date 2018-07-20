@@ -8,7 +8,7 @@
 ##  License: BSD 3-Clause
 
 import datetime
-import os
+import os, time
 from RAPIDpy import RAPID
 from RAPIDpy.postprocess import ConvertRAPIDOutputToCF
 from shutil import move, rmtree
@@ -26,7 +26,7 @@ from .helper_functions import (case_insensitive_file_search,
 def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
                                     ecmwf_forecast, forecast_date_timestep, 
                                     watershed, subbasin, rapid_executable_location, 
-                                    init_flow):
+                                    init_flow, i_number_of_processors):
     """
     Multiprocess worker function
     """
@@ -66,6 +66,7 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
         x_file=case_insensitive_file_search(rapid_input_directory,
                                             r'x\.csv'),
         ZS_dtM=3*60*60, #RAPID internal loop time interval
+        num_processors=i_number_of_processors
     )
 
     # check for forcing flows
@@ -191,6 +192,7 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
                                             Vlat_file=inflow_file_name_6hr,
                                             Qout_file=qout_6hr)
             rapid_manager.run()
+
 
             #Merge all files together at the end
             cv = ConvertRAPIDOutputToCF(rapid_output_file=[outflow_file_name, qout_3hr, qout_6hr], 
@@ -360,22 +362,37 @@ def run_ecmwf_rapid_multiprocess_worker(args):
     mp_execute_directory = args[9]
     subprocess_forecast_log_dir = args[10]
     watershed_job_index = args[11]
-    
+    i_number_of_processors = args[12]
     
     with CaptureStdOutToLog(os.path.join(subprocess_forecast_log_dir, "{0}.log".format(job_name))):
         #create folder to run job
         execute_directory = os.path.join(mp_execute_directory, job_name)
+
         try:
             os.mkdir(execute_directory)
         except OSError:
             pass
         
         try:
+
+            # todo: Disable code here after benchmarking
+            s_start_time = time.time()
+
+            # Main run code
             ecmwf_rapid_multiprocess_worker(execute_directory, rapid_input_directory,
                                             ecmwf_forecast, forecast_date_timestep, 
                                             watershed, subbasin, rapid_executable_location, 
-                                            initialize_flows)
-             
+                                            initialize_flows, i_number_of_processors)
+
+            # todo: Disable code here after benchmarking
+            s_stop_time = time.time()
+
+            s_file = os.path.join('/data/spt/gis/benchmark/',  watershed + '_' + subbasin + '.txt')
+            o_file = open(s_file, 'a+')
+            o_file.write(str(i_number_of_processors) + '\t' + str(s_stop_time-s_start_time) + '\n')
+            o_file.flush()
+            o_file.close()
+
             #move output file from compute node to master location
             node_rapid_outflow_file = os.path.join(execute_directory, 
                                                    os.path.basename(master_rapid_outflow_file))

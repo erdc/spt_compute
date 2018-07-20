@@ -10,8 +10,8 @@
 import datetime
 from glob import glob
 import json
-from multiprocessing import Pool as mp_Pool
-import os
+import multiprocessing as mp
+import os, math
 from shutil import rmtree
 import tarfile
 from traceback import print_exc
@@ -133,12 +133,27 @@ def run_ecmwf_forecast_process(rapid_executable_location,  # path to RAPID execu
                                geoserver_url="",  # url to API endpoint ending in geoserver/rest
                                geoserver_username="",  # username for geoserver
                                geoserver_password="",  # password for geoserver
-                               mp_mode='htcondor',  # valid options are htcondor and multiprocess,
+                               mp_mode='multiprocess',  # valid options are htcondor and multiprocess,
+                               mp_processors=1, # number of processors to use for each model. A list of values for each
+                                                # input is also permitted if using htcondor
                                mp_execute_directory="",  # required if using multiprocess mode
                               ):
     """
     This it the main ECMWF RAPID forecast process
     """
+
+    ### Data validation ###
+    ## Parallel computation ##
+    # Enforce a positive, nonzero number of cores per model if specifying a constant number
+    if isinstance(mp_processors, int):
+        assert mp_processors > 0
+
+    # Enforce HTcondor is enabled if using variable processors for each model
+    if isinstance(mp_processors, list):
+        assert mp_mode == 'htcondor'
+
+
+    ### Main code sequence ###
     time_begin_all = datetime.datetime.utcnow()
 
     LOCAL_SCRIPTS_DIRECTORY = os.path.dirname(os.path.realpath(__file__))
@@ -379,7 +394,8 @@ def run_ecmwf_forecast_process(rapid_executable_location,  # path to RAPID execu
                                                                                         master_watershed_input_directory,
                                                                                         mp_execute_directory,
                                                                                         subprocess_forecast_log_dir,
-                                                                                        watershed_job_index))
+                                                                                        watershed_job_index,
+                                                                                        mp_processors))
                             # COMMENTED CODE FOR DEBUGGING SERIALLY
                             ##                    run_ecmwf_rapid_multiprocess_worker((forecast,
                             ##                                                         forecast_date_timestep,
@@ -408,7 +424,37 @@ def run_ecmwf_forecast_process(rapid_executable_location,  # path to RAPID execu
                                 upload_single_forecast(watershed_job_info['jobs_info'][job_index], data_manager)
 
                     elif mp_mode == "multiprocess":
-                        pool_main = mp_Pool()
+                        ## Setup the compute pool ##
+                        # Get the number of processors available in the shared memory space
+                        i_number_of_total_processors = mp.cpu_count()
+
+                        # Calculate the number of slots available given the number of processors specified
+                        i_number_of_slots = int(math.floor((i_number_of_total_processors - 1) / (mp_processors + 1)))
+                        print(i_number_of_total_processors - 1)
+                        print(mp_processors + 1)
+                        print(math.floor((i_number_of_total_processors - 1) / (mp_processors + 1))) 
+
+                        # Handle zero slot conditions
+                        if i_number_of_slots == 0: 
+                            if i_number_of_total_processors > 3:
+                                # Reduce to the full processors available on the machine minus two for the ongoing processors.
+                                i_number_of_slots = 1
+                                mp_processors = i_number_of_total_processors - 2
+
+                            else:
+                                # Too few processors are available on the machine for multiprocessing mode
+                                raise AttributeError('Too few processing cores are available on the machine for a ' +
+                                                     'multiprocessing environment. Please change to a different compute' +
+                                                     'configuration or a different machine.')
+
+                        # Check that there are models to fill all the slots
+                        if len(rapid_watershed_jobs[rapid_input_directory]['jobs']) < i_number_of_slots:
+                            i_number_of_slots = len(rapid_watershed_jobs[rapid_input_directory]['jobs'])
+
+                        # Open the processing pool with the number of slots
+                        pool_main = mp.Pool(processes=i_number_of_slots)
+
+                        # Submit runds to the pool
                         multiprocess_worker_list = pool_main.imap_unordered(run_ecmwf_rapid_multiprocess_worker,
                                                                             watershed_job_info['jobs'],
                                                                             chunksize=1)
@@ -522,3 +568,4 @@ def run_ecmwf_forecast_process(rapid_executable_location,  # path to RAPID execu
         print("Time Begin: {0}".format(time_begin_all))
         print("Time Finish: {0}".format(time_end))
         print("TOTAL TIME: {0}".format(time_end - time_begin_all))
+
