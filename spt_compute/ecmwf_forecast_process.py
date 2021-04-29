@@ -135,6 +135,7 @@ def run_ecmwf_forecast_process(rapid_executable_location,  # path to RAPID execu
                                geoserver_password="",  # password for geoserver
                                mp_mode='htcondor',  # valid options are htcondor and multiprocess,
                                mp_execute_directory="",  # required if using multiprocess mode
+                               delete_tar_file=False, # delete ECMWF tar.gz file after extracting
                               ):
     """
     This it the main ECMWF RAPID forecast process
@@ -280,7 +281,8 @@ def run_ecmwf_forecast_process(rapid_executable_location,  # path to RAPID execu
                     ecmwf_folder = download_and_extract_ftp(ecmwf_forecast_location, ecmwf_folder,
                                                             ftp_host, ftp_login,
                                                             ftp_passwd, ftp_directory,
-                                                            delete_past_ecmwf_forecasts)
+                                                            delete_past_ecmwf_forecasts,
+                                                            delete_tar_file)
 
                 # get list of forecast files
                 ecmwf_forecasts = glob(os.path.join(ecmwf_folder, '*.runoff.%s*nc' % region))
