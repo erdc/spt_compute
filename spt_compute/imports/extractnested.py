@@ -12,6 +12,7 @@ import re
 import tarfile
 import gzip
 from argparse import ArgumentParser
+from glob import glob
 
 major_version = 1
 minor_version = 1
@@ -177,7 +178,58 @@ def ExtractNested(tarfile_fullpath, delete_tar_file=False):
         # Given tar file is extracted to extract_folder_name. Now descend
         # down its directory structure and extract all other tar files
         # (recursively).
+
+    ### Added 28 APR 2021, dealing with intermittent ECMWF issues
+    MoveFilesToForecastRoot(extract_folder_name)
+
+### Added 28 APR 2021, dealing with intermittent ECMWF issues
+def MoveFilesToForecastRoot(root):
+    # Move NetCDF files to the root of the forecast directory
+    file_paths = FindNetCDFDirectory(root)
+    file_names = [x.split("/")[-1] for x in file_paths]
+    
+    for i,file in enumerate(file_names):
+        assert file in file_paths[i]
+        os.rename(file_paths[i],os.path.join(root,file))
+
+    RemoveEmptyDirectories(root)
+
+### Added 28 APR 2021, dealing with intermittent ECMWF issues
+def FindNetCDFDirectory(root):
+    # Recursively check through forecast directory to find netcdf files
+    os.chdir(root)
+    expected = [os.path.join(os.getcwd(),"{0}.runoff.nc".format(x+1)) for x in range(52)]
+    paths = [os.path.join(os.getcwd(),x) for x in glob("*")]
+    files = None
+    if all([x in paths for x in expected]):
+        files = expected
+    else:
+        paths = [x for x in paths if os.path.isdir(x)]
+        for path in paths:
+            next = FindNetCDFDirectory(path)
+            if next:
+                files = next
+    return files
+
+### Added 28 APR 2021, dealing with intermittent ECMWF issues
+def RemoveEmptyDirectories(root):
+    # Recurses through subdirectories and removes empty ones
+    os.chdir(root)
+    globs = [os.path.join(os.getcwd(),x) for x in glob("*")]
+    unchecked = [x for x in globs if os.path.isdir(x)]
+    checked = []
+    for path in unchecked:
+        if os.path.isfile(path):
+            checked.append(path)
+        else:
+            check = RemoveEmptyDirectories(path)
+            if not check:
+                os.rmdir(path)
+            else:
+                checked.append(path)
+    return checked
         
+
 if __name__ == '__main__':
     # Use a parser for parsing command line arguments
     parser = ArgumentParser(description='Nested tar archive extractor %d.%d'\
