@@ -159,7 +159,8 @@ def remove_old_ftp_downloads(folder):
 def download_and_extract_ftp(download_dir, file_to_download, 
                              ftp_host, ftp_login, 
                              ftp_passwd, ftp_directory,
-                             remove_past_downloads=True):
+                             remove_past_downloads=True,
+                             remove_tar_after_extract=False):
                                  
     """
     Downloads and extracts file from FTP server
@@ -191,7 +192,7 @@ def download_and_extract_ftp(download_dir, file_to_download,
             #extract from tar.gz
             if unzip_file:
                 print("Extracting: {0}".format(file_to_download))
-                ExtractNested(local_path, True)
+                ExtractNested(local_path, remove_tar_after_extract)
             else:
                 print('{0} already extracted. Skipping extraction ...'.format(file_to_download))
         except Exception:
