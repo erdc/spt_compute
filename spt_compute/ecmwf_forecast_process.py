@@ -122,6 +122,7 @@ def run_ecmwf_forecast_process(rapid_executable_location,  # path to RAPID execu
                                ftp_passwd="",  # ECMWF ftp password
                                ftp_directory="",  # ECMWF ftp directory
                                delete_past_ecmwf_forecasts=True,  # Deletes all past forecasts before next run
+                               delete_past_ecmwf_tar_files=False, # Deletes all tar files from past forecasts before next run
                                upload_output_to_ckan=False,  # upload data to CKAN and remove local copy
                                delete_output_when_done=False,  # delete all output data from this code
                                initialize_flows=False,  # use forecast to initialize next run
@@ -282,6 +283,7 @@ def run_ecmwf_forecast_process(rapid_executable_location,  # path to RAPID execu
                                                             ftp_host, ftp_login,
                                                             ftp_passwd, ftp_directory,
                                                             delete_past_ecmwf_forecasts,
+                                                            delete_past_ecmwf_tar_files,
                                                             delete_tar_file)
 
                 # get list of forecast files
