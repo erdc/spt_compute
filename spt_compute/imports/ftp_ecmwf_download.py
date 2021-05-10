@@ -145,7 +145,7 @@ def get_ftp_forecast_list(file_match, ftp_host, ftp_login,
     return file_list
 
 
-def remove_old_ftp_downloads(folder):
+def remove_old_ftp_downloads(folder,remove_tar_files=False):
     """
     Remove all previous ECMWF downloads
     """
@@ -153,8 +153,10 @@ def remove_old_ftp_downloads(folder):
     for path in all_paths:
         if os.path.isdir(path):
             rmtree(path)
-        else:
+        elif remove_tar_files:
             os.remove(path)
+        else:
+            pass
             
 def download_and_extract_ftp(download_dir, file_to_download, 
                              ftp_host, ftp_login, 
