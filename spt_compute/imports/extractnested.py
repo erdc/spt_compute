@@ -180,7 +180,7 @@ def ExtractNested(tarfile_fullpath, delete_tar_file=False):
         # (recursively).
 
     ### Added 28 APR 2021, dealing with intermittent ECMWF issues
-    MoveFilesToForecastRoot(extract_folder_name)
+    MoveFilesToForecastRoot(extract_folder_fullpath)
 
 ### Added 28 APR 2021, dealing with intermittent ECMWF issues
 def MoveFilesToForecastRoot(root):
@@ -193,6 +193,8 @@ def MoveFilesToForecastRoot(root):
         os.rename(file_paths[i],os.path.join(root,file))
 
     RemoveEmptyDirectories(root)
+    # Return to original working directory
+    os.chdir(root)
 
 ### Added 28 APR 2021, dealing with intermittent ECMWF issues
 def FindNetCDFDirectory(root):
