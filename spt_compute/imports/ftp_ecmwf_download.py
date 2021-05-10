@@ -145,28 +145,33 @@ def get_ftp_forecast_list(file_match, ftp_host, ftp_login,
     return file_list
 
 
-def remove_old_ftp_downloads(folder):
+def remove_old_ftp_downloads(folder,remove_tar_files=False):
     """
     Remove all previous ECMWF downloads
+    UPDATE: 10 MAY 2021 - tar.gz file removal now optional
     """
     all_paths = glob(os.path.join(folder,'Runoff*netcdf*'))
     for path in all_paths:
         if os.path.isdir(path):
             rmtree(path)
-        else:
+        elif remove_tar_files:
             os.remove(path)
+        else:
+            pass
             
 def download_and_extract_ftp(download_dir, file_to_download, 
                              ftp_host, ftp_login, 
                              ftp_passwd, ftp_directory,
-                             remove_past_downloads=True):
+                             remove_past_downloads=True,
+                             remove_tar_files=False,
+                             remove_tar_after_extract=False):
                                  
     """
     Downloads and extracts file from FTP server
     remove old downloads to preserve space
     """
     if remove_past_downloads:
-        remove_old_ftp_downloads(download_dir)
+        remove_old_ftp_downloads(download_dir,remove_tar_files)
     
     ftp_client = PyFTPclient(host=ftp_host,
                              login=ftp_login,
@@ -191,7 +196,7 @@ def download_and_extract_ftp(download_dir, file_to_download,
             #extract from tar.gz
             if unzip_file:
                 print("Extracting: {0}".format(file_to_download))
-                ExtractNested(local_path, True)
+                ExtractNested(local_path, remove_tar_after_extract)
             else:
                 print('{0} already extracted. Skipping extraction ...'.format(file_to_download))
         except Exception:
