@@ -160,6 +160,7 @@ def download_and_extract_ftp(download_dir, file_to_download,
                              ftp_host, ftp_login, 
                              ftp_passwd, ftp_directory,
                              remove_past_downloads=True,
+                             remove_past_tar_files=False,
                              remove_tar_after_extract=False):
                                  
     """
@@ -167,7 +168,7 @@ def download_and_extract_ftp(download_dir, file_to_download,
     remove old downloads to preserve space
     """
     if remove_past_downloads:
-        remove_old_ftp_downloads(download_dir)
+        remove_old_ftp_downloads(download_dir,remove_past_tar_files)
     
     ftp_client = PyFTPclient(host=ftp_host,
                              login=ftp_login,
