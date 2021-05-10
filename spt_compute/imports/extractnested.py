@@ -26,11 +26,11 @@ __all__ = ['ExtractNested', 'WalkTreeAndExtract']
 
 def FileExtension(file_name):
     """Return the file extension of file
-
+	
     'file' should be a string. It can be either the full path of
     the file or just its name (or any string as long it contains
     the file extension.)
-
+	
     Example #1:
     input (file) -->  'abc.tar.gz'
     return value -->  'tar.gz'
@@ -52,22 +52,22 @@ def FileExtension(file_name):
 def AppropriateFolderName(folder_fullpath):
     """Return a folder (path) such that it can be safely created in
     without replacing any existing folder in it.
-
+	
     Check if the folder folder_fullpath exists. If no, return folder_fullpath
     (without changing, because it can be safely created
     without replacing any already existing folder). If yes, append an
     appropriate number to the folder_fullpath such that this new folder_fullpath
     can be safely created.
-
+	
     Examples:
     folder_name  = '/a/b/untitled folder'
     return value = '/a/b/untitled folder'   (no such folder already exists.)
-
+	
     folder_name  = '/a/b/untitled folder'
     return value = '/a/b/untitled folder 1' (the folder '/a/b/untitled folder'
                                             already exists but no folder named
                                             '/a/b/untitled folder 1' exists.)
-
+											
     folder_name  = '/a/b/untitled folder'
     return value = '/a/b/untitled folder 2' (the folders '/a/b/untitled folder'
                                             and '/a/b/untitled folder 1' both
@@ -100,13 +100,13 @@ def Extract(tarfile_fullpath, delete_tar_file=True):
     """Extract the tarfile_fullpath to an appropriate* folder of the same
     name as the tar file (without an extension) and return the path
     of this folder.
-
+	
     If delete_tar_file is True, it will delete the tar file after
     its extraction; if False, it won`t. Default value is True as you
     would normally want to delete the (nested) tar files after
     extraction. Pass a False, if you don`t want to delete the
     tar file (after its extraction) you are passing.
-
+	
     """
     try:
         print("Extracting '%s'" % tarfile_fullpath)
@@ -180,7 +180,7 @@ def ExtractNested(tarfile_fullpath, delete_tar_file=False):
         # (recursively).
 
     ### Added 28 APR 2021, dealing with intermittent ECMWF issues
-    MoveFilesToForecastRoot(extract_folder_name)
+    MoveFilesToForecastRoot(extract_folder_fullpath)
 
 ### Added 28 APR 2021, dealing with intermittent ECMWF issues
 def MoveFilesToForecastRoot(root):
@@ -193,6 +193,8 @@ def MoveFilesToForecastRoot(root):
         os.rename(file_paths[i],os.path.join(root,file))
 
     RemoveEmptyDirectories(root)
+    # Return to original working directory
+    os.chdir(root)
 
 ### Added 28 APR 2021, dealing with intermittent ECMWF issues
 def FindNetCDFDirectory(root):
