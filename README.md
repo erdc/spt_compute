@@ -2,11 +2,11 @@
 
 Computational framework to ingest ECMWF ensemble runoff forcasts or other Land Surface Model input; generate input for and run the RAPID (rapid-hub.org) program using HTCondor or Python's Multiprocessing; and upload to CKAN in order to be used by the Streamflow Prediction Tool (SPT). There is also an experimental option to use the AutoRoute program for flood inundation mapping.
 
-[![License (3-Clause BSD)](https://img.shields.io/badge/license-BSD%203--Clause-yellow.svg)](https://github.com/erdc-cm/spt_ecmwf_autorapid_process/blob/master/LICENSE)
+[![License (3-Clause BSD)](https://img.shields.io/badge/license-BSD%203--Clause-yellow.svg)](https://github.com/erdc/spt_ecmwf_autorapid_process/blob/master/LICENSE)
 
-[![Build Status](https://travis-ci.org/erdc-cm/spt_ecmwf_autorapid_process.svg?branch=master)](https://travis-ci.org/erdc-cm/spt_ecmwf_autorapid_process)
+[![Build Status](https://travis-ci.org/erdc/spt_ecmwf_autorapid_process.svg?branch=master)](https://travis-ci.org/erdc-cm/spt_ecmwf_autorapid_process)
 
-[![DOI](https://zenodo.org/badge/19918/erdc-cm/spt_ecmwf_autorapid_process.svg)](https://zenodo.org/badge/latestdoi/19918/erdc-cm/spt_ecmwf_autorapid_process)
+[![DOI](https://zenodo.org/badge/19918/erdc/spt_ecmwf_autorapid_process.svg)](https://zenodo.org/badge/latestdoi/19918/erdc-cm/spt_ecmwf_autorapid_process)
 
 ## How it works:
 
@@ -20,7 +20,7 @@ Snow, Alan Dee, "A New Global Forecasting Model to Produce High-Resolution Strea
 # Installation
 
 ## Step 1: Install RAPID and RAPIDpy
-See: https://github.com/erdc-cm/RAPIDpy
+See: https://github.com/erdc/RAPIDpy
 
 ## Step 2: Install HTCondor (if not using Amazon Web Services and StarCluster or not using Multiprocessing mode)
 ### On Ubuntu
@@ -92,15 +92,15 @@ Then install packages listed above.
 ## Step 4: (Optional) Install AutoRoute and AutoRoutePy
 If you want to try out the forecasted AutoRoute flood inundation (BETA), you will need to complete this section.
 
-Follow the instructions here: https://github.com/erdc-cm/AutoRoutePy
+Follow the instructions here: https://github.com/erdc/AutoRoutePy
 
 ## Step 5: Install Submodule Dependencies
-See: https://github.com/erdc-cm/spt_dataset_manager
+See: https://github.com/erdc/spt_dataset_manager
 
 ## Step 6: Download and install the source code
 ```
 $ cd /path/to/your/scripts/
-$ git clone https://github.com/erdc-cm/spt_ecmwf_autorapid_process.git
+$ git clone https://github.com/erdc/spt_ecmwf_autorapid_process.git
 $ cd spt_ecmwf_autorapid_process
 $ python setup.py install
 ```
@@ -295,7 +295,7 @@ $ chmod u+x run_ecmwf_rapid.py
 ```
 
 ## Step 10: Add RAPID files to the rapid-io/input directory
-To generate these files see: https://github.com/erdc-cm/RAPIDpy/wiki/GIS-Tools. If you are using the *sync_rapid_input_with_ckan* option, then you would upload these files through the Streamflow Prediction Tool web interface and this step is unnecessary.
+To generate these files see: https://github.com/erdc/RAPIDpy/wiki/GIS-Tools. If you are using the *sync_rapid_input_with_ckan* option, then you would upload these files through the Streamflow Prediction Tool web interface and this step is unnecessary.
 
 Make sure the directory is in the format [watershed_name]-[subbasin_name]
 with lowercase letters, numbers, and underscores only. No spaces!
