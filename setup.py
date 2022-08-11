@@ -14,7 +14,7 @@ setup(
     keywords='ECMWF, WRF, RAPID, Flood Prediction, Streamflow Prediction Tool',
     author='Alan Dee Snow',
     author_email='alan.d.snow@usace.army.mil',
-    url='https://github.com/erdc-cm/spt_compute',
+    url='https://github.com/erdc/spt_compute',
     license='BSD 3-Clause',
     packages=find_packages(),
     install_requires=[
