@@ -4,9 +4,9 @@ Computational framework to ingest ECMWF ensemble runoff forcasts or other Land S
 
 [![License (3-Clause BSD)](https://img.shields.io/badge/license-BSD%203--Clause-yellow.svg)](https://github.com/erdc/spt_ecmwf_autorapid_process/blob/master/LICENSE)
 
-[![Build Status](https://travis-ci.org/erdc/spt_ecmwf_autorapid_process.svg?branch=master)](https://travis-ci.org/erdc-cm/spt_ecmwf_autorapid_process)
+[![Build Status](https://travis-ci.org/erdc/spt_ecmwf_autorapid_process.svg?branch=master)](https://travis-ci.org/erdc/spt_ecmwf_autorapid_process)
 
-[![DOI](https://zenodo.org/badge/19918/erdc/spt_ecmwf_autorapid_process.svg)](https://zenodo.org/badge/latestdoi/19918/erdc-cm/spt_ecmwf_autorapid_process)
+[![DOI](https://zenodo.org/badge/19918/erdc/spt_ecmwf_autorapid_process.svg)](https://zenodo.org/badge/latestdoi/19918/erdc/spt_ecmwf_autorapid_process)
 
 ## How it works:
 
