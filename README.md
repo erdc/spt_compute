@@ -7,7 +7,7 @@ Computational framework to ingest ECMWF ensemble runoff forcasts or other Land S
 
 [![Build Status](https://travis-ci.org/erdc/spt_compute.svg?branch=master)](https://travis-ci.org/erdc/spt_compute)
 
-[![DOI](https://zenodo.org/badge/19918/erdc/spt_ecmwf_autorapid_process.svg)](https://zenodo.org/badge/latestdoi/19918/erdc-cm/spt_ecmwf_autorapid_process)
+[![DOI](https://zenodo.org/badge/19918/erdc/spt_ecmwf_autorapid_process.svg)](https://zenodo.org/badge/latestdoi/19918/erdc/spt_ecmwf_autorapid_process)
 
 ## How it works:
 
