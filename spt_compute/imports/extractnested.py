@@ -12,9 +12,10 @@ import re
 import tarfile
 import gzip
 from argparse import ArgumentParser
+from glob import glob
 
 major_version = 1
-minor_version = 1
+minor_version = 2
 error_count = 0
 
 file_extensions = ('tar', 'tgz', 'tbz', 'tb2', 'tar.gz', 'tar.bz2', 'gz')
@@ -25,11 +26,11 @@ __all__ = ['ExtractNested', 'WalkTreeAndExtract']
 
 def FileExtension(file_name):
     """Return the file extension of file
-
+	
     'file' should be a string. It can be either the full path of
     the file or just its name (or any string as long it contains
     the file extension.)
-
+	
     Example #1:
     input (file) -->  'abc.tar.gz'
     return value -->  'tar.gz'
@@ -51,22 +52,22 @@ def FileExtension(file_name):
 def AppropriateFolderName(folder_fullpath):
     """Return a folder (path) such that it can be safely created in
     without replacing any existing folder in it.
-
+	
     Check if the folder folder_fullpath exists. If no, return folder_fullpath
     (without changing, because it can be safely created
     without replacing any already existing folder). If yes, append an
     appropriate number to the folder_fullpath such that this new folder_fullpath
     can be safely created.
-
+	
     Examples:
     folder_name  = '/a/b/untitled folder'
     return value = '/a/b/untitled folder'   (no such folder already exists.)
-
+	
     folder_name  = '/a/b/untitled folder'
     return value = '/a/b/untitled folder 1' (the folder '/a/b/untitled folder'
                                             already exists but no folder named
                                             '/a/b/untitled folder 1' exists.)
-
+											
     folder_name  = '/a/b/untitled folder'
     return value = '/a/b/untitled folder 2' (the folders '/a/b/untitled folder'
                                             and '/a/b/untitled folder 1' both
@@ -95,17 +96,17 @@ def AppropriateFolderName(folder_fullpath):
     else:
         return folder_fullpath
 
-def Extract(tarfile_fullpath, delete_tar_file=True):
+def Extract(tarfile_fullpath, delete_tar_file=False):
     """Extract the tarfile_fullpath to an appropriate* folder of the same
     name as the tar file (without an extension) and return the path
     of this folder.
-
+	
     If delete_tar_file is True, it will delete the tar file after
     its extraction; if False, it won`t. Default value is True as you
     would normally want to delete the (nested) tar files after
     extraction. Pass a False, if you don`t want to delete the
     tar file (after its extraction) you are passing.
-
+	
     """
     try:
         print("Extracting '%s'" % tarfile_fullpath)
@@ -177,7 +178,60 @@ def ExtractNested(tarfile_fullpath, delete_tar_file=False):
         # Given tar file is extracted to extract_folder_name. Now descend
         # down its directory structure and extract all other tar files
         # (recursively).
+
+    ### Added 28 APR 2021, dealing with intermittent ECMWF issues
+    MoveFilesToForecastRoot(extract_folder_fullpath)
+
+### Added 28 APR 2021, dealing with intermittent ECMWF issues
+def MoveFilesToForecastRoot(root):
+    # Move NetCDF files to the root of the forecast directory
+    file_paths = FindNetCDFDirectory(root)
+    file_names = [x.split("/")[-1] for x in file_paths]
+    
+    for i,file in enumerate(file_names):
+        assert file in file_paths[i]
+        os.rename(file_paths[i],os.path.join(root,file))
+
+    RemoveEmptyDirectories(root)
+    # Return to original working directory
+    os.chdir(root)
+
+### Added 28 APR 2021, dealing with intermittent ECMWF issues
+def FindNetCDFDirectory(root):
+    # Recursively check through forecast directory to find netcdf files
+    os.chdir(root)
+    expected = [os.path.join(os.getcwd(),"{0}.runoff.nc".format(x+1)) for x in range(52)]
+    paths = [os.path.join(os.getcwd(),x) for x in glob("*")]
+    files = None
+    if all([x in paths for x in expected]):
+        files = expected
+    else:
+        paths = [x for x in paths if os.path.isdir(x)]
+        for path in paths:
+            next = FindNetCDFDirectory(path)
+            if next:
+                files = next
+    return files
+
+### Added 28 APR 2021, dealing with intermittent ECMWF issues
+def RemoveEmptyDirectories(root):
+    # Recurses through subdirectories and removes empty ones
+    os.chdir(root)
+    globs = [os.path.join(os.getcwd(),x) for x in glob("*")]
+    unchecked = [x for x in globs if os.path.isdir(x)]
+    checked = []
+    for path in unchecked:
+        if os.path.isfile(path):
+            checked.append(path)
+        else:
+            check = RemoveEmptyDirectories(path)
+            if not check:
+                os.rmdir(path)
+            else:
+                checked.append(path)
+    return checked
         
+
 if __name__ == '__main__':
     # Use a parser for parsing command line arguments
     parser = ArgumentParser(description='Nested tar archive extractor %d.%d'\
