@@ -23,6 +23,10 @@ import pandas as pd
 import xarray as xr
 
 
+def generate_lsm_warning_points(*args, **kwargs):
+    pass
+
+
 def geojson_feature(prefix, lat, lon, peak, date, rivid, ):
     return {"type": "Feature",
             "geometry": {"type": "Point",
