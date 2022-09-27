@@ -71,7 +71,8 @@ def generate_ecmwf_warning_points(ecmwf_prediction_folder, return_period_file, o
 
     merged_dataset = xr.concat(qout_datasets, pd.Index(ensemble_index_list, name="ensemble"))
 
-    merged_dataset = merged_dataset.resample(time="1D", skipna=True).max()
+#    merged_dataset = merged_dataset.resample(time="1D", skipna=True).max() # Compatible with current (SEP 2022) Xarray
+    merged_dataset = merged_dataset.resample("D", dim="time", how="max", skipna=True) # Compatible with Xarray version in legacy use
 
     mean_dataset = merged_dataset.mean(dim="ensemble")
     stdev_dataset = merged_dataset.std(dim="ensemble")
