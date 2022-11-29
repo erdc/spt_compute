@@ -76,7 +76,7 @@ class CreateInflowFileFromECMWFRunoff(object):
         for var in vars:
             for key in var_oi_names:
                 if var in var_oi_names[key]:
-                    var_names[key] = var_oi_names[key].index(var)
+                    var_names[key] = var_oi_names[key][var_oi_names[key].index(var)]
             
         return var_names
 
