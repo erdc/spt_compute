@@ -228,6 +228,8 @@ class CreateInflowFileFromECMWFRunoff(object):
                 [:, min_lon_ind_all:max_lon_ind_all+1, min_lat_ind_all:max_lat_ind_all+1]
             len_time_subset_all, len_lat_subset_all, len_lon_subset_all = _reshape(data_subset_all)
             data_subset_all = data_subset_all.reshape(len_time_subset_all, (len_lat_subset_all * len_lon_subset_all))
+        else:
+            print(vars_names)
 
         # compute new indices based on the data_subset_all
         index_new = []
