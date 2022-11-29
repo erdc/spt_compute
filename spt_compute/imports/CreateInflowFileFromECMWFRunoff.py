@@ -48,23 +48,39 @@ class CreateInflowFileFromECMWFRunoff(object):
 
     def dataValidation(self, in_nc):
         """Check the necessary dimensions and variables in the input netcdf data"""
-        vars_oi_index = None
+
+        # Updated to be tolerant of changes in ordering of dimensions and variables
+        # 21 NOV 2022
+
+        #vars_oi_index = None
 
         data_nc = NET.Dataset(in_nc)
         
         dims = list(data_nc.dimensions)
+        
         if dims not in self.dims_oi:
-            raise Exception(self.errorMessages[1])
+            for dim in dims:
+                if dim not in any(x for x in self.dims_oi):
+                    raise Exception(self.errorMessages[1])
 
         vars = list(data_nc.variables)
-        if vars == self.vars_oi[0]:
-            vars_oi_index = 0
-        elif vars == self.vars_oi[1]:
-            vars_oi_index = 1
-        else:    
-            raise Exception(self.errorMessages[2])
 
-        return vars_oi_index
+        #if vars == self.vars_oi[0]:
+            #vars_oi_index = 0
+        #elif vars == self.vars_oi[1]:
+            #vars_oi_index = 1
+
+        if vars not in self.vars_oi:
+            for var in vars:
+                if var not in any(x for x in self.vars_oi):
+                    raise Exception(self.errorMessages[2])
+
+        #else:    
+            #raise Exception(self.errorMessages[2])
+
+        return vars[-1]
+        
+        #return vars_oi_index
 
 
     def dataIdentify(self, in_nc):
