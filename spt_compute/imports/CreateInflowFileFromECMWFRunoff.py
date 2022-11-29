@@ -66,10 +66,10 @@ class CreateInflowFileFromECMWFRunoff(object):
         # ordering of vars does matter
         vars = list(data_nc.variables)
 
-        var_oi_names = {"lon": [x[0] for x in vars],
-                     "lat": [x[1] for x in vars],
-                     "time": [x[2] for x in vars],
-                     "runoff": [x[3] for x in vars]}
+        var_oi_names = {"lon": [x[0] for x in self.vars_oi],
+                     "lat": [x[1] for x in self.vars_oi],
+                     "time": [x[2] for x in self.vars_oi],
+                     "runoff": [x[3] for x in self.vars_oi]}
 
         var_names = {}
 
@@ -202,9 +202,11 @@ class CreateInflowFileFromECMWFRunoff(object):
         max_lat_ind_all = max(lat_ind_all)
 
         if vars_names.keys == ["lat", "lon", "time", "runoff"]:
-            data_subset_all = data_in_nc.variables[vars_names["runoff"]][min_lat_ind_all:max_lat_ind_all+1, min_lon_ind_all:max_lon_ind_all+1, :]
+            data_subset_all = data_in_nc.variables[vars_names["runoff"]]\
+                [min_lat_ind_all:max_lat_ind_all+1, min_lon_ind_all:max_lon_ind_all+1, :]
         elif vars_names.keys == ["time", "lat", "lon", "runoff"]:
-            data_subset_all = data_in_nc.variables[vars_names["runoff"]][:, min_lat_ind_all:max_lat_ind_all+1, min_lon_ind_all:max_lon_ind_all+1]
+            data_subset_all = data_in_nc.variables[vars_names["runoff"]]\
+                [:, min_lat_ind_all:max_lat_ind_all+1, min_lon_ind_all:max_lon_ind_all+1]
 
         len_time_subset_all = data_subset_all.shape[0]
         len_lat_subset_all = data_subset_all.shape[1]
