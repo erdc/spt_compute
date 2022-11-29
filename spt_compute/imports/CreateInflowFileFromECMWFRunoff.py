@@ -201,24 +201,33 @@ class CreateInflowFileFromECMWFRunoff(object):
         min_lat_ind_all = min(lat_ind_all)
         max_lat_ind_all = max(lat_ind_all)
 
+        def _reshape(data_subset_all):
+            len_time_subset_all = data_subset_all.shape[vars_names.keys.index("time")]
+            len_lat_subset_all = data_subset_all.shape[vars_names.keys.index("lat")]
+            len_lon_subset_all = data_subset_all.shape[vars_names.keys.index("lon")]
+
+            return (len_time_subset_all, len_lat_subset_all, len_lon_subset_all)
+            
         if vars_names.keys == ["lat", "lon", "time", "runoff"]:
             data_subset_all = data_in_nc.variables[vars_names["runoff"]]\
                 [min_lat_ind_all:max_lat_ind_all+1, min_lon_ind_all:max_lon_ind_all+1, :]
+            len_time_subset_all, len_lat_subset_all, len_lon_subset_all = _reshape(data_subset_all)
+            data_subset_all = data_subset_all.reshape((len_lat_subset_all * len_lon_subset_all), len_time_subset_all)
         elif vars_names.keys == ["time", "lat", "lon", "runoff"]:
             data_subset_all = data_in_nc.variables[vars_names["runoff"]]\
                 [:, min_lat_ind_all:max_lat_ind_all+1, min_lon_ind_all:max_lon_ind_all+1]
+            len_time_subset_all, len_lat_subset_all, len_lon_subset_all = _reshape(data_subset_all)
+            data_subset_all = data_subset_all.reshape(len_time_subset_all, (len_lat_subset_all * len_lon_subset_all))
         elif vars_names.keys == ["lon", "lat", "time", "runoff"]:
             data_subset_all = data_in_nc.variables[vars_names["runoff"]]\
                 [min_lon_ind_all:max_lon_ind_all+1, min_lat_ind_all:max_lat_ind_all+1, :]
+            len_time_subset_all, len_lat_subset_all, len_lon_subset_all = _reshape(data_subset_all)
+            data_subset_all = data_subset_all.reshape((len_lat_subset_all * len_lon_subset_all), len_time_subset_all)
         elif vars_names.keys == ["time", "lon", "lat", "runoff"]:
             data_subset_all = data_in_nc.variables[vars_names["runoff"]]\
                 [:, min_lon_ind_all:max_lon_ind_all+1, min_lat_ind_all:max_lat_ind_all+1]
-
-        len_time_subset_all = data_subset_all.shape[0]
-        len_lat_subset_all = data_subset_all.shape[1]
-        len_lon_subset_all = data_subset_all.shape[2]
-        data_subset_all = data_subset_all.reshape(len_time_subset_all, (len_lat_subset_all * len_lon_subset_all))
-
+            len_time_subset_all, len_lat_subset_all, len_lon_subset_all = _reshape(data_subset_all)
+            data_subset_all = data_subset_all.reshape(len_time_subset_all, (len_lat_subset_all * len_lon_subset_all))
 
         # compute new indices based on the data_subset_all
         index_new = []
