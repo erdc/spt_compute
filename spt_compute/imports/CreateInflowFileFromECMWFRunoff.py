@@ -207,6 +207,12 @@ class CreateInflowFileFromECMWFRunoff(object):
         elif vars_names.keys == ["time", "lat", "lon", "runoff"]:
             data_subset_all = data_in_nc.variables[vars_names["runoff"]]\
                 [:, min_lat_ind_all:max_lat_ind_all+1, min_lon_ind_all:max_lon_ind_all+1]
+        elif vars_names.keys == ["lon", "lat", "time", "runoff"]:
+            data_subset_all = data_in_nc.variables[vars_names["runoff"]]\
+                [min_lon_ind_all:max_lon_ind_all+1, min_lat_ind_all:max_lat_ind_all+1, :]
+        elif vars_names.keys == ["time", "lon", "lat", "runoff"]:
+            data_subset_all = data_in_nc.variables[vars_names["runoff"]]\
+                [:, min_lon_ind_all:max_lon_ind_all+1, min_lat_ind_all:max_lat_ind_all+1]
 
         len_time_subset_all = data_subset_all.shape[0]
         len_lat_subset_all = data_subset_all.shape[1]
