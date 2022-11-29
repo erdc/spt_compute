@@ -50,37 +50,35 @@ class CreateInflowFileFromECMWFRunoff(object):
         """Check the necessary dimensions and variables in the input netcdf data"""
 
         # Updated to be tolerant of changes in ordering of dimensions and variables
-        # 21 NOV 2022
-
-        #vars_oi_index = None
+        # Continued fixing of bugs and dumbs with regard to 21 NOV 2022 changes
+        # 29 NOV 2022
 
         data_nc = NET.Dataset(in_nc)
         
         dims = list(data_nc.dimensions)
         
+        # ordering of dims doesn't matter in the context of the code
         if dims not in self.dims_oi:
             for dim in dims:
-                if not any(dim in x for x in self.dims_oi):
+                if dim not in any(x for x in self.dims_oi):
                     raise Exception(self.errorMessages[1])
 
+        # ordering of vars does matter
         vars = list(data_nc.variables)
 
-        #if vars == self.vars_oi[0]:
-            #vars_oi_index = 0
-        #elif vars == self.vars_oi[1]:
-            #vars_oi_index = 1
+        var_oi_names = {"lon": [x[0] for x in vars],
+                     "lat": [x[1] for x in vars],
+                     "time": [x[2] for x in vars],
+                     "runoff": [x[3] for x in vars]}
 
-        if vars not in self.vars_oi:
-            for var in vars:
-                if var not in any(x for x in self.vars_oi):
-                    raise Exception(self.errorMessages[2])
+        var_names = {}
 
-        #else:    
-            #raise Exception(self.errorMessages[2])
-
-        return vars[-1]
-        
-        #return vars_oi_index
+        for var in vars:
+            for key in var_oi_names:
+                if var in var_oi_names[key]:
+                    var_names[key] = var_oi_names[key].index(var)
+            
+        return var_names
 
 
     def dataIdentify(self, in_nc):
@@ -112,7 +110,7 @@ class CreateInflowFileFromECMWFRunoff(object):
         """The source code of the tool."""
 
         # Validate the netcdf dataset
-        vars_oi_index = self.dataValidation(in_nc)
+        vars_names = self.dataValidation(in_nc)
         
         #get conversion factor
         conversion_factor = 1.0
@@ -203,8 +201,11 @@ class CreateInflowFileFromECMWFRunoff(object):
         min_lat_ind_all = min(lat_ind_all)
         max_lat_ind_all = max(lat_ind_all)
 
+        if vars_names.keys == ["lat", "lon", "time", "runoff"]:
+            data_subset_all = data_in_nc.variables[vars_names["runoff"]][min_lat_ind_all:max_lat_ind_all+1, min_lon_ind_all:max_lon_ind_all+1, :]
+        elif vars_names.keys == ["time", "lat", "lon", "runoff"]:
+            data_subset_all = data_in_nc.variables[vars_names["runoff"]][:, min_lat_ind_all:max_lat_ind_all+1, min_lon_ind_all:max_lon_ind_all+1]
 
-        data_subset_all = data_in_nc.variables[self.vars_oi[vars_oi_index][3]][:, min_lat_ind_all:max_lat_ind_all+1, min_lon_ind_all:max_lon_ind_all+1]
         len_time_subset_all = data_subset_all.shape[0]
         len_lat_subset_all = data_subset_all.shape[1]
         len_lon_subset_all = data_subset_all.shape[2]
