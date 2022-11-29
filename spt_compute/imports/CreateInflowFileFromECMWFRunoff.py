@@ -60,7 +60,7 @@ class CreateInflowFileFromECMWFRunoff(object):
         # ordering of dims doesn't matter in the context of the code
         if dims not in self.dims_oi:
             for dim in dims:
-                if dim not in any(x for x in self.dims_oi):
+                if not any(dim in x for x in self.dims_oi):
                     raise Exception(self.errorMessages[1])
 
         # ordering of vars does matter
