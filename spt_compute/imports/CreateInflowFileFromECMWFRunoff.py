@@ -230,9 +230,9 @@ class CreateInflowFileFromECMWFRunoff(object):
             data_subset_all = runoff_data[min_lon_ind_all:max_lon_ind_all+1, min_lat_ind_all:max_lat_ind_all+1, :]
             data_subset_all = data_subset_all.transpose(2, 0, 1)
 
-        len_time_subset_all = runoff_data.shape[0]
-        len_lon_subset_all = runoff_data.shape[1]
-        len_lat_subset_all = runoff_data.shape[2]
+        len_time_subset_all = data_subset_all.shape[0]
+        len_lon_subset_all = data_subset_all.shape[1]
+        len_lat_subset_all = data_subset_all.shape[2]
         data_subset_all = data_subset_all.reshape(len_time_subset_all, (len_lat_subset_all * len_lon_subset_all))
 
         # compute new indices based on the data_subset_all
