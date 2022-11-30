@@ -207,50 +207,40 @@ class CreateInflowFileFromECMWFRunoff(object):
         runoff_data = data_in_nc[var_names["runoff"]]
 
         if runoff_data.dimensions == (var_names["time"], var_names["lat"], var_names["lon"]):
-            len_lat_subset_all = runoff_data.shape[1]
-            len_lon_subset_all = runoff_data.shape[2]
             data_subset_all = runoff_data[:, min_lat_ind_all:max_lat_ind_all+1, min_lon_ind_all:max_lon_ind_all+1]
-            order = ("lat", "lon")
+            data_subset_all = data_subset_all.transpose(0, 2, 1)
 
         if runoff_data.dimensions == (var_names["time"], var_names["lon"], var_names["lat"]):
-            len_lat_subset_all = runoff_data.shape[2]
-            len_lon_subset_all = runoff_data.shape[1]
             data_subset_all = runoff_data[:, min_lon_ind_all:max_lon_ind_all+1, min_lat_ind_all:max_lat_ind_all+1]
-            order = ("lon", "lat")
+            data_subset_all = data_subset_all.transpose(0, 1, 2)
 
         if runoff_data.dimensions == (var_names["lat"], var_names["time"], var_names["lon"]):
-            len_lat_subset_all = runoff_data.shape[0]
-            len_lon_subset_all = runoff_data.shape[2]
             data_subset_all = runoff_data[min_lat_ind_all:max_lat_ind_all+1, :, min_lon_ind_all:max_lon_ind_all+1]
-            order = ("lat", "lon")
-
+            data_subset_all = data_subset_all.transpose(1, 2, 0)
+            
         if runoff_data.dimensions == (var_names["lat"], var_names["lon"], var_names["time"]):
-            len_lat_subset_all = runoff_data.shape[0]
-            len_lon_subset_all = runoff_data.shape[1]
             data_subset_all = runoff_data[min_lat_ind_all:max_lat_ind_all+1, min_lon_ind_all:max_lon_ind_all+1, :]
-            order = ("lat", "lon")
+            data_subset_all = data_subset_all.transpose(2, 1, 0)
 
         if runoff_data.dimensions == (var_names["lon"], var_names["time"], var_names["lat"]):
-            len_lat_subset_all = runoff_data.shape[2]
-            len_lon_subset_all = runoff_data.shape[0]
             data_subset_all = runoff_data[min_lon_ind_all:max_lon_ind_all+1, :, min_lat_ind_all:max_lat_ind_all+1]
-            order = ("lon", "lat")
+            data_subset_all = data_subset_all.transpose(1, 0, 2)
 
         if runoff_data.dimensions == (var_names["lon"], var_names["lat"], var_names["time"]):
-            len_lat_subset_all = runoff_data.shape[1]
-            len_lon_subset_all = runoff_data.shape[0]
             data_subset_all = runoff_data[min_lon_ind_all:max_lon_ind_all+1, min_lat_ind_all:max_lat_ind_all+1, :]
-            order = ("lon", "lat")
+            data_subset_all = data_subset_all.transpose(2, 0, 1)
+
+        len_time_subset_all = runoff_data.shape[0]
+        len_lon_subset_all = runoff_data.shape[1]
+        len_lat_subset_all = runoff_data.shape[2]
+        data_subset_all = data_subset_all.reshape(len_time_subset_all, (len_lat_subset_all * len_lon_subset_all))
 
         # compute new indices based on the data_subset_all
         index_new = []
         for r in range(0,count-1):
             ind_lat_orig = lat_ind_all[r]
             ind_lon_orig = lon_ind_all[r]
-            if order == ("lon", "lat"):
-                index_new.append((ind_lat_orig - min_lat_ind_all)*len_lon_subset_all + (ind_lon_orig - min_lon_ind_all))
-            if order == ("lat", "lon"):
-                index_new.append((ind_lon_orig - min_lon_ind_all)*len_lat_subset_all + (ind_lat_orig - min_lat_ind_all))
+            index_new.append((ind_lat_orig - min_lat_ind_all)*len_lon_subset_all + (ind_lon_orig - min_lon_ind_all))
 
         # obtain a new subset of data
         data_subset_new = data_subset_all[:,index_new]*conversion_factor
