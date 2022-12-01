@@ -10,7 +10,7 @@
 import datetime
 from glob import glob
 import json
-from multiprocessing import Pool as mp_Pool
+from multiprocessing import Pool as mp_Pool, cpu_count as mp_Corecount
 import os
 from shutil import rmtree
 import tarfile
@@ -44,7 +44,7 @@ except ImportError:
 
 from .process_lock import update_lock_info_file
 from .imports.ftp_ecmwf_download import get_ftp_forecast_list, download_and_extract_ftp
-from .imports.generate_warning_points import generate_ecmwf_warning_points
+from .imports.generate_warning_points import generate_ecmwf_warning_points, warning_points_worker
 from .imports.helper_functions import (CaptureStdOutToLog,
                                        clean_logs,
                                        find_current_rapid_output,
@@ -56,6 +56,7 @@ from .imports.helper_functions import (CaptureStdOutToLog,
                                        get_watershed_subbasin_from_folder, )
 from .imports.ecmwf_rapid_multiprocess_worker import run_ecmwf_rapid_multiprocess_worker
 from .imports.streamflow_assimilation import (compute_initial_rapid_flows,
+                                              initial_flows_worker,
                                               compute_seasonal_initial_rapid_flows_multicore_worker,
                                               update_inital_flows_usgs, )
 
@@ -121,7 +122,7 @@ def run_ecmwf_forecast_process(rapid_executable_location,  # path to RAPID execu
                                ftp_login="",  # ECMWF ftp login name
                                ftp_passwd="",  # ECMWF ftp password
                                ftp_directory="",  # ECMWF ftp directory
-                               delete_past_ecmwf_forecasts=True,  # Deletes all past forecasts before next run
+                               delete_past_ecmwf_forecasts=False,  # Deletes all past forecasts before next run
                                upload_output_to_ckan=False,  # upload data to CKAN and remove local copy
                                delete_output_when_done=False,  # delete all output data from this code
                                initialize_flows=False,  # use forecast to initialize next run
@@ -303,12 +304,16 @@ def run_ecmwf_forecast_process(rapid_executable_location,  # path to RAPID execu
 
                 # submit jobs to downsize ecmwf files to watershed
                 rapid_watershed_jobs = {}
+                warning_point_jobs = {}
+                initialization_jobs = {}
+
                 for rapid_input_directory in rapid_input_directories:
                     # keep list of jobs
                     rapid_watershed_jobs[rapid_input_directory] = {
                         'jobs': [],
                         'jobs_info': []
                     }
+
                     print("Running forecasts for: {0} {1}".format(rapid_input_directory,
                                                                   os.path.basename(ecmwf_folder)))
 
@@ -420,72 +425,79 @@ def run_ecmwf_forecast_process(rapid_executable_location,  # path to RAPID execu
                         # just in case ...
                         pool_main.close()
                         pool_main.join()
+                        del(pool_main)
 
-                    # when all jobs in watershed are done, generate warning points
                     if create_warning_points:
                         watershed, subbasin = get_watershed_subbasin_from_folder(rapid_input_directory)
                         forecast_directory = os.path.join(rapid_io_files_location,
                                                           'output',
                                                           rapid_input_directory,
                                                           forecast_date_timestep)
-
                         era_interim_watershed_directory = os.path.join(era_interim_data_location, rapid_input_directory)
+                        
                         if os.path.exists(era_interim_watershed_directory):
-                            print("Generating warning points for {0}-{1} from {2}".format(watershed, subbasin,
+                            print("Queueing warning point routine for {0}-{1} from {2}".format(watershed, subbasin,
                                                                                           forecast_date_timestep))
                             era_interim_files = glob(os.path.join(era_interim_watershed_directory, "return_period*.nc"))
+                            
                             if era_interim_files:
-                                try:
-                                    generate_ecmwf_warning_points(forecast_directory, era_interim_files[0],
-                                                                  forecast_directory, threshold=warning_flow_threshold)
-                                    if upload_output_to_ckan and data_store_url and data_store_api_key:
-                                        data_manager.initialize_run_ecmwf(watershed, subbasin, forecast_date_timestep)
-                                        data_manager.zip_upload_warning_points_in_directory(forecast_directory)
-                                except Exception as ex:
-                                    print(ex)
-                                    pass
+                                warning_point_jobs[rapid_input_directory] = [forecast_directory,
+                                                                             era_interim_files[0],
+                                                                             forecast_directory,
+                                                                             warning_flow_threshold]
+                            
                             else:
                                 print("No ERA Interim file found. Skipping ...")
+
                         else:
                             print("No ERA Interim directory found for {0}. "
                                   "Skipping warning point generation...".format(rapid_input_directory))
 
-                # initialize flows for next run
-                if initialize_flows:
-                    # create new init flow files/generate warning point files
-                    for rapid_input_directory in rapid_input_directories:
+                    if initialize_flows:
                         input_directory = os.path.join(rapid_io_files_location,
-                                                       'input',
+                                                       "input",
                                                        rapid_input_directory)
                         forecast_directory = os.path.join(rapid_io_files_location,
-                                                          'output',
+                                                          "output",
                                                           rapid_input_directory,
                                                           forecast_date_timestep)
-                        if os.path.exists(forecast_directory):
-                            # loop through all the rapid_namelist files in directory
-                            watershed, subbasin = get_watershed_subbasin_from_folder(rapid_input_directory)
-                            if initialize_flows:
-                                print("Initializing flows for {0}-{1} from {2}".format(watershed, subbasin,
-                                                                                       forecast_date_timestep))
-                                basin_files = find_current_rapid_output(forecast_directory, watershed, subbasin)
-                                try:
-                                    compute_initial_rapid_flows(basin_files, input_directory, forecast_date_timestep)
-                                except Exception as ex:
-                                    print(ex)
-                                    pass
 
-                # run autoroute process if added
-                if autoroute_executable_location and autoroute_io_files_location:
-                    # run autoroute on all of the watersheds
-                    run_autorapid_process(autoroute_executable_location,
-                                          autoroute_io_files_location,
-                                          rapid_io_files_location,
-                                          forecast_date_timestep,
-                                          subprocess_forecast_log_dir,
-                                          geoserver_url,
-                                          geoserver_username,
-                                          geoserver_password,
-                                          app_instance_id)
+                        if os.path.exists(forecast_directory):
+                            watershed, subbasin = get_watershed_subbasin_from_folder(rapid_input_directory)
+
+                            print("Initializing flows for {0}-{1} from {2}".format(watershed, subbasin,
+                                                                                   forecast_date_timestep))
+
+                            basin_files = find_current_rapid_output(forecast_directory, watershed, subbasin)
+
+                            initialization_jobs[rapid_input_directory] = [basin_files, input_directory,
+                                                                          forecast_date_timestep]
+
+                if warning_point_jobs:
+                    pool_warnings = mp_Pool(processes=min(8,mp_Corecount()))
+
+                    warning_results = pool_warnings.imap_unordered(warning_points_worker,
+                                                                   warning_point_jobs,
+                                                                   chunksize=1)
+
+                    for result in warning_results:
+                        pass
+
+                    pool_warnings.close()
+                    pool_warnings.join()
+
+                if initialization_jobs:
+                    pool_inits = mp_Pool(processes=min(8,mp_Corecount()))
+
+                    init_results = pool_inits.imap_unordered(initial_flows_worker,
+                                                             initialization_jobs,
+                                                             chunksize=1)
+
+                    for result in init_results:
+                        pass
+
+                    pool_inits.close()
+                    pool_inits.join()
 
                 last_forecast_date = get_datetime_from_date_timestep(forecast_date_timestep)
 
