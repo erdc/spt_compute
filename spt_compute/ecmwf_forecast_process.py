@@ -477,7 +477,7 @@ def run_ecmwf_forecast_process(rapid_executable_location,  # path to RAPID execu
                     pool_warnings = mp_Pool(processes=min(8,mp_Corecount()))
 
                     warning_results = pool_warnings.imap_unordered(warning_points_worker,
-                                                                   warning_point_jobs,
+                                                                   warning_point_jobs.values(),
                                                                    chunksize=1)
 
                     for result in warning_results:
@@ -490,7 +490,7 @@ def run_ecmwf_forecast_process(rapid_executable_location,  # path to RAPID execu
                     pool_inits = mp_Pool(processes=min(8,mp_Corecount()))
 
                     init_results = pool_inits.imap_unordered(initial_flows_worker,
-                                                             initialization_jobs,
+                                                             initialization_jobs.values(),
                                                              chunksize=1)
 
                     for result in init_results:
