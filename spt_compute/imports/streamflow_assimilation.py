@@ -380,6 +380,9 @@ def _cleanup_past_qinit(input_directory):
         except:
             pass
 
+def initial_flows_worker(args):
+    compute_initial_rapid_flows(*args)
+
 def compute_initial_rapid_flows(prediction_files, input_directory, forecast_date_timestep):
     """
     Gets mean of all 52 ensembles 12-hrs in future and prints to csv as initial flow
@@ -388,7 +391,7 @@ def compute_initial_rapid_flows(prediction_files, input_directory, forecast_date
     if subset of list, add zero where there is no flow
     """
     #remove old init files for this basin
-    _cleanup_past_qinit(input_directory)
+    #_cleanup_past_qinit(input_directory) # don't remove old qinits
     current_forecast_date = datetime.datetime.strptime(forecast_date_timestep[:11],"%Y%m%d.%H")
     current_forecast_date_string = current_forecast_date.strftime("%Y%m%dt%H")
     init_file_location = os.path.join(input_directory,'Qinit_%s.csv' % current_forecast_date_string)
