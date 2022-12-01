@@ -55,6 +55,10 @@ def geojson_features_to_collection(geojson_features):
     }
 
 
+def warning_points_worker(args):
+    generate_ecmwf_warning_points(*args)
+
+
 def generate_ecmwf_warning_points(ecmwf_prediction_folder, return_period_file, out_directory, threshold):
     prediction_files = os.listdir(ecmwf_prediction_folder)
     prediction_files = [os.path.join(ecmwf_prediction_folder, f) for f in prediction_files]
