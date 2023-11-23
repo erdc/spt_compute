@@ -16,14 +16,16 @@ from shutil import rmtree
 import tarfile
 from traceback import print_exc
 
-try:
-    from condorpy import Job as CJob
-    from condorpy import Templates as tmplt
+# try:
+#     from condorpy import Job as CJob
+#     from condorpy import Templates as tmplt
+#    CONDOR_ENABLED = True
+# except ImportError:
+#    CONDOR_ENABLED = False
+#    pass
 
-    CONDOR_ENABLED = True
-except ImportError:
-    CONDOR_ENABLED = False
-    pass
+CONDOR_ENABLED = False
+
 try:
     from spt_dataset_manager.dataset_manager import (ECMWFRAPIDDatasetManager,
                                                      RAPIDInputDatasetManager)
