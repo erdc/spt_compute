@@ -149,7 +149,7 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
                                             Qout_file=outflow_file_name,
                                             Qinit_file=qinit_file,
                                             BS_opt_Qinit=BS_opt_Qinit)
-            rapid_manager.run()
+            rapid_manager.run(rapid_input_directory)
     
             #generate Qinit from 1hr
             rapid_manager.generate_qinit_from_past_qout(qinit_3hr_file)
@@ -170,7 +170,7 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
                                             ZS_dtF=interval_3hr,  # forcing time interval
                                             Vlat_file=inflow_file_name_3hr,
                                             Qout_file=qout_3hr)
-            rapid_manager.run()
+            rapid_manager.run(rapid_input_directory)
 
             #generate Qinit from 3hr
             rapid_manager.generate_qinit_from_past_qout(qinit_6hr_file)
@@ -190,7 +190,7 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
                                             ZS_dtF=interval_6hr,  # forcing time interval
                                             Vlat_file=inflow_file_name_6hr,
                                             Qout_file=qout_6hr)
-            rapid_manager.run()
+            rapid_manager.run(rapid_input_directory)
 
             #Merge all files together at the end
             cv = ConvertRAPIDOutputToCF(rapid_output_file=[outflow_file_name, qout_3hr, qout_6hr], 
@@ -206,19 +206,19 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
             cv.convert()
     
         except Exception:
-            remove_file(qinit_3hr_file)
-            remove_file(qinit_6hr_file)
-            remove_file(inflow_file_name_1hr)
-            remove_file(inflow_file_name_3hr)
-            remove_file(inflow_file_name_6hr)
+            # remove_file(qinit_3hr_file)
+            # remove_file(qinit_6hr_file)
+            # remove_file(inflow_file_name_1hr)
+            # remove_file(inflow_file_name_3hr)
+            # remove_file(inflow_file_name_6hr)
             traceback.print_exc()
             raise
             
-        remove_file(qinit_3hr_file)
-        remove_file(qinit_6hr_file)
-        remove_file(inflow_file_name_1hr)
-        remove_file(inflow_file_name_3hr)
-        remove_file(inflow_file_name_6hr)
+        # remove_file(qinit_3hr_file)
+        # remove_file(qinit_6hr_file)
+        # remove_file(inflow_file_name_1hr)
+        # remove_file(inflow_file_name_3hr)
+        # remove_file(inflow_file_name_6hr)
 
     elif forecast_resolution == "LowResFull":
         #LOW RES - 3hr and 6hr timesteps
@@ -251,7 +251,7 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
                                             Qout_file=outflow_file_name,
                                             Qinit_file=qinit_file,
                                             BS_opt_Qinit=BS_opt_Qinit)
-            rapid_manager.run()
+            rapid_manager.run(rapid_input_directory)
     
             #generate Qinit from 3hr
             rapid_manager.generate_qinit_from_past_qout(qinit_6hr_file)
@@ -271,7 +271,7 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
                                             ZS_dtF=interval_6hr,  # forcing time interval
                                             Vlat_file=inflow_file_name_6hr,
                                             Qout_file=qout_6hr)
-            rapid_manager.run()
+            rapid_manager.run(rapid_input_directory)
 
             #Merge all files together at the end
             cv = ConvertRAPIDOutputToCF(rapid_output_file=[outflow_file_name, qout_6hr], 
@@ -287,15 +287,15 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
             cv.convert()
     
         except Exception:
-            remove_file(qinit_6hr_file)
-            remove_file(inflow_file_name_3hr)
-            remove_file(inflow_file_name_6hr)
+            # remove_file(qinit_6hr_file)
+            # remove_file(inflow_file_name_3hr)
+            # remove_file(inflow_file_name_6hr)
             traceback.print_exc()
             raise
             
-        remove_file(qinit_6hr_file)
-        remove_file(inflow_file_name_3hr)
-        remove_file(inflow_file_name_6hr)
+        # remove_file(qinit_6hr_file)
+        # remove_file(inflow_file_name_3hr)
+        # remove_file(inflow_file_name_6hr)
         
     elif forecast_resolution == "LowRes":
         #LOW RES - 6hr only
@@ -324,18 +324,18 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
                                             Qinit_file=qinit_file,
                                             BS_opt_Qinit=BS_opt_Qinit)
     
-            rapid_manager.run()
+            rapid_manager.run(rapid_input_directory)
             rapid_manager.make_output_CF_compliant(simulation_start_datetime=datetime.datetime.strptime(forecast_date_timestep[:11], "%Y%m%d.%H"),
                                                    comid_lat_lon_z_file=comid_lat_lon_z_file,
                                                    project_name="ECMWF-RAPID Predicted flows by US Army ERDC")
 
         except Exception:
-            remove_file(inflow_file_name)
+            # remove_file(inflow_file_name)
             traceback.print_exc()
             raise
             
         #clean up
-        remove_file(inflow_file_name)
+        # remove_file(inflow_file_name)
 
     else:
         raise Exception("ERROR: invalid forecast resolution ...")
@@ -365,11 +365,16 @@ def run_ecmwf_rapid_multiprocess_worker(args):
     with CaptureStdOutToLog(os.path.join(subprocess_forecast_log_dir, "{0}.log".format(job_name))):
         #create folder to run job
         execute_directory = os.path.join(mp_execute_directory, job_name)
-        try:
-            os.mkdir(execute_directory)
-        except OSError:
-            pass
-        
+        # MPG DEBUG: fail if can't create `execute_directory`
+        print("execute_directory", execute_directory)
+        print("cwd", os.getcwd())
+        print("ls", os.listdir("."))
+        os.mkdir(execute_directory)
+        # try:
+        #     os.mkdir(execute_directory)
+        # except OSError:
+        #     pass
+
         try:
             ecmwf_rapid_multiprocess_worker(execute_directory, rapid_input_directory,
                                             ecmwf_forecast, forecast_date_timestep, 
@@ -381,9 +386,9 @@ def run_ecmwf_rapid_multiprocess_worker(args):
                                                    os.path.basename(master_rapid_outflow_file))
                                                    
             move(node_rapid_outflow_file, master_rapid_outflow_file)
-            rmtree(execute_directory)
+            # rmtree(execute_directory)
         except Exception:
-            rmtree(execute_directory)
+            # rmtree(execute_directory)
             traceback.print_exc()
             raise
     return watershed_job_index
