@@ -30,8 +30,8 @@ class CreateInflowFileFromECMWFRunoff(object):
                        "based on ECMWF runoff results and previously created weight table.")
         self.canRunInBackground = False
         self.header_wt = ['StreamID', 'area_sqm', 'lon_index', 'lat_index', 'npoints']
-        self.dims_oi = [['lon', 'lat', 'time'], ['longitude', 'latitude', 'time']]
-        self.vars_oi = [["lon", "lat", "time", "RO"], ['longitude', 'latitude', 'time', 'ro']]
+        self.dims_oi = ['time', 'lon', 'lat']
+        self.vars_oi = ['time', 'lon', 'lat', 'RO']
         self.length_time = {"LowRes": 61, "LowResFull": 85,"HighRes": 125}
         self.length_time_opt = {"LowRes-6hr": 60,
                                 "LowResFull-3hr-Sub": 48, "LowResFull-6hr-Sub": 36,
@@ -48,40 +48,21 @@ class CreateInflowFileFromECMWFRunoff(object):
 
     def dataValidation(self, in_nc):
         """Check the necessary dimensions and variables in the input netcdf data"""
-
-        # Updated to be tolerant of changes in ordering of dimensions and variables
-        # Continued fixing of bugs and dumbs with regard to 21 NOV 2022 changes
-        # 29 NOV 2022
-
-        longitude_names = [row[0] for row in self.vars_oi]
-        latitude_names = [row[1] for row in self.vars_oi]
-        time_names = [row[2] for row in self.vars_oi]
-        runoff_names = [row[3] for row in self.vars_oi]
+        vars_oi_index = None
 
         data_nc = NET.Dataset(in_nc)
-        dims = list(data_nc.dimensions)    
-        # ordering of dims doesn't matter in the context of the code
-        for dim in dims:
-            if not any(dim in dim_list for dim_list in self.dims_oi):
+        
+        dims = list(data_nc.dimensions)
+        for dim in self.dims_oi:
+            if dim not in dims:
                 raise Exception(self.errorMessages[1])
 
-        # ordering of vars does matter
         vars = list(data_nc.variables)
-        var_names = {}
-
         for var in vars:
-            if var in longitude_names:
-                var_names["lon"] = var
-            elif var in latitude_names:
-                var_names["lat"] = var
-            elif var in time_names:
-                var_names["time"] = var
-            elif var in runoff_names:
-                var_names["runoff"] = var
-            else:
+            if var not in self.vars_oi:
                 raise Exception(self.errorMessages[2])
 
-        return var_names
+        return vars_oi_index
 
 
     def dataIdentify(self, in_nc):
@@ -113,7 +94,7 @@ class CreateInflowFileFromECMWFRunoff(object):
         """The source code of the tool."""
 
         # Validate the netcdf dataset
-        var_names = self.dataValidation(in_nc)
+        vars_oi_index = self.dataValidation(in_nc)
         
         #get conversion factor
         conversion_factor = 1.0
@@ -204,36 +185,15 @@ class CreateInflowFileFromECMWFRunoff(object):
         min_lat_ind_all = min(lat_ind_all)
         max_lat_ind_all = max(lat_ind_all)
 
-        runoff_data = data_in_nc[var_names["runoff"]]
 
-        if runoff_data.dimensions == (var_names["time"], var_names["lat"], var_names["lon"]):
-            data_subset_all = runoff_data[:, min_lat_ind_all:max_lat_ind_all+1, min_lon_ind_all:max_lon_ind_all+1]
-            data_subset_all = data_subset_all.transpose(0, 2, 1)
-
-        if runoff_data.dimensions == (var_names["time"], var_names["lon"], var_names["lat"]):
-            data_subset_all = runoff_data[:, min_lon_ind_all:max_lon_ind_all+1, min_lat_ind_all:max_lat_ind_all+1]
-            data_subset_all = data_subset_all.transpose(0, 1, 2)
-
-        if runoff_data.dimensions == (var_names["lat"], var_names["time"], var_names["lon"]):
-            data_subset_all = runoff_data[min_lat_ind_all:max_lat_ind_all+1, :, min_lon_ind_all:max_lon_ind_all+1]
-            data_subset_all = data_subset_all.transpose(1, 2, 0)
-            
-        if runoff_data.dimensions == (var_names["lat"], var_names["lon"], var_names["time"]):
-            data_subset_all = runoff_data[min_lat_ind_all:max_lat_ind_all+1, min_lon_ind_all:max_lon_ind_all+1, :]
-            data_subset_all = data_subset_all.transpose(2, 1, 0)
-
-        if runoff_data.dimensions == (var_names["lon"], var_names["time"], var_names["lat"]):
-            data_subset_all = runoff_data[min_lon_ind_all:max_lon_ind_all+1, :, min_lat_ind_all:max_lat_ind_all+1]
-            data_subset_all = data_subset_all.transpose(1, 0, 2)
-
-        if runoff_data.dimensions == (var_names["lon"], var_names["lat"], var_names["time"]):
-            data_subset_all = runoff_data[min_lon_ind_all:max_lon_ind_all+1, min_lat_ind_all:max_lat_ind_all+1, :]
-            data_subset_all = data_subset_all.transpose(2, 0, 1)
-
+        data_subset_all = data_in_nc.variables['RO'][:, 
+            min_lat_ind_all:max_lat_ind_all+1, 
+            min_lon_ind_all:max_lon_ind_all+1]
         len_time_subset_all = data_subset_all.shape[0]
-        len_lon_subset_all = data_subset_all.shape[1]
-        len_lat_subset_all = data_subset_all.shape[2]
+        len_lat_subset_all = data_subset_all.shape[1]
+        len_lon_subset_all = data_subset_all.shape[2]
         data_subset_all = data_subset_all.reshape(len_time_subset_all, (len_lat_subset_all * len_lon_subset_all))
+
 
         # compute new indices based on the data_subset_all
         index_new = []
