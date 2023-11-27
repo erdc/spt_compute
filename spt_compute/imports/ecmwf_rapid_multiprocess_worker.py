@@ -365,15 +365,11 @@ def run_ecmwf_rapid_multiprocess_worker(args):
     with CaptureStdOutToLog(os.path.join(subprocess_forecast_log_dir, "{0}.log".format(job_name))):
         #create folder to run job
         execute_directory = os.path.join(mp_execute_directory, job_name)
-        # MPG DEBUG: fail if can't create `execute_directory`
-        print("execute_directory", execute_directory)
-        print("cwd", os.getcwd())
-        print("ls", os.listdir("."))
-        os.mkdir(execute_directory)
-        # try:
-        #     os.mkdir(execute_directory)
-        # except OSError:
-        #     pass
+
+        try:
+            os.mkdir(execute_directory)
+        except OSError:
+            pass
 
         try:
             ecmwf_rapid_multiprocess_worker(execute_directory, rapid_input_directory,
