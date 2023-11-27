@@ -185,8 +185,8 @@ class CreateInflowFileFromECMWFRunoff(object):
         size_streamID = len(set(dict_list[self.header_wt[0]]))
 
         # Create output inflow netcdf data
-        # data_out_nc = NET.Dataset(out_nc, "w") # by default format = "NETCDF4"
-        data_out_nc = NET.Dataset(out_nc, "w", format = "NETCDF3_CLASSIC")
+        data_out_nc = NET.Dataset(out_nc, "w") # by default format = "NETCDF4"
+        # data_out_nc = NET.Dataset(out_nc, "w", format = "NETCDF3_CLASSIC")
         dim_Time = data_out_nc.createDimension('Time', size_time)
         dim_RiverID = data_out_nc.createDimension('rivid', size_streamID)
         var_m3_riv = data_out_nc.createVariable('m3_riv', 'f4', 
