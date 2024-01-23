@@ -30,12 +30,16 @@ class CreateInflowFileFromECMWFRunoff(object):
                        "based on ECMWF runoff results and previously created weight table.")
         self.canRunInBackground = False
         self.header_wt = ['StreamID', 'area_sqm', 'lon_index', 'lat_index', 'npoints']
-        self.dims_oi = ['time', 'lon', 'lat']
-        self.vars_oi = ['time', 'lon', 'lat', 'RO']
+        self.dims_oi = [['lon', 'lat', 'time'],
+                        ['longitude', 'latitude', 'time'],
+                        ['time', 'lon', 'lat']]
+        self.vars_oi = [["lon", "lat", "time", "RO"],
+                        ['longitude', 'latitude', 'time', 'ro'],
+                        ['time', 'lon', 'lat', 'RO']]
         self.length_time = {"LowRes": 61, "LowResFull": 85,"HighRes": 125}
         self.length_time_opt = {"LowRes-6hr": 60,
                                 "LowResFull-3hr-Sub": 48, "LowResFull-6hr-Sub": 36,
-                                "HighRes-1hr": 90, "HighRes-3hr": 48, "HighRes-6hr": 40, 
+                                "HighRes-1hr": 90, "HighRes-3hr": 48, "HighRes-6hr": 40,
                                 "HighRes-3hr-Sub": 18, "HighRes-6hr-Sub": 16}
         self.errorMessages = ["Missing Variable 'time'",
                               "Incorrect dimensions in the input ECMWF runoff file.",
@@ -51,19 +55,18 @@ class CreateInflowFileFromECMWFRunoff(object):
         vars_oi_index = None
 
         data_nc = NET.Dataset(in_nc)
-        
         dims = list(data_nc.dimensions)
-        for dim in self.dims_oi:
-            if dim not in dims:
-                raise Exception(self.errorMessages[1])
+        if dims not in self.dims_oi:
+            raise Exception(self.errorMessages[1])
 
         vars = list(data_nc.variables)
-        for var in vars:
-            if var not in self.vars_oi:
-                raise Exception(self.errorMessages[2])
+
+        try:
+            vars_oi_index = self.vars_oi.index(vars)
+        except:
+            raise Exception(self.errorMessages[2])
 
         return vars_oi_index
-
 
     def dataIdentify(self, in_nc):
         """Check if the data is Ensemble 1-51 (low resolution) or 52 (high resolution)"""
@@ -82,22 +85,25 @@ class CreateInflowFileFromECMWFRunoff(object):
             return "LowRes"
         else:
             return None
-            
+
     def getGridName(self, in_nc, high_res=False):
         """Return name of grid"""
         if high_res:
             return 'ecmwf_t1279'
         return 'ecmwf_tco639'
 
-
     def execute(self, in_nc, in_weight_table, out_nc, grid_name, in_time_interval="6hr"):
         """The source code of the tool."""
 
         # Validate the netcdf dataset
         vars_oi_index = self.dataValidation(in_nc)
-        
+
         #get conversion factor
         conversion_factor = 1.0
+
+        # MPG: units are listed as "m" for the "RO" variable in ECMWF runoff
+        # input files (tco639 grid) as of 22 January 2024. However, mm
+        # appears to be the correct unit.
         if grid_name == 'ecmwf_t1279' or grid_name == 'ecmwf_tco639':
             #new grids in mm instead of m
             conversion_factor = 0.001
@@ -115,10 +121,10 @@ class CreateInflowFileFromECMWFRunoff(object):
         if len(time) != self.length_time[id_data]:
             raise Exception(self.errorMessages[3])
 
-
         ''' Read the weight table '''
         print("Reading the weight table...")
-        dict_list = {self.header_wt[0]:[], self.header_wt[1]:[], self.header_wt[2]:[],
+        dict_list = {self.header_wt[0]:[], self.header_wt[1]:[],
+                     self.header_wt[2]:[],
                      self.header_wt[3]:[], self.header_wt[4]:[]}
 
         with open(in_weight_table, "r") as csvfile:
@@ -166,14 +172,15 @@ class CreateInflowFileFromECMWFRunoff(object):
         size_streamID = len(set(dict_list[self.header_wt[0]]))
 
         # Create output inflow netcdf data
-        data_out_nc = NET.Dataset(out_nc, "w") # by default format = "NETCDF4"
-        # data_out_nc = NET.Dataset(out_nc, "w", format = "NETCDF3_CLASSIC")
+        # MPG: earlier versions of RAPID do not support the NETCDF4 format.
+        # data_out_nc = NET.Dataset(out_nc, "w") # by default format = "NETCDF4"
+        data_out_nc = NET.Dataset(out_nc, "w", format = "NETCDF3_CLASSIC")
         dim_Time = data_out_nc.createDimension('Time', size_time)
         dim_RiverID = data_out_nc.createDimension('rivid', size_streamID)
-        var_m3_riv = data_out_nc.createVariable('m3_riv', 'f4', 
+        var_m3_riv = data_out_nc.createVariable('m3_riv', 'f4',
                                                 ('Time', 'rivid'),
                                                 fill_value=0)
-                                                
+
         data_temp = NUM.empty(shape = [size_time, size_streamID])
 
         lon_ind_all = [int(i) for i in dict_list[self.header_wt[2]]]
@@ -185,22 +192,24 @@ class CreateInflowFileFromECMWFRunoff(object):
         min_lat_ind_all = min(lat_ind_all)
         max_lat_ind_all = max(lat_ind_all)
 
-
-        data_subset_all = data_in_nc.variables['RO'][:, 
-            min_lat_ind_all:max_lat_ind_all+1, 
-            min_lon_ind_all:max_lon_ind_all+1]
+        data_subset_all = data_in_nc.variables[
+                              self.vars_oi[vars_oi_index][3]][:,
+                                      min_lat_ind_all:max_lat_ind_all+1,
+                                      min_lon_ind_all:max_lon_ind_all+1]
         len_time_subset_all = data_subset_all.shape[0]
         len_lat_subset_all = data_subset_all.shape[1]
         len_lon_subset_all = data_subset_all.shape[2]
-        data_subset_all = data_subset_all.reshape(len_time_subset_all, (len_lat_subset_all * len_lon_subset_all))
-
+        data_subset_all = data_subset_all.reshape(len_time_subset_all,
+                              (len_lat_subset_all * len_lon_subset_all))
 
         # compute new indices based on the data_subset_all
         index_new = []
         for r in range(0,count-1):
             ind_lat_orig = lat_ind_all[r]
             ind_lon_orig = lon_ind_all[r]
-            index_new.append((ind_lat_orig - min_lat_ind_all)*len_lon_subset_all + (ind_lon_orig - min_lon_ind_all))
+            index_new.append(
+                (ind_lat_orig - min_lat_ind_all)*len_lon_subset_all + (
+                    ind_lon_orig - min_lon_ind_all))
 
         # obtain a new subset of data
         data_subset_new = data_subset_all[:,index_new]*conversion_factor
@@ -219,8 +228,7 @@ class CreateInflowFileFromECMWFRunoff(object):
             area_sqm_npoints = NUM.array(area_sqm_npoints)
             area_sqm_npoints = area_sqm_npoints.reshape(1, npoints)
             data_goal = data_subset_new[:, pointer:(pointer + npoints)]
-            
-            
+
             #remove noise from data
             data_goal[data_goal<=0.00001] = 0
 
@@ -276,13 +284,12 @@ class CreateInflowFileFromECMWFRunoff(object):
                     ro_6hr_c = NUM.subtract(data_goal[109:,], data_goal[108:-1,])
                     # concatenate all time series
                     ro_stream = NUM.concatenate([ro_6hr_a, ro_6hr_b, ro_6hr_c]) * area_sqm_npoints
-                    
+
             #remove negative values
             ro_stream[ro_stream<0] = 0
             data_temp[:,s] = ro_stream.sum(axis = 1)
 
             pointer += npoints
-
 
         '''Write inflow data'''
         print("Writing inflow data...")
