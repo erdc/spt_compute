@@ -90,7 +90,10 @@ class CreateInflowFileFromECMWFRunoff(object):
         """Return name of grid"""
         if high_res:
             return 'ecmwf_t1279'
-        return 'ecmwf_tco639'
+        # MPG: weight table filename for ECMWF IFS is 
+        # `ecmwf_ifs_merit_hydro.csv`
+        # return 'ecmwf_tco639'
+        return 'ecmwf_ifs_merit_hydro'
 
     def execute(self, in_nc, in_weight_table, out_nc, grid_name, in_time_interval="6hr"):
         """The source code of the tool."""
@@ -104,7 +107,8 @@ class CreateInflowFileFromECMWFRunoff(object):
         # MPG: units are listed as "m" for the "RO" variable in ECMWF runoff
         # input files (tco639 grid) as of 22 January 2024. However, mm
         # appears to be the correct unit.
-        if grid_name == 'ecmwf_t1279' or grid_name == 'ecmwf_tco639':
+        if grid_name in ['ecmwf_t1279', 'ecmwf_tco639', 
+                         'ecmwf_ifs_merit_hydro']:
             #new grids in mm instead of m
             conversion_factor = 0.001
 

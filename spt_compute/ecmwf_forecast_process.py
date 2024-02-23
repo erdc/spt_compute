@@ -172,7 +172,8 @@ def run_ecmwf_forecast_process(rapid_executable_location,  # path to RAPID execu
             ri_manager.sync_dataset(os.path.join(rapid_io_files_location, 'input'))
 
         # clean up old log files
-        clean_logs(subprocess_log_directory, main_log_directory, log_file_path=log_file_path)
+        # MPG: preserving logs for now.
+        # clean_logs(subprocess_log_directory, main_log_directory, log_file_path=log_file_path)
 
         data_manager = None
         if upload_output_to_ckan and data_store_url and data_store_api_key:
@@ -345,9 +346,12 @@ def run_ecmwf_forecast_process(rapid_executable_location,  # path to RAPID execu
                     # create jobs for HTCondor/multiprocess
                     for watershed_job_index, forecast in enumerate(ecmwf_forecasts):
                         ensemble_number = get_ensemble_number_from_forecast(forecast)
+                        if ensemble_number == 52:
+                            continue
 
                         # get basin names
                         outflow_file_name = 'Qout_%s_%s_%s.nc' % (watershed.lower(), subbasin.lower(), ensemble_number)
+
                         node_rapid_outflow_file = outflow_file_name
                         master_rapid_outflow_file = os.path.join(master_watershed_outflow_directory, outflow_file_name)
 
@@ -388,18 +392,19 @@ def run_ecmwf_forecast_process(rapid_executable_location,  # path to RAPID execu
                                                                                         subprocess_forecast_log_dir,
                                                                                         watershed_job_index))
                             # COMMENTED CODE FOR DEBUGGING SERIALLY
-                            ##                    run_ecmwf_rapid_multiprocess_worker((forecast,
-                            ##                                                         forecast_date_timestep,
-                            ##                                                         watershed.lower(),
-                            ##                                                         subbasin.lower(),
-                            ##                                                         rapid_executable_location,
-                            ##                                                         initialize_flows,
-                            ##                                                         job_name,
-                            ##                                                         master_rapid_outflow_file,
-                            ##                                                         master_watershed_input_directory,
-                            ##                                                         mp_execute_directory,
-                            ##                                                         subprocess_forecast_log_dir,
-                            ##                                                         watershed_job_index))
+                            # if ensemble_number == 2:
+                            #    run_ecmwf_rapid_multiprocess_worker((forecast,
+                            #    forecast_date_timestep,
+                            #    watershed.lower(),
+                            #    subbasin.lower(),
+                            #    rapid_executable_location,
+                            #    initialize_flows,
+                            #    job_name,
+                            #    master_rapid_outflow_file,
+                            #    master_watershed_input_directory,
+                            #    mp_execute_directory,
+                            #    subprocess_forecast_log_dir,
+                            #    watershed_job_index))
                         else:
                             raise Exception("ERROR: Invalid mp_mode. Valid types are htcondor and multiprocess ...")
 
@@ -416,9 +421,10 @@ def run_ecmwf_forecast_process(rapid_executable_location,  # path to RAPID execu
 
                     elif mp_mode == "multiprocess":
                         pool_main = mp_Pool()
-                        multiprocess_worker_list = pool_main.imap_unordered(run_ecmwf_rapid_multiprocess_worker,
-                                                                            watershed_job_info['jobs'],
-                                                                            chunksize=1)
+                        multiprocess_worker_list = pool_main.imap_unordered(
+                            run_ecmwf_rapid_multiprocess_worker,
+                            watershed_job_info['jobs'], chunksize=1)
+
                         if data_manager:
                             for multi_job_index in multiprocess_worker_list:
                                 # upload file when done
