@@ -149,7 +149,7 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
                                             Qout_file=outflow_file_name,
                                             Qinit_file=qinit_file,
                                             BS_opt_Qinit=BS_opt_Qinit)
-            rapid_manager.run(rapid_input_directory)
+            rapid_manager.run() # rapid_input_directory)
     
             #generate Qinit from 1hr
             rapid_manager.generate_qinit_from_past_qout(qinit_3hr_file)
@@ -170,7 +170,7 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
                                             ZS_dtF=interval_3hr,  # forcing time interval
                                             Vlat_file=inflow_file_name_3hr,
                                             Qout_file=qout_3hr)
-            rapid_manager.run(rapid_input_directory)
+            rapid_manager.run() # rapid_input_directory)
 
             #generate Qinit from 3hr
             rapid_manager.generate_qinit_from_past_qout(qinit_6hr_file)
@@ -190,7 +190,7 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
                                             ZS_dtF=interval_6hr,  # forcing time interval
                                             Vlat_file=inflow_file_name_6hr,
                                             Qout_file=qout_6hr)
-            rapid_manager.run(rapid_input_directory)
+            rapid_manager.run() # rapid_input_directory)
 
             #Merge all files together at the end
             cv = ConvertRAPIDOutputToCF(rapid_output_file=[outflow_file_name, qout_3hr, qout_6hr], 
@@ -251,7 +251,7 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
                                             Qout_file=outflow_file_name,
                                             Qinit_file=qinit_file,
                                             BS_opt_Qinit=BS_opt_Qinit)
-            rapid_manager.run(rapid_input_directory)
+            rapid_manager.run() # rapid_input_directory)
     
             #generate Qinit from 3hr
             rapid_manager.generate_qinit_from_past_qout(qinit_6hr_file)
@@ -271,7 +271,7 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
                                             ZS_dtF=interval_6hr,  # forcing time interval
                                             Vlat_file=inflow_file_name_6hr,
                                             Qout_file=qout_6hr)
-            rapid_manager.run(rapid_input_directory)
+            rapid_manager.run() # rapid_input_directory)
 
             #Merge all files together at the end
             cv = ConvertRAPIDOutputToCF(rapid_output_file=[outflow_file_name, qout_6hr], 
@@ -324,7 +324,7 @@ def ecmwf_rapid_multiprocess_worker(node_path, rapid_input_directory,
                                             Qinit_file=qinit_file,
                                             BS_opt_Qinit=BS_opt_Qinit)
     
-            rapid_manager.run(rapid_input_directory)
+            rapid_manager.run() # rapid_input_directory)
             rapid_manager.make_output_CF_compliant(simulation_start_datetime=datetime.datetime.strptime(forecast_date_timestep[:11], "%Y%m%d.%H"),
                                                    comid_lat_lon_z_file=comid_lat_lon_z_file,
                                                    project_name="ECMWF-RAPID Predicted flows by US Army ERDC")
